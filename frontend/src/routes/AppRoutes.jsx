@@ -6,6 +6,11 @@ import PageHeader from "../components/layout/PageHeader";
 import EmptyState from "../components/ui/EmptyState";
 import { Construction } from "lucide-react";
 
+// Meeting Management Feature Pages
+import MeetingListPage from "../features/meetings/pages/MeetingListPage";
+import MeetingFormPage from "../features/meetings/pages/MeetingFormPage";
+import MeetingDetailPage from "../features/meetings/pages/MeetingDetailPage";
+
 function ModulePlaceholder({ title, description }) {
   return (
     <div>
@@ -37,6 +42,12 @@ export default function AppRoutes() {
       {/* Route Kho thành phần giao diện dùng chung */}
       <Route path="/components" element={<ComponentShowcase />} />
 
+      {/* Phân hệ Quản lý Phiên họp Hội đồng trường */}
+      <Route path="/meetings" element={<MeetingListPage />} />
+      <Route path="/meetings/create" element={<MeetingFormPage />} />
+      <Route path="/meetings/:id" element={<MeetingDetailPage />} />
+      <Route path="/meetings/:id/edit" element={<MeetingFormPage />} />
+
       {/* Các Tuyến đường Nghiệp vụ (Sẵn sàng kết nối ở các giai đoạn sau) */}
       <Route
         path="/councils"
@@ -45,10 +56,6 @@ export default function AppRoutes() {
       <Route
         path="/dossiers"
         element={<ModulePlaceholder title="Quản lý Hồ sơ trình" description="Quy trình nộp, tiếp nhận và thẩm tra hồ sơ tờ trình từ các đơn vị." />}
-      />
-      <Route
-        path="/meetings"
-        element={<ModulePlaceholder title="Quản lý Phiên họp & Tài liệu" description="Lập lịch họp, xây dựng chương trình nghị sự (Agenda), điểm danh và tài liệu bảo mật." />}
       />
       <Route
         path="/voting"
