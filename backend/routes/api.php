@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\DossierController;
 use App\Http\Controllers\Api\V1\MeetingController;
 use App\Http\Controllers\Api\V1\ResolutionController;
 use App\Http\Controllers\Api\V1\TaskController;
+use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\VotingController;
 use Illuminate\Support\Facades\Route;
 
@@ -107,5 +108,17 @@ Route::prefix('v1')->group(function () {
         Route::post('/documents', [DocumentController::class, 'store']);
         Route::get('/documents/{id}/download', [DocumentController::class, 'download']);
         Route::delete('/documents/{id}', [DocumentController::class, 'destroy']);
+    });
+
+    // 9. Module Quản lý Người dùng & Phân quyền (Users & Roles - UC6)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/roles', [UserController::class, 'roles']);
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/users', [UserController::class, 'store']);
+        Route::get('/users/{id}', [UserController::class, 'show']);
+        Route::put('/users/{id}', [UserController::class, 'update']);
+        Route::delete('/users/{id}', [UserController::class, 'destroy']);
+        Route::post('/users/{id}/toggle-status', [UserController::class, 'toggleStatus']);
+        Route::post('/users/{id}/reset-password', [UserController::class, 'resetPassword']);
     });
 });

@@ -34,6 +34,9 @@ import CouncilMemberListPage from "../features/councils/pages/CouncilMemberListP
 // Document Management Feature Pages
 import DocumentListPage from "../features/documents/pages/DocumentListPage";
 
+// User & Role Management Feature Pages (UC6)
+import UserListPage from "../features/users/pages/UserListPage";
+
 import PageHeader from "../components/layout/PageHeader";
 import EmptyState from "../components/ui/EmptyState";
 import { Construction } from "lucide-react";
@@ -118,7 +121,7 @@ export default function AppRoutes() {
         />
         <Route
           path="/users"
-          element={<ModulePlaceholder title="Quản lý Người dùng & Phân quyền" description="Quản lý tài khoản, vai trò và ma trận phân quyền hệ thống." />}
+          element={<UserListPage />}
         />
 
         {/* Trang thông báo Không đủ quyền truy cập (403 Forbidden) */}
