@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Lock,
@@ -34,8 +34,41 @@ export default function LoginPage() {
 
   // Modal / Dropdown states
   const [showForgotModal, setShowForgotModal] = useState(false);
-  const [showDemoSelector, setShowDemoSelector] = useState(false);
+  const [showDemoSelector, setShowDemoSelector] = useState(true);
   const [selectedDemoRoleKey, setSelectedDemoRoleKey] = useState(null);
+
+  // Chế độ bí mật (Cách 1: Phím F2 hoặc click 3 lần vào logo STU)
+  const [isDemoModeActive, setIsDemoModeActive] = useState(false);
+  const logoClickCountRef = useRef(0);
+  const logoClickTimerRef = useRef(null);
+
+  // Lắng nghe phím tắt F2 để bật/tắt chế độ chọn nhanh tài khoản kiểm thử
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "F2") {
+        e.preventDefault();
+        setIsDemoModeActive((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Xử lý click 3 lần liên tiếp vào logo STU để kích hoạt bí mật (phù hợp cả thiết bị cảm ứng)
+  const handleLogoClick = () => {
+    logoClickCountRef.current += 1;
+    if (logoClickTimerRef.current) clearTimeout(logoClickTimerRef.current);
+
+    if (logoClickCountRef.current >= 3) {
+      setIsDemoModeActive((prev) => !prev);
+      logoClickCountRef.current = 0;
+    } else {
+      logoClickTimerRef.current = setTimeout(() => {
+        logoClickCountRef.current = 0;
+      }, 500);
+    }
+  };
 
   // Đường dẫn cần chuyển đến sau khi đăng nhập
   const searchParams = new URLSearchParams(location.search);
@@ -171,17 +204,21 @@ export default function LoginPage() {
             position: "relative"
           }}
         >
-          {/* Logo Trường STU Chính thức */}
+          {/* Logo Trường STU Chính thức (Hỗ trợ click 3 lần để bật chế độ kiểm thử) */}
           <div style={{ textAlign: "center", marginBottom: "var(--space-3)" }}>
             <img
               src="/stu-logo.png"
               alt="Logo Trường Đại học Công nghệ Sài Gòn (STU)"
+              onClick={handleLogoClick}
+              title="Trường Đại học Công nghệ Sài Gòn (STU)"
               style={{
                 height: "82px",
                 maxWidth: "220px",
                 objectFit: "contain",
                 margin: "0 auto",
-                display: "block"
+                display: "block",
+                cursor: "pointer",
+                userSelect: "none"
               }}
             />
           </div>
@@ -453,142 +490,169 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Dải phân cách nhẹ */}
-          <div
-            style={{
-              margin: "var(--space-6) 0 var(--space-4) 0",
-              borderTop: "1px solid #E2E8F0",
-              position: "relative",
-              textAlign: "center"
-            }}
-          >
-            <span
-              style={{
-                position: "absolute",
-                top: "-10px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                backgroundColor: "#FFFFFF",
-                padding: "0 10px",
-                fontSize: "11px",
-                color: "#94A3B8",
-                fontWeight: "600",
-                textTransform: "uppercase"
-              }}
-            >
-              Kiểm thử & Đánh giá
-            </span>
-          </div>
-
-          {/* Tiện ích chọn nhanh tài khoản Demo (Thu gọn trang nhã, không phá vỡ giao diện chuẩn) */}
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowDemoSelector(!showDemoSelector)}
-              style={{
-                width: "100%",
-                padding: "9px 12px",
-                borderRadius: "8px",
-                border: "1px dashed #93C5FD",
-                backgroundColor: "#EFF6FF",
-                color: "#1E40AF",
-                fontSize: "12px",
-                fontWeight: "600",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                cursor: "pointer",
-                transition: "all var(--transition-fast)"
-              }}
-            >
-              <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <Sparkles size={14} style={{ color: "#2563EB" }} />
-                <span>Chọn nhanh tài khoản kiểm thử (Demo 7 vai trò)</span>
-              </span>
-              {showDemoSelector ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
-
-            {/* Menu Sổ xuống chọn 7 vai trò khi click */}
-            {showDemoSelector && (
+          {/* Tiện ích chọn nhanh tài khoản Demo (Cách 1: Mặc định ẩn, kích hoạt qua phím F2 hoặc click 3 lần vào logo STU) */}
+          {isDemoModeActive && (
+            <div style={{ animation: "fadeIn 0.2s ease-in-out" }}>
+              {/* Dải phân cách nhẹ */}
               <div
                 style={{
-                  marginTop: "8px",
-                  padding: "8px",
-                  borderRadius: "10px",
-                  backgroundColor: "#F8FAFC",
-                  border: "1px solid #E2E8F0",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "6px",
-                  maxHeight: "230px",
-                  overflowY: "auto"
+                  margin: "var(--space-6) 0 var(--space-4) 0",
+                  borderTop: "1px dashed #93C5FD",
+                  position: "relative",
+                  textAlign: "center"
                 }}
               >
-                <div style={{ fontSize: "11px", color: "#64748B", padding: "2px 6px 4px 6px" }}>
-                  Bấm vào vai trò để tự động điền tài khoản (Mật khẩu: <code>stu@2026</code>):
-                </div>
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-10px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    backgroundColor: "#FFFFFF",
+                    padding: "0 10px",
+                    fontSize: "11px",
+                    color: "#2563EB",
+                    fontWeight: "700",
+                    textTransform: "uppercase",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px"
+                  }}
+                >
+                  <Sparkles size={12} />
+                  Chế độ Kiểm thử Luận văn (F2)
+                </span>
+              </div>
 
-                {PROTOTYPE_ROLES.map((r) => {
-                  const isSelected = selectedDemoRoleKey === r.key || email.toLowerCase() === r.email.toLowerCase();
-
-                  return (
-                    <div
-                      key={r.key}
-                      onClick={() => handleSelectDemoRole(r)}
+              {/* Tiện ích chọn nhanh tài khoản Demo */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowDemoSelector(!showDemoSelector)}
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: "8px",
+                    border: "1px solid #93C5FD",
+                    backgroundColor: "#EFF6FF",
+                    color: "#1E40AF",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    cursor: "pointer",
+                    transition: "all var(--transition-fast)"
+                  }}
+                >
+                  <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <Sparkles size={14} style={{ color: "#2563EB" }} />
+                    <span>Chọn nhanh tài khoản kiểm thử (7 vai trò)</span>
+                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    {showDemoSelector ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsDemoModeActive(false);
+                      }}
+                      title="Đóng chế độ kiểm thử (F2)"
                       style={{
+                        padding: "2px",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "6px 8px",
-                        borderRadius: "6px",
-                        border: isSelected ? "1px solid #2563EB" : "1px solid transparent",
-                        backgroundColor: isSelected ? "#DBEAFE" : "#FFFFFF",
-                        cursor: "pointer",
-                        transition: "background-color 0.15s ease"
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) e.currentTarget.style.backgroundColor = "#F1F5F9";
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) e.currentTarget.style.backgroundColor = "#FFFFFF";
+                        borderRadius: "4px",
+                        color: "#64748B"
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <X size={14} />
+                    </span>
+                  </div>
+                </button>
+
+                {/* Menu Sổ xuống chọn 7 vai trò khi click */}
+                {showDemoSelector && (
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      padding: "8px",
+                      borderRadius: "10px",
+                      backgroundColor: "#F8FAFC",
+                      border: "1px solid #E2E8F0",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px",
+                      maxHeight: "230px",
+                      overflowY: "auto"
+                    }}
+                  >
+                    <div style={{ fontSize: "11px", color: "#64748B", padding: "2px 6px 4px 6px" }}>
+                      Bấm vào vai trò để tự động điền tài khoản (Mật khẩu: <code>stu@2026</code>):
+                    </div>
+
+                    {PROTOTYPE_ROLES.map((r) => {
+                      const isSelected = selectedDemoRoleKey === r.key || email.toLowerCase() === r.email.toLowerCase();
+
+                      return (
                         <div
+                          key={r.key}
+                          onClick={() => handleSelectDemoRole(r)}
                           style={{
-                            width: "26px",
-                            height: "26px",
-                            borderRadius: "50%",
-                            backgroundColor: isSelected ? "#1E40AF" : "#E2E8F0",
-                            color: isSelected ? "#FFFFFF" : "#475569",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "10px",
-                            fontWeight: "bold"
+                            justifyContent: "space-between",
+                            padding: "6px 8px",
+                            borderRadius: "6px",
+                            border: isSelected ? "1px solid #2563EB" : "1px solid transparent",
+                            backgroundColor: isSelected ? "#DBEAFE" : "#FFFFFF",
+                            cursor: "pointer",
+                            transition: "background-color 0.15s ease"
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) e.currentTarget.style.backgroundColor = "#F1F5F9";
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) e.currentTarget.style.backgroundColor = "#FFFFFF";
                           }}
                         >
-                          {r.avatar_initials}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: "12px", fontWeight: "600", color: "#0F172A" }}>
-                            {r.name}
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <div
+                              style={{
+                                width: "26px",
+                                height: "26px",
+                                borderRadius: "50%",
+                                backgroundColor: isSelected ? "#1E40AF" : "#E2E8F0",
+                                color: isSelected ? "#FFFFFF" : "#475569",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "10px",
+                                fontWeight: "bold"
+                              }}
+                            >
+                              {r.avatar_initials}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: "12px", fontWeight: "600", color: "#0F172A" }}>
+                                {r.name}
+                              </div>
+                              <div style={{ fontSize: "10px", color: "#64748B" }}>
+                                {r.email}
+                              </div>
+                            </div>
                           </div>
-                          <div style={{ fontSize: "10px", color: "#64748B" }}>
-                            {r.email}
-                          </div>
-                        </div>
-                      </div>
 
-                      {isSelected && (
-                        <CheckCircle2 size={14} style={{ color: "#2563EB" }} />
-                      )}
-                    </div>
-                  );
-                })}
+                          {isSelected && (
+                            <CheckCircle2 size={14} style={{ color: "#2563EB" }} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Chú thích an ninh bảo mật */}
           <div
