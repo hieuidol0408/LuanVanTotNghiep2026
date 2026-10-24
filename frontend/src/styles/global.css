@@ -197,3 +197,19 @@ a:focus-visible {
 .font-medium { font-weight: var(--font-weight-medium); }
 .font-semibold { font-weight: var(--font-weight-semibold); }
 .text-muted { color: var(--color-text-muted); }
+
+/* RESPONSIVE BREAKPOINT UTILITIES */
+@media (min-width: 768px) {
+  .user-text-md {
+    display: block !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  .card {
+    padding: var(--space-4) !important;
+  }
+}
