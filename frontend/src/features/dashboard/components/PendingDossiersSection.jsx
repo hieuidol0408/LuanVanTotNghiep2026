@@ -8,16 +8,23 @@ import { PROTOTYPE_PENDING_DOSSIERS } from "../../../mock/prototypeData";
 /**
  * PendingDossiersSection - Danh sách các hồ sơ trình đang chờ thẩm tra hoặc cần bổ sung
  */
-export default function PendingDossiersSection() {
+export default function PendingDossiersSection({ dossiers: liveDossiers }) {
   const navigate = useNavigate();
+
+  const displayDossiers = (liveDossiers && liveDossiers.length > 0)
+    ? liveDossiers
+    : PROTOTYPE_PENDING_DOSSIERS;
 
   const columns = [
     {
       key: "id",
       title: "Mã hồ sơ",
       width: "120px",
-      render: (val) => (
-        <span style={{ fontWeight: "var(--font-weight-semibold)", color: "var(--color-primary)" }}>
+      render: (val, row) => (
+        <span
+          style={{ fontWeight: "var(--font-weight-semibold)", color: "var(--color-primary)", cursor: "pointer" }}
+          onClick={() => navigate("/dossiers")}
+        >
           {val}
         </span>
       )
@@ -31,7 +38,7 @@ export default function PendingDossiersSection() {
             {val}
           </div>
           <div style={{ fontSize: "var(--font-size-xs)", color: "var(--color-text-muted)", marginTop: "2px" }}>
-            Đơn vị: {row.department} • Người nộp: {row.submitter} ({row.files_count} tệp đính kèm)
+            Đơn vị: {row.submitter_dept || row.department || "Khoa/Phòng chức năng"} {row.field ? `• Lĩnh vực: ${row.field}` : ""}
           </div>
         </div>
       )
@@ -40,7 +47,8 @@ export default function PendingDossiersSection() {
       key: "submitted_date",
       title: "Ngày nộp",
       width: "110px",
-      align: "center"
+      align: "center",
+      render: (val) => val ? new Date(val).toLocaleDateString("vi-VN") : "Hôm nay"
     },
     {
       key: "status",
@@ -48,8 +56,8 @@ export default function PendingDossiersSection() {
       width: "150px",
       render: (val, row) => (
         <StatusBadge
-          status={val === "in_review" ? "warning" : "danger"}
-          label={row.status_label}
+          status={val === "APPROVED" ? "ACTIVE" : val === "REJECTED" ? "REJECTED" : "WAITING"}
+          text={val === "APPROVED" ? "Đã duyệt" : val === "REJECTED" ? "Bác bỏ" : (row.status_label || "Đang thẩm tra")}
           size="sm"
         />
       )
@@ -123,14 +131,14 @@ export default function PendingDossiersSection() {
           className="btn btn-secondary btn-sm"
           style={{ gap: "4px" }}
         >
-          <span>Xem tất cả ({PROTOTYPE_PENDING_DOSSIERS.length})</span>
+          <span>Xem tất cả ({displayDossiers.length})</span>
           <ArrowRight size={13} />
         </button>
       </div>
 
       <DataTable
         columns={columns}
-        data={PROTOTYPE_PENDING_DOSSIERS}
+        data={displayDossiers}
         keyField="id"
         emptyMessage="Hiện tại không có hồ sơ nào đang chờ xử lý."
       />

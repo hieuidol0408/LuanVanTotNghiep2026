@@ -7,13 +7,18 @@ import { PROTOTYPE_URGENT_TASKS } from "../../../mock/prototypeData";
 /**
  * UrgentTasksSection - Danh sách các công việc và thông báo cần chú ý xử lý gấp
  */
-export default function UrgentTasksSection({ currentRole }) {
+export default function UrgentTasksSection({ tasks: liveTasks, currentRole }) {
   const navigate = useNavigate();
 
-  // Lọc hoặc sắp xếp việc ưu tiên phù hợp với vai trò hiện tại
-  const relevantTasks = PROTOTYPE_URGENT_TASKS.filter((task) => {
-    if (currentRole.key === "SECRETARY" || currentRole.key === "CHAIR") return true; // Thư ký & Chủ tịch thấy toàn diện
-    return task.role_target === currentRole.key || task.role_target === "MEMBER";
+  const sourceTasks = (liveTasks && liveTasks.length > 0)
+    ? liveTasks
+    : PROTOTYPE_URGENT_TASKS;
+
+  const relevantTasks = sourceTasks.filter((task) => {
+    if (!currentRole || currentRole.key === "SECRETARY" || currentRole.key === "CHAIR" || currentRole.role === "ADMIN") {
+      return true;
+    }
+    return task.role_target === currentRole.key || task.role_target === "MEMBER" || !task.role_target;
   });
 
   return (
@@ -51,108 +56,93 @@ export default function UrgentTasksSection({ currentRole }) {
           </div>
           <div>
             <h2 style={{ fontSize: "var(--font-size-base)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text-primary)" }}>
-              Công việc cần chú ý
+              Nhiệm vụ cần ưu tiên & Đôn đốc
             </h2>
             <div style={{ fontSize: "var(--font-size-xs)", color: "var(--color-text-muted)" }}>
-              Các đầu việc sắp đến hạn, quá hạn hoặc hồ sơ cần xử lý
+              Các đầu việc quá hạn hoặc sắp đến hạn chót thực hiện nghị quyết
             </div>
           </div>
         </div>
 
-        <span
-          style={{
-            fontSize: "11px",
-            fontWeight: "var(--font-weight-semibold)",
-            padding: "2px 8px",
-            borderRadius: "var(--radius-full)",
-            backgroundColor: "var(--color-danger-bg)",
-            color: "var(--color-danger)",
-            border: "1px solid var(--color-danger-border)"
-          }}
+        <button
+          type="button"
+          onClick={() => navigate("/tasks")}
+          className="btn btn-secondary btn-sm"
+          style={{ gap: "4px" }}
         >
-          {relevantTasks.length} việc cần xử lý
-        </span>
+          <span>Xem tất cả ({relevantTasks.length})</span>
+          <ChevronRight size={13} />
+        </button>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", flex: 1 }}>
-        {relevantTasks.map((task) => {
-          const isOverdue = task.days_left < 0;
-          const isUrgent = task.days_left <= 3 && task.days_left >= 0;
-
-          return (
+        {relevantTasks.length === 0 ? (
+          <div style={{ padding: "var(--space-6)", textAlign: "center", color: "var(--color-text-muted)" }}>
+            Tất cả các nhiệm vụ đều đang diễn ra đúng tiến độ quy định!
+          </div>
+        ) : (
+          relevantTasks.map((task) => (
             <div
               key={task.id}
+              onClick={() => navigate("/tasks")}
               style={{
+                padding: "var(--space-3) var(--space-4)",
+                backgroundColor: "var(--color-bg-card)",
+                border: "1px solid var(--color-border)",
+                borderLeft: task.is_overdue
+                  ? "4px solid var(--color-danger)"
+                  : "4px solid var(--color-warning)",
+                borderRadius: "var(--radius-md)",
                 display: "flex",
                 flexDirection: "column",
                 gap: "var(--space-2)",
-                padding: "var(--space-3) var(--space-4)",
-                backgroundColor: isOverdue ? "#FFF5F5" : isUrgent ? "#FFFDF5" : "var(--color-bg-app)",
-                border: `1px solid ${isOverdue ? "var(--color-danger-border)" : isUrgent ? "var(--color-warning-border)" : "var(--color-border)"}`,
-                borderRadius: "var(--radius-md)",
-                transition: "background-color var(--transition-fast)"
+                cursor: "pointer",
+                transition: "border-color var(--transition-fast)"
               }}
+              title="Bấm để xem danh sách nhiệm vụ"
             >
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-3)" }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-2)" }}>
-                  <span style={{ marginTop: "2px" }}>
-                    {isOverdue ? (
-                      <AlertCircle size={15} style={{ color: "var(--color-danger)" }} />
-                    ) : (
-                      <Clock size={15} style={{ color: isUrgent ? "var(--color-warning)" : "var(--color-info)" }} />
-                    )}
-                  </span>
-                  <div>
-                    <div style={{ fontSize: "var(--font-size-sm)", fontWeight: "var(--font-weight-medium)", color: "var(--color-text-primary)", lineHeight: 1.4 }}>
-                      {task.title}
-                    </div>
-                    <div style={{ fontSize: "var(--font-size-xs)", color: "var(--color-text-muted)", marginTop: "2px" }}>
-                      Đơn vị: {task.assigned_dept}
-                    </div>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-2)" }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "2px" }}>
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        fontWeight: "var(--font-weight-bold)",
+                        color: task.is_overdue ? "var(--color-danger)" : "var(--color-warning)",
+                        backgroundColor: task.is_overdue ? "var(--color-danger-bg)" : "var(--color-warning-bg)",
+                        padding: "1px 5px",
+                        borderRadius: "var(--radius-sm)"
+                      }}
+                    >
+                      {task.is_overdue ? "QUÁ HẠN" : "CẦN XỬ LÝ"}
+                    </span>
+                    <span style={{ fontSize: "11px", color: "var(--color-text-muted)" }}>
+                      Căn cứ: <strong>{task.resolution_number || "NQ-HĐT"}</strong>
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: "var(--font-size-sm)", fontWeight: "var(--font-weight-medium)", color: "var(--color-text-primary)" }}>
+                    {task.title}
                   </div>
                 </div>
 
                 <StatusBadge
-                  status={task.severity}
-                  label={task.type_label}
+                  status={task.is_overdue ? "REJECTED" : "WAITING"}
+                  text={task.is_overdue ? "Quá hạn" : "Đang thực hiện"}
                   size="sm"
                 />
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid rgba(0,0,0,0.04)", paddingTop: "6px" }}>
-                <span
-                  style={{
-                    fontSize: "var(--font-size-xs)",
-                    fontWeight: "var(--font-weight-medium)",
-                    color: isOverdue ? "var(--color-danger)" : isUrgent ? "var(--color-warning)" : "var(--color-text-secondary)"
-                  }}
-                >
-                  {task.deadline} {isOverdue ? `(Trễ ${Math.abs(task.days_left)} ngày)` : isUrgent ? `(Còn ${task.days_left} ngày)` : ""}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={() => navigate(task.type_label.includes("hồ sơ") ? "/dossiers" : "/tasks")}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "var(--color-primary)",
-                    fontSize: "var(--font-size-xs)",
-                    fontWeight: "var(--font-weight-medium)",
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "2px",
-                    padding: 0
-                  }}
-                >
-                  <span>Xử lý ngay</span>
-                  <ChevronRight size={13} />
-                </button>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "var(--font-size-xs)", color: "var(--color-text-muted)", marginTop: "2px" }}>
+                <span>Đơn vị: <strong>{task.assigned_to || task.unit_in_charge || "Phòng Đào tạo"}</strong></span>
+                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <Clock size={12} />
+                  <span>Hạn chót: {task.deadline ? new Date(task.deadline).toLocaleDateString("vi-VN") : "Sắp tới"}</span>
+                </div>
               </div>
             </div>
-          );
-        })}
+          ))
+        )}
       </div>
     </div>
   );

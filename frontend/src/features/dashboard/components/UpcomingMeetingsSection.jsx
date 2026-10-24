@@ -1,14 +1,18 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, MapPin, Clock, Users, FileText, ArrowRight } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, ArrowRight } from "lucide-react";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import { PROTOTYPE_UPCOMING_MEETINGS } from "../../../mock/prototypeData";
 
 /**
  * UpcomingMeetingsSection - Danh sách lịch các phiên họp Hội đồng trường sắp tới
  */
-export default function UpcomingMeetingsSection() {
+export default function UpcomingMeetingsSection({ meetings: liveMeetings }) {
   const navigate = useNavigate();
+
+  const displayMeetings = (liveMeetings && liveMeetings.length > 0)
+    ? liveMeetings
+    : PROTOTYPE_UPCOMING_MEETINGS;
 
   return (
     <div
@@ -59,15 +63,16 @@ export default function UpcomingMeetingsSection() {
           className="btn btn-secondary btn-sm"
           style={{ gap: "4px" }}
         >
-          <span>Xem tất cả ({PROTOTYPE_UPCOMING_MEETINGS.length})</span>
+          <span>Xem tất cả ({displayMeetings.length})</span>
           <ArrowRight size={13} />
         </button>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", flex: 1 }}>
-        {PROTOTYPE_UPCOMING_MEETINGS.map((meeting) => (
+        {displayMeetings.map((meeting) => (
           <div
             key={meeting.id}
+            onClick={() => navigate(`/meetings/${meeting.id}`)}
             style={{
               padding: "var(--space-4)",
               backgroundColor: "var(--color-bg-card)",
@@ -76,8 +81,10 @@ export default function UpcomingMeetingsSection() {
               display: "flex",
               flexDirection: "column",
               gap: "var(--space-2)",
-              transition: "border-color var(--transition-fast)"
+              transition: "border-color var(--transition-fast)",
+              cursor: "pointer"
             }}
+            title="Bấm để xem chi tiết phiên họp"
           >
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-3)" }}>
               <div>
@@ -92,15 +99,17 @@ export default function UpcomingMeetingsSection() {
                       borderRadius: "var(--radius-sm)"
                     }}
                   >
-                    {meeting.id}
+                    #{meeting.id}
                   </span>
-                  <span style={{ fontSize: "11px", color: "var(--color-text-muted)" }}>• {meeting.type_label}</span>
+                  <span style={{ fontSize: "11px", color: "var(--color-text-muted)" }}>
+                    • {meeting.type || meeting.type_label || "Định kỳ"}
+                  </span>
                 </div>
 
                 <div
                   style={{
                     fontSize: "var(--font-size-sm)",
-                    fontWeight: "var(--font-weight-semibold)",
+                    fontWeight: "var(--font-weight-medium)",
                     color: "var(--color-text-primary)",
                     lineHeight: 1.4
                   }}
@@ -110,58 +119,41 @@ export default function UpcomingMeetingsSection() {
               </div>
 
               <StatusBadge
-                status={meeting.status === "SCHEDULED" ? "success" : "warning"}
-                label={meeting.status_label}
+                status={meeting.status === "COMPLETED" ? "ACTIVE" : meeting.status === "HAPPENING" ? "WAITING" : "ACTIVE"}
+                text={meeting.status_label || (meeting.status === "COMPLETED" ? "Đã kết thúc" : "Đã công bố")}
                 size="sm"
               />
             </div>
 
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: "var(--space-2)",
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: "var(--space-4)",
                 fontSize: "var(--font-size-xs)",
                 color: "var(--color-text-secondary)",
-                marginTop: "var(--space-1)",
-                paddingTop: "var(--space-2)",
-                borderTop: "1px solid var(--color-border-subtle)"
+                marginTop: "2px",
+                borderTop: "1px dashed var(--color-border)",
+                paddingTop: "var(--space-2)"
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <Clock size={13} style={{ color: "var(--color-text-muted)" }} />
-                <span>{meeting.start_time}</span>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <MapPin size={13} style={{ color: "var(--color-text-muted)" }} />
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {meeting.location}
-                </span>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <Users size={13} style={{ color: "var(--color-text-muted)" }} />
-                <span>Chủ tọa: {meeting.chairperson}</span>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <FileText size={13} style={{ color: "var(--color-text-muted)" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <Clock size={12} style={{ color: "var(--color-text-muted)" }} />
                 <span>
-                  {meeting.agendas_count} nội dung thảo luận • {meeting.documents_count} tài liệu
+                  {meeting.time || "08:30"} {meeting.date ? `• ${new Date(meeting.date).toLocaleDateString("vi-VN")}` : ""}
                 </span>
               </div>
-            </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "4px" }}>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => navigate("/meetings")}
-                style={{ fontSize: "var(--font-size-xs)", padding: "3px 10px" }}
-              >
-                Xem chi tiết & Tài liệu
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <MapPin size={12} style={{ color: "var(--color-text-muted)" }} />
+                <span>{meeting.location || "Phòng họp HĐT, Nhà A"}</span>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "4px", marginLeft: "auto" }}>
+                <Users size={12} style={{ color: "var(--color-text-muted)" }} />
+                <span>{meeting.attendees_count || 15} thành viên</span>
+              </div>
             </div>
           </div>
         ))}

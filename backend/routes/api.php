@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CouncilController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DocumentController;
 use App\Http\Controllers\Api\V1\DossierController;
 use App\Http\Controllers\Api\V1\MeetingController;
@@ -28,7 +29,10 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    // 2. Module Quản lý Phiên họp (Meetings)
+    // 2. Module Bảng điều hành Tổng quan (Dashboard)
+    Route::middleware('auth:sanctum')->get('/dashboard/summary', [DashboardController::class, 'summary']);
+
+    // 3. Module Quản lý Phiên họp (Meetings)
     Route::middleware('auth:sanctum')->prefix('meetings')->group(function () {
         Route::get('/', [MeetingController::class, 'index']);
         Route::post('/', [MeetingController::class, 'store']);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PageHeader from "../../../components/layout/PageHeader";
 import LoadingSkeleton from "../../../components/ui/LoadingSkeleton";
 import ErrorState from "../../../components/ui/ErrorState";
@@ -9,18 +9,23 @@ import UrgentTasksSection from "../components/UrgentTasksSection";
 import UpcomingMeetingsSection from "../components/UpcomingMeetingsSection";
 import PendingDossiersSection from "../components/PendingDossiersSection";
 import ResolutionProgressSection from "../components/ResolutionProgressSection";
-import { Plus, Calendar, RotateCcw, AlertTriangle, Layers } from "lucide-react";
+import { Plus, RotateCcw, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../auth/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import dashboardService from "../services/dashboardService";
 
 /**
  * DashboardPage - Màn hình Tổng quan Điều hành Hệ thống Hội đồng trường STU
+ * Kết nối thời gian thực với cơ sở dữ liệu MySQL trên WampServer
  */
 export default function DashboardPage() {
   const toast = useToast();
+  const navigate = useNavigate();
   const { user, switchRole } = useAuth();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+  const [summaryData, setSummaryData] = useState(null);
 
   const currentRole = user || {
     key: "SECRETARY",
@@ -31,23 +36,41 @@ export default function DashboardPage() {
     duties_badge: "Thẩm tra & Điều hành phiên họp"
   };
 
+  // Tải dữ liệu bảng điều hành thực tế từ API Laravel
+  const fetchDashboardData = useCallback(async () => {
+    setIsLoading(true);
+    setIsError(false);
+    try {
+      const res = await dashboardService.getSummary();
+      if (res.success && res.data) {
+        setSummaryData(res.data);
+      } else {
+        console.warn("Không lấy được dữ liệu dashboard:", res.message);
+      }
+    } catch (err) {
+      console.warn("Lỗi kết nối dashboard:", err);
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
   const handleRoleChange = (newRole) => {
     switchRole(newRole.key);
     toast.info(`Đã chuyển góc nhìn sang vai trò: ${newRole.name}`);
   };
 
-  const handleToggleLoading = () => {
-    setIsLoading(true);
-    setIsError(false);
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Dữ liệu bảng điều hành đã được làm mới!");
-    }, 1200);
+  const handleRefresh = async () => {
+    await fetchDashboardData();
+    toast.success("Dữ liệu bảng điều hành đã được đồng bộ từ MySQL!");
   };
 
   const handleToggleError = () => {
     setIsError(true);
-    setIsLoading(false);
     toast.error("Giả lập lỗi kết nối máy chủ để kiểm tra ErrorState.");
   };
 
@@ -66,10 +89,10 @@ export default function DashboardPage() {
             <button
               type="button"
               className="btn btn-secondary btn-sm"
-              onClick={handleToggleLoading}
-              title="Mô phỏng trạng thái tải dữ liệu thời gian thực"
+              onClick={handleRefresh}
+              title="Đồng bộ dữ liệu thời gian thực từ cơ sở dữ liệu"
             >
-              <RotateCcw size={13} />
+              <RotateCcw size={13} className={isLoading ? "animate-spin" : ""} />
               <span>Làm mới</span>
             </button>
             <button
@@ -85,7 +108,7 @@ export default function DashboardPage() {
             <button
               type="button"
               className="btn btn-primary btn-sm"
-              onClick={() => toast.info("Mở biểu mẫu lập kế hoạch phiên họp (Prototype)")}
+              onClick={() => navigate("/meetings/create")}
             >
               <Plus size={13} />
               <span>Lập lịch họp</span>
@@ -108,7 +131,7 @@ export default function DashboardPage() {
             description="Đã xảy ra sự cố gián đoạn kết nối hoặc phiên làm việc của bạn cần xác thực lại. Vui lòng bấm thử lại để tái nạp dữ liệu."
             onRetry={() => {
               setIsError(false);
-              handleToggleLoading();
+              fetchDashboardData();
             }}
           />
         </div>
@@ -122,10 +145,10 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : (
-        /* 3. Nội dung Chính của Dashboard */
+        /* 3. Nội dung Chính của Dashboard thời gian thực */
         <>
           {/* 6 Thẻ Thống kê Cốt lõi (Clickable StatCards) */}
-          <DashboardStats />
+          <DashboardStats stats={summaryData?.stats} />
 
           {/* Bố cục 2 Cột khoa học cho Nghiệp vụ */}
           <div
@@ -138,12 +161,15 @@ export default function DashboardPage() {
           >
             {/* Cột Trái 1: Lịch phiên họp sắp tới */}
             <div>
-              <UpcomingMeetingsSection />
+              <UpcomingMeetingsSection meetings={summaryData?.upcoming_meetings} />
             </div>
 
             {/* Cột Phải 1: Công việc cần chú ý */}
             <div>
-              <UrgentTasksSection currentRole={currentRole} />
+              <UrgentTasksSection
+                tasks={summaryData?.urgent_tasks}
+                currentRole={currentRole}
+              />
             </div>
           </div>
 
@@ -156,7 +182,7 @@ export default function DashboardPage() {
           >
             {/* Cột Trái 2: Hồ sơ trình chờ xử lý */}
             <div>
-              <PendingDossiersSection />
+              <PendingDossiersSection dossiers={summaryData?.pending_dossiers} />
             </div>
 
             {/* Cột Phải 2: Tình hình thực hiện nghị quyết */}
