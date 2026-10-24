@@ -67,6 +67,27 @@ export const votingService = {
       return { success: false, message: err.message };
     }
   },
+
+  // Lấy danh sách giấy ủy quyền của phiên họp (Bảng 14 - uy_quyen_bieu_quyet)
+  getAuthorizations: async (meetingId) => {
+    try {
+      const res = await apiClient.get(`/meetings/${meetingId}/authorizations`);
+      return res;
+    } catch (err) {
+      console.warn("Lỗi khi tải danh sách ủy quyền:", err.message);
+      return { success: false, data: [] };
+    }
+  },
+
+  // Nộp văn bản ủy quyền cho phiên họp
+  createAuthorization: async (meetingId, authData) => {
+    try {
+      const res = await apiClient.post(`/meetings/${meetingId}/authorizations`, authData);
+      return res;
+    } catch (err) {
+      return { success: false, message: err.message, errors: err.errors };
+    }
+  },
 };
 
 export default votingService;

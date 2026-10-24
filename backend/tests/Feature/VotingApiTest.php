@@ -164,4 +164,85 @@ class VotingApiTest extends TestCase
             'TrangThai' => 'CLOSED',
         ]);
     }
+
+    /**
+     * Kiểm tra nghiệp vụ biểu quyết theo ủy quyền và bảo mật bỏ phiếu kín
+     */
+    public function test_proxy_voting_and_secret_ballot_anonymity(): void
+    {
+        $secretary = User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $agenda = ChuongTrinhHop::first();
+        $phienHop = $agenda->phienHop;
+
+        // Lấy 2 thành viên HĐT khác nhau
+        $members = ThanhVienHdt::take(2)->get();
+        $this->assertCount(2, $members);
+
+        $absentMember = $members[0]; // Người vắng mặt ủy quyền
+        $presentMember = $members[1]; // Người có mặt nhận ủy quyền
+
+        // Điểm danh có mặt cho người nhận ủy quyền
+        $thamDu = ThamDu::updateOrCreate(
+            ['MaPhienHop' => $phienHop->MaPhienHop, 'MaThanhVien' => $presentMember->MaThanhVien],
+            ['TrangThaiThamDu' => 'PRESENT', 'ThoiDiemXacNhan' => now()]
+        );
+
+        // Tạo giấy ủy quyền hợp lệ
+        $auth = \App\Models\UyQuyenBieuQuyet::create([
+            'NgayUyQuyen' => now()->toDateString(),
+            'PhamViUyQuyen' => 'Ủy quyền biểu quyết toàn bộ phiên họp',
+            'TaiLieuUyQuyen' => 'giay_uy_quyen_test.pdf',
+            'TrangThai' => 'Hợp lệ',
+            'MaPhienHop' => $phienHop->MaPhienHop,
+            'MaThanhVienUyQuyen' => $absentMember->MaThanhVien,
+            'MaThanhVienNhanUyQuyen' => $presentMember->MaThanhVien,
+        ]);
+
+        // Tạo nội dung biểu quyết hình thức Bỏ phiếu kín (SECRET)
+        $vote = NoiDungBieuQuyet::create([
+            'NoiDung' => 'Nội dung test ủy quyền bỏ phiếu ' . uniqid(),
+            'ThoiGianMo' => now(),
+            'ThoiGianDong' => now()->addHour(),
+            'TrangThai' => 'OPENING',
+            'KetQua' => 'PENDING',
+            'GhiChu' => json_encode(['voting_type' => 'SECRET', 'pass_threshold' => 50]),
+            'MaChuongTrinh' => $agenda->MaChuongTrinh,
+        ]);
+
+        $presentUser = $presentMember->nguoiDung;
+
+        // 1. Người nhận ủy quyền thực hiện bỏ phiếu thay (proxy vote)
+        $proxyResponse = $this->actingAs($presentUser, 'sanctum')->postJson("/api/v1/votings/{$vote->MaNoiDung}/vote", [
+            'choice' => 'VOTE_FOR',
+            'authorization_id' => $auth->MaUyQuyen,
+        ]);
+
+        $proxyResponse->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.is_proxy', true);
+
+        $this->assertDatabaseHas('ket_qua_bieu_quyet', [
+            'MaNoiDung' => $vote->MaNoiDung,
+            'MaUyQuyen' => $auth->MaUyQuyen,
+            'LuaChon' => 'VOTE_FOR',
+        ]);
+
+        // 2. Không được bỏ phiếu lần 2 cho cùng một giấy ủy quyền
+        $duplicateProxy = $this->actingAs($presentUser, 'sanctum')->postJson("/api/v1/votings/{$vote->MaNoiDung}/vote", [
+            'choice' => 'VOTE_AGAINST',
+            'authorization_id' => $auth->MaUyQuyen,
+        ]);
+        $duplicateProxy->assertStatus(422);
+
+        // 3. Kiểm tra bảo mật danh tính khi xem chi tiết biểu quyết bỏ phiếu kín
+        $showResponse = $this->actingAs($presentUser, 'sanctum')->getJson("/api/v1/votings/{$vote->MaNoiDung}");
+        $showResponse->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        $ballots = $showResponse->json('data.ballots');
+        $this->assertNotEmpty($ballots);
+        // Với bỏ phiếu kín: Lựa chọn phải là SECRET và tên cử tri phải ẩn danh
+        $this->assertEquals('SECRET', $ballots[0]['choice']);
+        $this->assertStringContainsString('Phiếu biểu quyết ẩn danh', $ballots[0]['voter_name']);
+    }
 }

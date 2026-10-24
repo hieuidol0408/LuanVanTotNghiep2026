@@ -9,6 +9,7 @@ use App\Models\NoiDungBieuQuyet;
 use App\Models\PhienHop;
 use App\Models\ThamDu;
 use App\Models\ThanhVienHdt;
+use App\Models\UyQuyenBieuQuyet;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -101,13 +102,17 @@ class VotingController extends Controller
     }
 
     /**
-     * Chi tiết nội dung biểu quyết và trạng thái bỏ phiếu của cử tri
+     * Chi tiết nội dung biểu quyết, trạng thái bỏ phiếu của cử tri và các ủy quyền
      * GET /api/v1/votings/{id}
      */
     public function show(Request $request, int|string $id): JsonResponse
     {
         $user = $request->user();
-        $vote = NoiDungBieuQuyet::with(['chuongTrinhHop.phienHop', 'ketQuaBieuQuyet.thamDu.thanhVienHdt.nguoiDung'])->find($id);
+        $vote = NoiDungBieuQuyet::with([
+            'chuongTrinhHop.phienHop',
+            'ketQuaBieuQuyet.thamDu.thanhVienHdt.nguoiDung',
+            'ketQuaBieuQuyet.uyQuyenBieuQuyet.thanhVienUyQuyen.nguoiDung',
+        ])->find($id);
 
         if (! $vote) {
             return response()->json([
@@ -121,10 +126,11 @@ class VotingController extends Controller
         $phienHop = $vote->chuongTrinhHop?->phienHop;
         $meetingId = $phienHop?->MaPhienHop ?? 1;
 
-        // Kiểm tra quyền biểu quyết của user hiện tại
+        // 1. Kiểm tra quyền biểu quyết của chính user hiện tại
         $canVote = false;
         $hasVoted = false;
         $userChoice = null;
+        $delegations = [];
 
         $thanhVien = ThanhVienHdt::where('MaNguoiDung', $user->MaNguoiDung)->first();
         if ($thanhVien && $phienHop) {
@@ -135,21 +141,47 @@ class VotingController extends Controller
             if ($thamDu && $thamDu->TrangThaiThamDu === 'PRESENT') {
                 $canVote = true;
 
+                // Kiểm tra lá phiếu trực tiếp của chính mình (MaUyQuyen = null)
                 $daBoPhieu = KetQuaBieuQuyet::where('MaNoiDung', $id)
                     ->where('MaThamDu', $thamDu->MaThamDu)
+                    ->whereNull('MaUyQuyen')
                     ->first();
 
                 if ($daBoPhieu) {
                     $hasVoted = true;
                     $userChoice = $daBoPhieu->LuaChon;
                 }
+
+                // 2. Kiểm tra các quyền ủy quyền mà thành viên này được nhận
+                $validAuthorizations = UyQuyenBieuQuyet::with('thanhVienUyQuyen.nguoiDung')
+                    ->where('MaPhienHop', $phienHop->MaPhienHop)
+                    ->where('MaThanhVienNhanUyQuyen', $thanhVien->MaThanhVien)
+                    ->whereIn('TrangThai', ['Hợp lệ', 'ACTIVE'])
+                    ->get();
+
+                foreach ($validAuthorizations as $auth) {
+                    $proxyVote = KetQuaBieuQuyet::where('MaNoiDung', $id)
+                        ->where('MaUyQuyen', $auth->MaUyQuyen)
+                        ->first();
+
+                    $delegations[] = [
+                        'authorization_id' => (int) $auth->MaUyQuyen,
+                        'principal_id' => (int) $auth->MaThanhVienUyQuyen,
+                        'principal_name' => $auth->thanhVienUyQuyen?->nguoiDung?->HoTen ?? 'Thành viên ủy quyền',
+                        'scope' => $auth->PhamViUyQuyen,
+                        'document' => $auth->TaiLieuUyQuyen,
+                        'has_voted' => (bool) $proxyVote,
+                        'choice' => $proxyVote?->LuaChon,
+                    ];
+                }
             }
         }
 
-        $formatted = $this->formatVotingSummary($vote, $meetingId);
+        $formatted = $this->formatVotingSummary($vote, $meetingId, $user);
         $formatted['can_vote'] = $canVote;
         $formatted['has_voted'] = $hasVoted;
         $formatted['user_choice'] = $userChoice;
+        $formatted['delegations'] = $delegations;
 
         return response()->json([
             'success' => true,
@@ -200,7 +232,7 @@ class VotingController extends Controller
     }
 
     /**
-     * Gửi phiếu biểu quyết (Chống bỏ phiếu 2 lần, chặn khách mời)
+     * Gửi phiếu biểu quyết (Hỗ trợ bỏ phiếu trực tiếp hoặc bỏ phiếu theo ủy quyền)
      * POST /api/v1/votings/{id}/vote
      */
     public function vote(Request $request, int|string $id): JsonResponse
@@ -209,6 +241,7 @@ class VotingController extends Controller
 
         $validated = $request->validate([
             'choice' => ['required', 'string', 'in:VOTE_FOR,VOTE_AGAINST,VOTE_ABSTAIN'],
+            'authorization_id' => ['nullable', 'integer', 'exists:uy_quyen_bieu_quyet,MaUyQuyen'],
         ], [
             'choice.required' => 'Vui lòng chọn phương án biểu quyết (Tán thành, Không tán thành, Không ý kiến).',
         ]);
@@ -267,38 +300,104 @@ class VotingController extends Controller
             ], 403);
         }
 
-        // 3. RÀNG BUỘC CỨNG BR-VOT-02: Chống bỏ phiếu 2 lần (Single Vote Constraint)
-        $existingVote = KetQuaBieuQuyet::where('MaNoiDung', $id)
-            ->where('MaThamDu', $thamDu->MaThamDu)
-            ->first();
+        $authId = $validated['authorization_id'] ?? null;
 
-        if ($existingVote) {
+        // 3. XỬ LÝ THEO LOẠI BỎ PHIẾU (TRỰC TIẾP HOẶC ỦY QUYỀN)
+        if ($authId) {
+            // Trường hợp A: Bỏ phiếu theo ủy quyền của thành viên vắng mặt
+            $auth = UyQuyenBieuQuyet::with('thanhVienUyQuyen.nguoiDung')->find($authId);
+
+            if (! $auth || $auth->MaPhienHop != $phienHop->MaPhienHop || $auth->MaThanhVienNhanUyQuyen != $thanhVien->MaThanhVien) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Giấy ủy quyền này không hợp lệ hoặc bạn không phải người được chỉ định nhận ủy quyền.',
+                    'data' => null,
+                    'errors' => null,
+                ], 422);
+            }
+
+            if (! in_array($auth->TrangThai, ['Hợp lệ', 'ACTIVE'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Giấy ủy quyền này chưa được duyệt hoặc đã hết hiệu lực.',
+                    'data' => null,
+                    'errors' => null,
+                ], 422);
+            }
+
+            // Chống bỏ phiếu 2 lần cho cùng một giấy ủy quyền
+            $existingProxyVote = KetQuaBieuQuyet::where('MaNoiDung', $id)
+                ->where('MaUyQuyen', $authId)
+                ->first();
+
+            if ($existingProxyVote) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Giấy ủy quyền này đã được thực hiện bỏ phiếu cho nội dung này.',
+                    'data' => null,
+                    'errors' => null,
+                ], 422);
+            }
+
+            // Lưu phiếu theo ủy quyền
+            KetQuaBieuQuyet::create([
+                'LuaChon' => $validated['choice'],
+                'ThoiDiem' => now(),
+                'MaNoiDung' => $id,
+                'MaThamDu' => $thamDu->MaThamDu,
+                'MaUyQuyen' => $authId,
+            ]);
+
+            $principalName = $auth->thanhVienUyQuyen?->nguoiDung?->HoTen ?? 'Thành viên ủy quyền';
+
             return response()->json([
-                'success' => false,
-                'message' => 'Bạn đã gửi phiếu cho nội dung này. Mỗi thành viên chỉ được bỏ phiếu một lần.',
-                'data' => null,
+                'success' => true,
+                'message' => "Đã ghi nhận phiếu biểu quyết theo ủy quyền của [{$principalName}] thành công.",
+                'data' => [
+                    'choice' => $validated['choice'],
+                    'has_voted' => true,
+                    'is_proxy' => true,
+                    'authorization_id' => $authId,
+                    'principal_name' => $principalName,
+                ],
                 'errors' => null,
-            ], 422);
+            ]);
+        } else {
+            // Trường hợp B: Bỏ phiếu cho chính bản thân mình (Single Vote Constraint)
+            $existingVote = KetQuaBieuQuyet::where('MaNoiDung', $id)
+                ->where('MaThamDu', $thamDu->MaThamDu)
+                ->whereNull('MaUyQuyen')
+                ->first();
+
+            if ($existingVote) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bạn đã gửi phiếu cho nội dung này. Mỗi thành viên chỉ được bỏ phiếu một lần.',
+                    'data' => null,
+                    'errors' => null,
+                ], 422);
+            }
+
+            // Lưu phiếu trực tiếp
+            KetQuaBieuQuyet::create([
+                'LuaChon' => $validated['choice'],
+                'ThoiDiem' => now(),
+                'MaNoiDung' => $id,
+                'MaThamDu' => $thamDu->MaThamDu,
+                'MaUyQuyen' => null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ghi nhận phiếu biểu quyết thành công.',
+                'data' => [
+                    'choice' => $validated['choice'],
+                    'has_voted' => true,
+                    'is_proxy' => false,
+                ],
+                'errors' => null,
+            ]);
         }
-
-        // 4. Lưu phiếu biểu quyết
-        KetQuaBieuQuyet::create([
-            'LuaChon' => $validated['choice'],
-            'ThoiDiem' => now(),
-            'MaNoiDung' => $id,
-            'MaThamDu' => $thamDu->MaThamDu,
-            'MaUyQuyen' => null,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Ghi nhận phiếu biểu quyết thành công.',
-            'data' => [
-                'choice' => $validated['choice'],
-                'has_voted' => true,
-            ],
-            'errors' => null,
-        ]);
     }
 
     /**
@@ -360,16 +459,109 @@ class VotingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Đã đóng biểu quyết. Kết quả: " . ($finalResult === 'PASSED' ? 'THÔNG QUA' : 'KHÔNG THÔNG QUA'),
-            'data' => $this->formatVotingSummary($vote->fresh(), $phienHop?->MaPhienHop ?? 1),
+            'message' => 'Đã đóng biểu quyết. Kết quả: ' . ($finalResult === 'PASSED' ? 'THÔNG QUA' : 'KHÔNG THÔNG QUA'),
+            'data' => $this->formatVotingSummary($vote->fresh(), $phienHop?->MaPhienHop ?? 1, $user),
             'errors' => null,
         ]);
     }
 
     /**
-     * Chuẩn hóa đối tượng thống kê Biểu quyết
+     * Danh sách giấy ủy quyền của phiên họp
+     * GET /api/v1/meetings/{meetingId}/authorizations
      */
-    private function formatVotingSummary(NoiDungBieuQuyet $vote, ?int $meetingId = null): array
+    public function authorizations(int|string $meetingId): JsonResponse
+    {
+        $authorizations = UyQuyenBieuQuyet::with([
+            'thanhVienUyQuyen.nguoiDung',
+            'thanhVienNhanUyQuyen.nguoiDung',
+        ])
+            ->where('MaPhienHop', $meetingId)
+            ->orderBy('MaUyQuyen', 'desc')
+            ->get();
+
+        $items = $authorizations->map(function (UyQuyenBieuQuyet $auth) {
+            return [
+                'id' => (int) $auth->MaUyQuyen,
+                'meeting_id' => (int) $auth->MaPhienHop,
+                'authorizer' => [
+                    'member_id' => (int) $auth->MaThanhVienUyQuyen,
+                    'name' => $auth->thanhVienUyQuyen?->nguoiDung?->HoTen ?? 'Thành viên ủy quyền',
+                    'email' => $auth->thanhVienUyQuyen?->nguoiDung?->email,
+                ],
+                'authorized' => [
+                    'member_id' => (int) $auth->MaThanhVienNhanUyQuyen,
+                    'name' => $auth->thanhVienNhanUyQuyen?->nguoiDung?->HoTen ?? 'Thành viên nhận ủy quyền',
+                    'email' => $auth->thanhVienNhanUyQuyen?->nguoiDung?->email,
+                ],
+                'date' => $auth->NgayUyQuyen ? $auth->NgayUyQuyen->format('Y-m-d') : null,
+                'scope' => $auth->PhamViUyQuyen,
+                'document' => $auth->TaiLieuUyQuyen,
+                'status' => $auth->TrangThai,
+                'status_label' => in_array($auth->TrangThai, ['Hợp lệ', 'ACTIVE']) ? 'Hợp lệ' : $auth->TrangThai,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $items,
+        ]);
+    }
+
+    /**
+     * Nộp giấy ủy quyền cho phiên họp
+     * POST /api/v1/meetings/{meetingId}/authorizations
+     */
+    public function storeAuthorization(Request $request, int|string $meetingId): JsonResponse
+    {
+        $meeting = PhienHop::find($meetingId);
+        if (! $meeting) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy phiên họp.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'authorizer_member_id' => ['required', 'integer', 'exists:thanh_vien_hdt,MaThanhVien'],
+            'authorized_member_id' => ['required', 'integer', 'exists:thanh_vien_hdt,MaThanhVien', 'different:authorizer_member_id'],
+            'date' => ['nullable', 'date'],
+            'scope' => ['nullable', 'string', 'max:255'],
+            'document' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'string', 'in:Hợp lệ,Chờ duyệt,Hết hiệu lực'],
+        ], [
+            'authorizer_member_id.required' => 'Vui lòng chọn thành viên ủy quyền.',
+            'authorized_member_id.required' => 'Vui lòng chọn thành viên nhận ủy quyền.',
+            'authorized_member_id.different' => 'Thành viên nhận ủy quyền phải khác người ủy quyền.',
+        ]);
+
+        $auth = UyQuyenBieuQuyet::create([
+            'NgayUyQuyen' => $validated['date'] ?? now()->toDateString(),
+            'PhamViUyQuyen' => $validated['scope'] ?? 'Toàn bộ nội dung biểu quyết tại phiên họp',
+            'TaiLieuUyQuyen' => $validated['document'] ?? null,
+            'TrangThai' => $validated['status'] ?? 'Hợp lệ',
+            'MaPhienHop' => $meetingId,
+            'MaThanhVienUyQuyen' => $validated['authorizer_member_id'],
+            'MaThanhVienNhanUyQuyen' => $validated['authorized_member_id'],
+        ]);
+
+        $auth->load(['thanhVienUyQuyen.nguoiDung', 'thanhVienNhanUyQuyen.nguoiDung']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tiếp nhận văn bản ủy quyền biểu quyết thành công.',
+            'data' => [
+                'id' => (int) $auth->MaUyQuyen,
+                'meeting_id' => (int) $auth->MaPhienHop,
+                'scope' => $auth->PhamViUyQuyen,
+                'status' => $auth->TrangThai,
+            ],
+        ], 201);
+    }
+
+    /**
+     * Chuẩn hóa đối tượng thống kê Biểu quyết (kèm bảo mật Bỏ phiếu kín)
+     */
+    private function formatVotingSummary(NoiDungBieuQuyet $vote, ?int $meetingId = null, $currentUser = null): array
     {
         $meta = json_decode($vote->GhiChu ?? '{}', true) ?: [];
         $votingType = $meta['voting_type'] ?? 'SECRET';
@@ -397,6 +589,25 @@ class VotingController extends Controller
             'PENDING' => 'Chưa có kết quả',
         ];
 
+        // Chuẩn hóa danh sách chi tiết các lá phiếu bảo mật
+        $isSecret = $votingType === 'SECRET';
+        $ballots = $votes->map(function (KetQuaBieuQuyet $item, $index) use ($isSecret) {
+            $voterUser = $item->thamDu?->thanhVienHdt?->nguoiDung;
+            $proxyUser = $item->uyQuyenBieuQuyet?->thanhVienUyQuyen?->nguoiDung;
+
+            $voterName = $isSecret ? ('Phiếu biểu quyết ẩn danh #' . ($index + 1)) : ($voterUser?->HoTen ?? 'Cử tri');
+            $choiceValue = $isSecret ? 'SECRET' : $item->LuaChon;
+
+            return [
+                'id' => (int) $item->MaKetQua,
+                'voter_name' => $voterName,
+                'is_proxy' => (bool) $item->MaUyQuyen,
+                'proxy_authorizer' => $isSecret ? null : $proxyUser?->HoTen,
+                'time' => $item->ThoiDiem ? $item->ThoiDiem->format('H:i:s d/m/Y') : null,
+                'choice' => $choiceValue,
+            ];
+        });
+
         return [
             'id' => (string) $vote->MaNoiDung,
             'meeting_id' => (string) ($meetingId ?: $vote->chuongTrinhHop?->MaPhienHop ?? 1),
@@ -420,6 +631,7 @@ class VotingController extends Controller
                 'votes_abstain' => $votesAbstain,
                 'percentage_abstain' => $percentageAbstain,
             ],
+            'ballots' => $ballots,
         ];
     }
 }

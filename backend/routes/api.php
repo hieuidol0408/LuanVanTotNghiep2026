@@ -57,7 +57,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/{id}/review', [DossierController::class, 'review']);
     });
 
-    // 4. Module Quản lý Biểu quyết & Kiểm phiếu (Voting)
+    // 4. Module Quản lý Biểu quyết & Kiểm phiếu (Voting & Authorizations)
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/meetings/{meetingId}/votings', [VotingController::class, 'index']);
         Route::post('/meetings/{meetingId}/votings', [VotingController::class, 'store']);
@@ -65,6 +65,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/votings/{id}/open', [VotingController::class, 'open']);
         Route::post('/votings/{id}/vote', [VotingController::class, 'vote']);
         Route::post('/votings/{id}/close', [VotingController::class, 'close']);
+
+        // Giấy ủy quyền biểu quyết (Bảng 14 - uy_quyen_bieu_quyet)
+        Route::get('/meetings/{meetingId}/authorizations', [VotingController::class, 'authorizations']);
+        Route::post('/meetings/{meetingId}/authorizations', [VotingController::class, 'storeAuthorization']);
     });
 
     // 5. Module Quản lý Biên bản & Nghị quyết (Resolutions & Minutes)
