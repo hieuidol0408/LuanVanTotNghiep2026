@@ -1,14 +1,41 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ScrollText, ArrowRight, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { ScrollText, ArrowRight } from "lucide-react";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import { PROTOTYPE_RESOLUTIONS_PROGRESS } from "../../../mock/prototypeData";
+import resolutionService from "../../resolutions/services/resolutionService";
 
 /**
  * ResolutionProgressSection - Tình hình thực hiện các Nghị quyết Hội đồng trường đã ban hành
  */
 export default function ResolutionProgressSection() {
   const navigate = useNavigate();
+  const [resolutions, setResolutions] = useState(PROTOTYPE_RESOLUTIONS_PROGRESS);
+
+  useEffect(() => {
+    async function loadRealResolutions() {
+      try {
+        const res = await resolutionService.getResolutions({ perPage: 4 });
+        if (res.success && res.data && res.data.length > 0) {
+          const mapped = res.data.map((item) => ({
+            id: item.resolution_number,
+            title: item.title,
+            issued_date: item.issued_date,
+            lead_department: "Các đơn vị thi hành",
+            total_tasks: item.total_tasks || 0,
+            completed_tasks: item.completed_tasks || 0,
+            progress_percentage: item.progress_percentage || 0,
+            status: item.status,
+            status_label: item.status_label
+          }));
+          setResolutions(mapped);
+        }
+      } catch (err) {
+        console.warn("Lỗi tải tiến độ nghị quyết dashboard:", err);
+      }
+    }
+    loadRealResolutions();
+  }, []);
 
   return (
     <div
@@ -59,13 +86,13 @@ export default function ResolutionProgressSection() {
           className="btn btn-secondary btn-sm"
           style={{ gap: "4px" }}
         >
-          <span>Xem tất cả ({PROTOTYPE_RESOLUTIONS_PROGRESS.length})</span>
+          <span>Xem tất cả ({resolutions.length})</span>
           <ArrowRight size={13} />
         </button>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", flex: 1 }}>
-        {PROTOTYPE_RESOLUTIONS_PROGRESS.map((res) => {
+        {resolutions.map((res) => {
           const isComplete = res.progress_percentage === 100;
           const isOverdue = res.status === "OVERDUE";
           const progressColor = isComplete

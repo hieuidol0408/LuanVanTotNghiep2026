@@ -22,6 +22,9 @@ import DossierListPage from "../features/dossiers/pages/DossierListPage";
 // Voting Management Feature Pages
 import VotingRoomPage from "../features/voting/pages/VotingRoomPage";
 
+// Resolution Management Feature Pages
+import ResolutionListPage from "../features/resolutions/pages/ResolutionListPage";
+
 import PageHeader from "../components/layout/PageHeader";
 import EmptyState from "../components/ui/EmptyState";
 import { Construction } from "lucide-react";
@@ -94,7 +97,7 @@ export default function AppRoutes() {
         />
         <Route
           path="/resolutions"
-          element={<ModulePlaceholder title="Biên bản & Nghị quyết HĐT" description="Quản lý biên bản họp và ban hành các Nghị quyết chính thức của trường STU." />}
+          element={<ResolutionListPage />}
         />
         <Route
           path="/tasks"

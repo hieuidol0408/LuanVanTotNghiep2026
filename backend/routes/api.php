@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DossierController;
 use App\Http\Controllers\Api\V1\MeetingController;
+use App\Http\Controllers\Api\V1\ResolutionController;
 use App\Http\Controllers\Api\V1\VotingController;
 use Illuminate\Support\Facades\Route;
 
@@ -60,5 +61,22 @@ Route::prefix('v1')->group(function () {
         Route::post('/votings/{id}/open', [VotingController::class, 'open']);
         Route::post('/votings/{id}/vote', [VotingController::class, 'vote']);
         Route::post('/votings/{id}/close', [VotingController::class, 'close']);
+    });
+
+    // 5. Module Quản lý Biên bản & Nghị quyết (Resolutions & Minutes)
+    Route::middleware('auth:sanctum')->group(function () {
+        // Biên bản phiên họp
+        Route::get('/meetings/{meetingId}/minutes', [ResolutionController::class, 'getMinutes']);
+        Route::post('/meetings/{meetingId}/minutes', [ResolutionController::class, 'saveMinutes']);
+        Route::post('/meetings/{meetingId}/minutes/approve', [ResolutionController::class, 'approveMinutes']);
+
+        // Nghị quyết HĐT
+        Route::get('/resolutions', [ResolutionController::class, 'index']);
+        Route::post('/resolutions', [ResolutionController::class, 'store']);
+        Route::get('/resolutions/{id}', [ResolutionController::class, 'show']);
+        Route::put('/resolutions/{id}', [ResolutionController::class, 'update']);
+        Route::delete('/resolutions/{id}', [ResolutionController::class, 'destroy']);
+        Route::post('/resolutions/{id}/sign', [ResolutionController::class, 'sign']);
+        Route::post('/resolutions/{id}/publish', [ResolutionController::class, 'publish']);
     });
 });

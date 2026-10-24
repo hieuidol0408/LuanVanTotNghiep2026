@@ -249,18 +249,49 @@ class DatabaseSeeder extends Seeder
 
         // 6. Seed nội dung biểu quyết mẫu NOI_DUNG_BIEU_QUYET
         $agenda1 = \App\Models\ChuongTrinhHop::where('MaPhienHop', $phienHop1->MaPhienHop)->first();
+        $vote1 = null;
         if ($agenda1) {
-            \App\Models\NoiDungBieuQuyet::firstOrCreate(
+            $vote1 = \App\Models\NoiDungBieuQuyet::firstOrCreate(
                 ['MaChuongTrinh' => $agenda1->MaChuongTrinh],
                 [
                     'NoiDung' => 'Biểu quyết thông qua Đề án mở ngành đào tạo Kỹ thuật Robot & Trí tuệ nhân tạo (AI) bậc Đại học',
                     'ThoiGianMo' => null,
                     'ThoiGianDong' => now()->addHours(2),
-                    'TrangThai' => 'PENDING',
-                    'KetQua' => 'PENDING',
+                    'TrangThai' => 'CLOSED',
+                    'KetQua' => 'PASSED',
                     'GhiChu' => json_encode(['voting_type' => 'SECRET', 'pass_threshold' => 65]),
                 ]
             );
+        }
+
+        // 7. Seed Nghị quyết mẫu NGHI_QUYET
+        $nq1 = \App\Models\NghiQuyet::firstOrCreate(
+            ['SoNghiQuyet' => '01/NQ-HĐT-2026'],
+            [
+                'NgayBanHanh' => '2026-10-20',
+                'TrichYeu' => 'Về việc phê duyệt chủ trương mở ngành đào tạo Kỹ thuật Robot & Trí tuệ nhân tạo (AI)',
+                'NoiDung' => 'Hội đồng trường Trường Đại học Công nghệ Sài Gòn quyết nghị thông qua chủ trương mở ngành đào tạo trình độ đại học Kỹ thuật Robot & Trí tuệ nhân tạo từ năm học 2026-2027.',
+                'TrangThai' => 'PUBLISHED',
+                'MaPhienHop' => $phienHop1->MaPhienHop,
+            ]
+        );
+
+        $nq2 = \App\Models\NghiQuyet::firstOrCreate(
+            ['SoNghiQuyet' => '02/NQ-HĐT-2026'],
+            [
+                'NgayBanHanh' => '2026-10-22',
+                'TrichYeu' => 'Về việc ban hành Quy chế chi tiêu nội bộ và định mức tài chính năm 2026',
+                'NoiDung' => 'Hội đồng trường thông qua dự thảo Quy chế chi tiêu nội bộ áp dụng thống nhất trong toàn trường từ ngày 01/01/2026.',
+                'TrangThai' => 'SIGNED',
+                'MaPhienHop' => $phienHop1->MaPhienHop,
+            ]
+        );
+
+        if ($hs1) {
+            $nq1->hoSoTrinh()->syncWithoutDetaching([$hs1->MaHoSo]);
+        }
+        if ($vote1) {
+            $nq1->noiDungBieuQuyet()->syncWithoutDetaching([$vote1->MaNoiDung]);
         }
     }
 }
