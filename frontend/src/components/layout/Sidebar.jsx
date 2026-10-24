@@ -7,8 +7,8 @@ import { useAuth } from "../../features/auth/context/AuthContext";
 /**
  * Sidebar - Menu điều hướng bên trái có thể thu gọn và phân quyền theo Vai trò
  */
-export default function Sidebar({ isCollapsed, onToggle }) {
-  const { user, role, canAccessRoute } = useAuth();
+export default function Sidebar({ isCollapsed }) {
+  const { user, canAccessRoute } = useAuth();
 
   // Lọc danh mục Menu điều hướng dựa trên thẩm quyền của vai trò hiện tại
   const visibleNavItems = PROTOTYPE_NAV_ITEMS.filter((item) => {

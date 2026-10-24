@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { FileText, Download, Trash2, Eye, Upload, Shield, Globe } from "lucide-react";
-import StatusBadge from "../../../components/ui/StatusBadge";
 import FileUpload from "../../../components/ui/FileUpload";
 import DataTable from "../../../components/ui/DataTable";
 import { useToast } from "../../../components/ui/Toast";

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { UploadCloud, FileText } from "lucide-react";
+import { UploadCloud } from "lucide-react";
 
 /**
  * FileUpload - Vùng tải tệp lên hỗ trợ kéo thả và chọn tệp

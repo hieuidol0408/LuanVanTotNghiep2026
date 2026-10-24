@@ -1,2 +1,4 @@
 @echo off
-"D:\WAMP\bin\php\php8.3.14\php.exe" "D:\WAMP\www\LVTN\backend\artisan" %*
+pushd "D:\WAMP\www\LVTN\backend"
+"D:\WAMP\bin\php\php8.3.14\php.exe" artisan %*
+popd

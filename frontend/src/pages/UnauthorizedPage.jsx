@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ShieldAlert, ArrowLeft, RotateCcw, LogOut, CheckCircle2 } from "lucide-react";
+import { ShieldAlert, ArrowLeft, LogOut } from "lucide-react";
 import { useAuth } from "../features/auth/context/AuthContext";
 import { PROTOTYPE_ROLES } from "../mock/prototypeData";
 import PageHeader from "../components/layout/PageHeader";

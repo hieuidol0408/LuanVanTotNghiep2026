@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, Bell, User, KeyRound, LogOut, ChevronDown, Check, ShieldCheck, RefreshCw } from "lucide-react";
+import { Menu, Bell, User, KeyRound, LogOut, ChevronDown, Check, RefreshCw } from "lucide-react";
 import { PROTOTYPE_NOTIFICATIONS, PROTOTYPE_ROLES } from "../../mock/prototypeData";
 import { useAuth } from "../../features/auth/context/AuthContext";
 
