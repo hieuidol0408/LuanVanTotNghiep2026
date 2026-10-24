@@ -10,20 +10,29 @@ import UpcomingMeetingsSection from "../components/UpcomingMeetingsSection";
 import PendingDossiersSection from "../components/PendingDossiersSection";
 import ResolutionProgressSection from "../components/ResolutionProgressSection";
 import { Plus, Calendar, RotateCcw, AlertTriangle, Layers } from "lucide-react";
-import { PROTOTYPE_USER } from "../../../mock/prototypeData";
+import { useAuth } from "../../auth/context/AuthContext";
 
 /**
  * DashboardPage - Màn hình Tổng quan Điều hành Hệ thống Hội đồng trường STU
  */
 export default function DashboardPage() {
   const toast = useToast();
+  const { user, switchRole } = useAuth();
 
-  const [currentRole, setCurrentRole] = useState(PROTOTYPE_USER);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
+  const currentRole = user || {
+    key: "SECRETARY",
+    name: "Thư ký Hội đồng trường",
+    user_name: "TS. Trần Văn Thư Ký",
+    avatar_initials: "TK",
+    department: "Văn phòng Hội đồng trường",
+    duties_badge: "Thẩm tra & Điều hành phiên họp"
+  };
+
   const handleRoleChange = (newRole) => {
-    setCurrentRole(newRole);
+    switchRole(newRole.key);
     toast.info(`Đã chuyển góc nhìn sang vai trò: ${newRole.name}`);
   };
 

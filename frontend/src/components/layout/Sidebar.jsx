@@ -2,11 +2,19 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import * as Icons from "lucide-react";
 import { PROTOTYPE_NAV_ITEMS } from "../../mock/prototypeData";
+import { useAuth } from "../../features/auth/context/AuthContext";
 
 /**
- * Sidebar - Menu điều hướng bên trái có thể thu gọn (Collapsible)
+ * Sidebar - Menu điều hướng bên trái có thể thu gọn và phân quyền theo Vai trò
  */
 export default function Sidebar({ isCollapsed, onToggle }) {
+  const { user, role, canAccessRoute } = useAuth();
+
+  // Lọc danh mục Menu điều hướng dựa trên thẩm quyền của vai trò hiện tại
+  const visibleNavItems = PROTOTYPE_NAV_ITEMS.filter((item) => {
+    return canAccessRoute(item.path);
+  });
+
   return (
     <aside
       style={{
@@ -68,7 +76,52 @@ export default function Sidebar({ isCollapsed, onToggle }) {
         )}
       </div>
 
-      {/* Navigation Menu */}
+      {/* Role Indicator Banner */}
+      {!isCollapsed && user && (
+        <div
+          style={{
+            padding: "var(--space-2) var(--space-4)",
+            backgroundColor: "rgba(255, 255, 255, 0.04)",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between"
+          }}
+        >
+          <div style={{ overflow: "hidden" }}>
+            <div style={{ fontSize: "10px", color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Vai trò đang xem:
+            </div>
+            <div
+              style={{
+                fontSize: "11px",
+                fontWeight: "var(--font-weight-semibold)",
+                color: "#38BDF8",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }}
+              title={user.name}
+            >
+              {user.name}
+            </div>
+          </div>
+          <span
+            style={{
+              fontSize: "10px",
+              padding: "2px 6px",
+              borderRadius: "var(--radius-sm)",
+              backgroundColor: "rgba(56, 189, 248, 0.15)",
+              color: "#38BDF8",
+              fontWeight: "var(--font-weight-bold)"
+            }}
+          >
+            {user.key}
+          </span>
+        </div>
+      )}
+
+      {/* Navigation Menu (Filtered by RBAC) */}
       <nav
         style={{
           flex: 1,
@@ -79,7 +132,7 @@ export default function Sidebar({ isCollapsed, onToggle }) {
           gap: "4px"
         }}
       >
-        {PROTOTYPE_NAV_ITEMS.map((item) => {
+        {visibleNavItems.map((item) => {
           const Icon = Icons[item.icon] || Icons.Circle;
 
           return (

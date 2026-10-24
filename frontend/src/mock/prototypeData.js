@@ -7,56 +7,95 @@
  * - Khi kết nối API thật, toàn bộ dữ liệu này sẽ được thay thế bằng kết quả từ axios service.
  */
 
-// Danh sách các vai trò để demo cơ chế Role-based UI
+// Danh sách đầy đủ 7 vai trò chuẩn nghiệp vụ theo docs/business-rules.md & docs/requirements.md
 export const PROTOTYPE_ROLES = [
   {
-    key: "SECRETARY",
-    name: "Thư ký Hội đồng trường",
-    user_name: "TS. Trần Văn Thư Ký",
-    email: "thuky_hdt@stu.edu.vn",
-    department: "Văn phòng Hội đồng trường",
-    avatar_initials: "TK",
-    duties_badge: "Thẩm tra & Điều hành phiên họp"
+    key: "ADMIN",
+    name: "Quản trị viên hệ thống",
+    role_name: "Quản trị viên hệ thống",
+    user_name: "Kỹ sư Quản Trị Hệ Thống",
+    full_name: "Kỹ sư Quản Trị Hệ Thống",
+    email: "admin@stu.edu.vn",
+    department: "Trung tâm CNTT & Truyền thông",
+    department_name: "Trung tâm CNTT & Truyền thông",
+    avatar_initials: "AD",
+    duties_badge: "Quản trị tài khoản, phân quyền & hệ thống"
   },
   {
     key: "CHAIR",
     name: "Chủ tịch Hội đồng trường",
+    role_name: "Chủ tịch Hội đồng trường",
     user_name: "PGS.TS. Nguyễn Văn Chủ Tịch",
+    full_name: "PGS.TS. Nguyễn Văn Chủ Tịch",
     email: "chutich_hdt@stu.edu.vn",
     department: "Hội đồng trường STU",
+    department_name: "Hội đồng trường STU",
     avatar_initials: "CT",
     duties_badge: "Chủ trì & Ký ban hành Nghị quyết"
   },
   {
+    key: "SECRETARY",
+    name: "Thư ký Hội đồng trường",
+    role_name: "Thư ký Hội đồng trường",
+    user_name: "TS. Trần Văn Thư Ký",
+    full_name: "TS. Trần Văn Thư Ký",
+    email: "thuky_hdt@stu.edu.vn",
+    department: "Văn phòng Hội đồng trường",
+    department_name: "Văn phòng Hội đồng trường",
+    avatar_initials: "TK",
+    duties_badge: "Thẩm tra & Điều hành phiên họp"
+  },
+  {
     key: "MEMBER",
     name: "Thành viên Hội đồng trường",
+    role_name: "Thành viên Hội đồng trường",
     user_name: "TS. Lê Hoàng Thành Viên",
+    full_name: "TS. Lê Hoàng Thành Viên",
     email: "thanhvien_hdt@stu.edu.vn",
     department: "Khoa Điện - Điện tử",
+    department_name: "Khoa Điện - Điện tử",
     avatar_initials: "TV",
     duties_badge: "Tham dự họp & Thực hiện biểu quyết"
   },
   {
+    key: "RECTOR_OFFICE",
+    name: "Văn phòng Hiệu trưởng",
+    role_name: "Văn phòng Hiệu trưởng",
+    user_name: "ThS. Hoàng Thị Văn Phòng",
+    full_name: "ThS. Hoàng Thị Văn Phòng",
+    email: "vphieutruong@stu.edu.vn",
+    department: "Văn phòng Hiệu trưởng STU",
+    department_name: "Văn phòng Hiệu trưởng STU",
+    avatar_initials: "VP",
+    duties_badge: "Tham mưu Ban Giám hiệu & Giám sát thực thi"
+  },
+  {
     key: "UNIT_REP",
     name: "Đại diện Đơn vị trình hồ sơ",
+    role_name: "Đại diện Đơn vị trình hồ sơ",
     user_name: "ThS. Đỗ Thị Đại Diện",
+    full_name: "ThS. Đỗ Thị Đại Diện",
     email: "daotao@stu.edu.vn",
     department: "Phòng Đào tạo",
+    department_name: "Phòng Đào tạo",
     avatar_initials: "ĐT",
     duties_badge: "Nộp tờ trình & Theo dõi thẩm tra"
   },
   {
     key: "EXECUTING_UNIT",
     name: "Đơn vị thực hiện Nghị quyết",
+    role_name: "Đơn vị thực hiện Nghị quyết",
     user_name: "TS. Vũ Minh Thực Hiện",
+    full_name: "TS. Vũ Minh Thực Hiện",
     email: "cntt@stu.edu.vn",
     department: "Khoa Công nghệ Thông tin",
+    department_name: "Khoa Công nghệ Thông tin",
     avatar_initials: "TH",
     duties_badge: "Thực hiện nhiệm vụ & Nộp minh chứng"
   }
 ];
 
-export const PROTOTYPE_USER = PROTOTYPE_ROLES[0]; // Mặc định Thư ký
+export const PROTOTYPE_USER = PROTOTYPE_ROLES[2]; // Mặc định Thư ký HĐT
 
 export const PROTOTYPE_NAV_ITEMS = [
   { key: "overview", label: "Tổng quan Dashboard", icon: "LayoutDashboard", path: "/" },
