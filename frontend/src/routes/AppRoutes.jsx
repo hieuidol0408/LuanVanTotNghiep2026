@@ -19,6 +19,9 @@ import MeetingDetailPage from "../features/meetings/pages/MeetingDetailPage";
 // Dossier Management Feature Pages
 import DossierListPage from "../features/dossiers/pages/DossierListPage";
 
+// Voting Management Feature Pages
+import VotingRoomPage from "../features/voting/pages/VotingRoomPage";
+
 import PageHeader from "../components/layout/PageHeader";
 import EmptyState from "../components/ui/EmptyState";
 import { Construction } from "lucide-react";
@@ -87,7 +90,7 @@ export default function AppRoutes() {
         />
         <Route
           path="/voting"
-          element={<ModulePlaceholder title="Quản lý Biểu quyết & Kiểm phiếu" description="Khởi tạo nội dung biểu quyết, bỏ phiếu kín/công khai và tự động kiểm phiếu." />}
+          element={<VotingRoomPage />}
         />
         <Route
           path="/resolutions"

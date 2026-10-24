@@ -35,7 +35,7 @@ export default function MeetingVotingTab({ votings = [], meetingId }) {
         <button
           type="button"
           className="btn btn-primary btn-sm"
-          onClick={() => navigate("/voting")}
+          onClick={() => navigate(meetingId ? `/voting?meeting_id=${meetingId}` : "/voting")}
           style={{ gap: "4px" }}
         >
           <span>Mở phòng Biểu quyết</span>
@@ -121,7 +121,7 @@ export default function MeetingVotingTab({ votings = [], meetingId }) {
                   <button
                     type="button"
                     className="btn btn-secondary btn-sm"
-                    onClick={() => navigate("/voting")}
+                    onClick={() => navigate(meetingId ? `/voting?meeting_id=${meetingId}` : "/voting")}
                   >
                     Vào phòng bỏ phiếu
                   </button>

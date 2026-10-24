@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DossierController;
 use App\Http\Controllers\Api\V1\MeetingController;
+use App\Http\Controllers\Api\V1\VotingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,5 +50,15 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/{id}/submit', [DossierController::class, 'submit']);
         Route::post('/{id}/review', [DossierController::class, 'review']);
+    });
+
+    // 4. Module Quản lý Biểu quyết & Kiểm phiếu (Voting)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/meetings/{meetingId}/votings', [VotingController::class, 'index']);
+        Route::post('/meetings/{meetingId}/votings', [VotingController::class, 'store']);
+        Route::get('/votings/{id}', [VotingController::class, 'show']);
+        Route::post('/votings/{id}/open', [VotingController::class, 'open']);
+        Route::post('/votings/{id}/vote', [VotingController::class, 'vote']);
+        Route::post('/votings/{id}/close', [VotingController::class, 'close']);
     });
 });

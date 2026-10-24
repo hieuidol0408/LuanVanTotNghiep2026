@@ -246,5 +246,21 @@ class DatabaseSeeder extends Seeder
                 'TrangThaiThamDu' => 'INVITED',
             ]
         );
+
+        // 6. Seed nội dung biểu quyết mẫu NOI_DUNG_BIEU_QUYET
+        $agenda1 = \App\Models\ChuongTrinhHop::where('MaPhienHop', $phienHop1->MaPhienHop)->first();
+        if ($agenda1) {
+            \App\Models\NoiDungBieuQuyet::firstOrCreate(
+                ['MaChuongTrinh' => $agenda1->MaChuongTrinh],
+                [
+                    'NoiDung' => 'Biểu quyết thông qua Đề án mở ngành đào tạo Kỹ thuật Robot & Trí tuệ nhân tạo (AI) bậc Đại học',
+                    'ThoiGianMo' => null,
+                    'ThoiGianDong' => now()->addHours(2),
+                    'TrangThai' => 'PENDING',
+                    'KetQua' => 'PENDING',
+                    'GhiChu' => json_encode(['voting_type' => 'SECRET', 'pass_threshold' => 65]),
+                ]
+            );
+        }
     }
 }

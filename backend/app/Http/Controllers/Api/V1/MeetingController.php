@@ -139,6 +139,7 @@ class MeetingController extends Controller
             'thamDu.thanhVienHdt.nguoiDung.donVi',
             'khachMoiPhienHop.khachMoi',
             'chuongTrinhHop.hoSoTrinh.donVi',
+            'chuongTrinhHop.noiDungBieuQuyet.ketQuaBieuQuyet',
             'taiLieu',
         ])->find($id);
 
@@ -630,11 +631,56 @@ class MeetingController extends Controller
             ];
         })->values()->toArray() : [];
 
+        // Votings
+        $votings = [];
+        if ($meeting->chuongTrinhHop) {
+            foreach ($meeting->chuongTrinhHop as $ch) {
+                if ($ch->noiDungBieuQuyet) {
+                    foreach ($ch->noiDungBieuQuyet as $nd) {
+                        $meta = json_decode($nd->GhiChu ?? '{}', true) ?: [];
+                        $votingType = $meta['voting_type'] ?? 'SECRET';
+                        $passThreshold = (int) ($meta['pass_threshold'] ?? 50);
+
+                        $votes = $nd->ketQuaBieuQuyet ?? collect([]);
+                        $totalCast = $votes->count();
+                        $votesFor = $votes->where('LuaChon', 'VOTE_FOR')->count();
+                        $votesAgainst = $votes->where('LuaChon', 'VOTE_AGAINST')->count();
+                        $votesAbstain = $votes->where('LuaChon', 'VOTE_ABSTAIN')->count();
+
+                        $statusLabels = [
+                            'PENDING' => 'Chưa mở',
+                            'OPENING' => 'Đang mở biểu quyết',
+                            'CLOSED' => 'Đã đóng',
+                        ];
+
+                        $votings[] = [
+                            'id' => (string) $nd->MaNoiDung,
+                            'meeting_id' => (string) $meeting->MaPhienHop,
+                            'agenda_id' => (string) $nd->MaChuongTrinh,
+                            'title' => $nd->NoiDung,
+                            'voting_type' => $votingType,
+                            'voting_type_label' => $votingType === 'SECRET' ? 'Bỏ phiếu kín' : 'Biểu quyết công khai',
+                            'pass_threshold' => "{$passThreshold}%",
+                            'status' => $nd->TrangThai,
+                            'status_label' => $statusLabels[$nd->TrangThai] ?? $nd->TrangThai,
+                            'result' => $nd->KetQua,
+                            'stats' => [
+                                'total_votes' => $totalCast,
+                                'votes_for' => $votesFor,
+                                'votes_against' => $votesAgainst,
+                                'votes_abstain' => $votesAbstain,
+                            ],
+                        ];
+                    }
+                }
+            }
+        }
+
         return array_merge($summary, [
             'agendas' => $agendas,
             'attendees' => $attendees,
             'documents' => $documents,
-            'votings' => [],
+            'votings' => $votings,
         ]);
     }
 }
