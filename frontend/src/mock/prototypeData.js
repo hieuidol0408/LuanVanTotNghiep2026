@@ -99,7 +99,6 @@ export const PROTOTYPE_USER = PROTOTYPE_ROLES[2]; // Mặc định Thư ký HĐT
 
 export const PROTOTYPE_NAV_ITEMS = [
   { key: "overview", label: "Tổng quan Dashboard", icon: "LayoutDashboard", path: "/" },
-  { key: "components", label: "Kho thành phần UI", icon: "Boxes", path: "/components" },
   { key: "councils", label: "Hội đồng trường", icon: "GraduationCap", path: "/councils", badge: "Khóa IV" },
   { key: "dossiers", label: "Hồ sơ trình", icon: "FileText", path: "/dossiers", count: 4 },
   { key: "meetings", label: "Phiên họp & Tài liệu", icon: "Calendar", path: "/meetings", count: 2 },

@@ -16,7 +16,7 @@ export const ROLE_PERMISSIONS = {
     roleKey: "ADMIN",
     roleName: "Quản trị viên hệ thống",
     canVote: false, // TUYỆT ĐỐI KHÔNG CAN THIỆP VÀO LÁ PHIẾU BIỂU QUYẾT
-    allowedRoutes: ["/", "/components", "/users", "/councils", "/documents", "/resolutions"],
+    allowedRoutes: ["/", "/users", "/councils", "/documents", "/resolutions"],
     features: {
       manageUsers: true,
       manageRoles: true,
@@ -35,7 +35,7 @@ export const ROLE_PERMISSIONS = {
     roleKey: "CHAIR",
     roleName: "Chủ tịch Hội đồng trường",
     canVote: true, // CHỦ TỌA & BỎ PHIẾU
-    allowedRoutes: ["/", "/components", "/councils", "/dossiers", "/meetings", "/voting", "/resolutions", "/tasks", "/documents"],
+    allowedRoutes: ["/", "/councils", "/dossiers", "/meetings", "/voting", "/resolutions", "/tasks", "/documents"],
     features: {
       manageUsers: false,
       manageRoles: false,
@@ -54,7 +54,7 @@ export const ROLE_PERMISSIONS = {
     roleKey: "SECRETARY",
     roleName: "Thư ký Hội đồng trường",
     canVote: true, // THƯ KÝ BỎ PHIẾU NẾU LÀ THÀNH VIÊN HĐT
-    allowedRoutes: ["/", "/components", "/councils", "/dossiers", "/meetings", "/voting", "/resolutions", "/tasks", "/documents"],
+    allowedRoutes: ["/", "/councils", "/dossiers", "/meetings", "/voting", "/resolutions", "/tasks", "/documents"],
     features: {
       manageUsers: false,
       manageRoles: false,
@@ -73,7 +73,7 @@ export const ROLE_PERMISSIONS = {
     roleKey: "MEMBER",
     roleName: "Thành viên Hội đồng trường",
     canVote: true, // QUYỀN BIỂU QUYẾT CHÍNH THỨC
-    allowedRoutes: ["/", "/components", "/councils", "/meetings", "/voting", "/resolutions", "/tasks", "/documents"],
+    allowedRoutes: ["/", "/councils", "/meetings", "/voting", "/resolutions", "/tasks", "/documents"],
     features: {
       manageUsers: false,
       manageRoles: false,
@@ -92,7 +92,7 @@ export const ROLE_PERMISSIONS = {
     roleKey: "RECTOR_OFFICE",
     roleName: "Văn phòng Hiệu trưởng",
     canVote: false, // TUYỆT ĐỐI KHÔNG CÓ QUYỀN BIỂU QUYẾT
-    allowedRoutes: ["/", "/components", "/resolutions", "/tasks", "/documents"],
+    allowedRoutes: ["/", "/resolutions", "/tasks", "/documents"],
     features: {
       manageUsers: false,
       manageRoles: false,
@@ -111,7 +111,7 @@ export const ROLE_PERMISSIONS = {
     roleKey: "UNIT_REP",
     roleName: "Đại diện Đơn vị trình hồ sơ",
     canVote: false, // TUYỆT ĐỐI KHÔNG CÓ QUYỀN BIỂU QUYẾT
-    allowedRoutes: ["/", "/components", "/dossiers", "/resolutions", "/documents"],
+    allowedRoutes: ["/", "/dossiers", "/resolutions", "/documents"],
     features: {
       manageUsers: false,
       manageRoles: false,
@@ -130,7 +130,7 @@ export const ROLE_PERMISSIONS = {
     roleKey: "EXECUTING_UNIT",
     roleName: "Đơn vị thực hiện Nghị quyết",
     canVote: false, // TUYỆT ĐỐI KHÔNG CÓ QUYỀN BIỂU QUYẾT
-    allowedRoutes: ["/", "/components", "/tasks", "/resolutions", "/documents"],
+    allowedRoutes: ["/", "/tasks", "/resolutions", "/documents"],
     features: {
       manageUsers: false,
       manageRoles: false,
