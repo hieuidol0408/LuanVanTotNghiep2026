@@ -8,26 +8,46 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Khởi tạo phiên đăng nhập khi load ứng dụng
+  // Khởi tạo phiên đăng nhập khi tải ứng dụng
   useEffect(() => {
-    try {
-      const currentUser = authService.getCurrentUser();
-      const currentToken = authService.getToken();
+    async function initAuth() {
+      try {
+        const storedToken = authService.getToken();
+        const storedUser = authService.getCurrentUser();
 
-      if (currentUser && currentToken) {
-        setUser(currentUser);
-        setToken(currentToken);
-      } else {
+        if (storedToken && storedUser) {
+          setUser(storedUser);
+          setToken(storedToken);
+
+          // Xác thực lại với API /auth/me trong nền
+          authService.fetchCurrentUser().then((freshUser) => {
+            if (freshUser) {
+              setUser(freshUser);
+            }
+          });
+        } else {
+          setUser(null);
+          setToken(null);
+        }
+      } catch (err) {
+        console.error("Lỗi khởi tạo phiên xác thực:", err);
         setUser(null);
         setToken(null);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error("Lỗi khởi tạo phiên xác thực:", err);
+    }
+
+    initAuth();
+
+    // Lắng nghe sự kiện 401 Unauthorized toàn cục từ apiClient
+    const handleUnauthorized = () => {
       setUser(null);
       setToken(null);
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    window.addEventListener("stu:unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("stu:unauthorized", handleUnauthorized);
   }, []);
 
   // Đăng nhập
@@ -58,22 +78,27 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Chuyển đổi nhanh vai trò (Phục vụ Demo & Nghiệm thu đồ án)
-  const switchRole = useCallback((roleKey) => {
-    const updatedUser = authService.switchRole(roleKey);
-    if (updatedUser) {
-      setUser(updatedUser);
-      setToken(authService.getToken());
-      return updatedUser;
+  // Chuyển đổi nhanh vai trò (Đăng nhập thật qua API Backend)
+  const switchRole = useCallback(async (roleKey) => {
+    setIsLoading(true);
+    try {
+      const updatedUser = await authService.switchRole(roleKey);
+      if (updatedUser) {
+        setUser(updatedUser);
+        setToken(authService.getToken());
+        return updatedUser;
+      }
+      return null;
+    } finally {
+      setIsLoading(false);
     }
-    return null;
   }, []);
 
   // Kiểm tra quyền truy cập đường dẫn
   const canAccessRoute = useCallback(
     (pathname) => {
       if (!user) return false;
-      return authService.canAccessRoute(user.key, pathname);
+      return authService.canAccessRoute(user.key || user.role, pathname);
     },
     [user]
   );
@@ -82,10 +107,11 @@ export function AuthProvider({ children }) {
   const hasRole = useCallback(
     (roleKeys) => {
       if (!user) return false;
+      const userRole = user.key || user.role;
       if (Array.isArray(roleKeys)) {
-        return roleKeys.includes(user.key);
+        return roleKeys.includes(userRole);
       }
-      return user.key === roleKeys;
+      return userRole === roleKeys;
     },
     [user]
   );
@@ -101,8 +127,8 @@ export function AuthProvider({ children }) {
 
   const value = {
     user,
-    role: user?.key || null,
-    roleName: user?.name || "Chưa xác thực",
+    role: user?.key || user?.role || null,
+    roleName: user?.role_name || user?.name || "Chưa xác thực",
     token,
     isAuthenticated: Boolean(user && token),
     isLoading,

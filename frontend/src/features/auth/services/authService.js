@@ -1,16 +1,13 @@
 /**
- * AUTH SERVICE - QUẢN LÝ XÁC THỰC VÀ PHÂN QUYỀN HỘI ĐỒNG TRƯỜNG STU
+ * AUTH SERVICE - TÍCH HỢP RESTFUL API BACKEND LARAVEL STU
  * 
- * LƯU Ý KỸ THUẬT & BẢO MẬT:
- * 1. Tệp này cung cấp cơ chế quản lý trạng thái phiên đăng nhập (Session/Token) cho React Frontend.
- * 2. Trong môi trường kiểm thử/luận văn, dữ liệu phiên được đồng bộ qua LocalStorage/SessionStorage.
- * 3. Khi kết nối Backend Laravel thực tế, mọi tác vụ đăng nhập sẽ gọi endpoint `/api/v1/auth/login`
- *    nhận Bearer Token (Laravel Sanctum), và Backend sẽ kiểm tra chặt chẽ Authorization trên từng API.
- * 4. Ẩn nút trên giao diện chỉ nhằm tối ưu trải nghiệm người dùng, KHÔNG THỂ thay thế lớp bảo vệ
- *    ở tầng Backend (Laravel Gate/Policy).
- * 5. KHÔNG tạo tài khoản mặc định cố định trong môi trường Production.
+ * LƯU Ý KỸ THUẬT:
+ * 1. Gọi trực tiếp endpoint `/api/v1/auth/login`, `/api/v1/auth/me`, `/api/v1/auth/logout` thông qua apiClient.
+ * 2. Lưu trữ Bearer Token (Laravel Sanctum) an toàn trong Storage và đính kèm vào mọi request tiếp theo.
+ * 3. Đồng bộ đầy đủ thông tin vai trò, phòng ban và thẩm quyền (RBAC) trả về từ CSDL MySQL.
  */
 
+import apiClient, { ValidationError, ApiError, NetworkError } from "../../../services/apiClient";
 import { PROTOTYPE_ROLES } from "../../../mock/prototypeData";
 
 // Danh mục ma trận phân quyền chi tiết cho 7 vai trò theo docs/business-rules.md
@@ -155,12 +152,9 @@ const STORAGE_KEY_USER = "stu_auth_user";
 
 export const authService = {
   /**
-   * Đăng nhập hệ thống (Prototype mô phỏng API `/api/v1/auth/login`)
+   * Đăng nhập qua API Backend Laravel: POST /api/v1/auth/login
    */
   login: async (email, password, rememberMe = true) => {
-    // Giả lập độ trễ mạng thực tế 250ms
-    await new Promise((r) => setTimeout(r, 250));
-
     if (!email || !password) {
       return {
         success: false,
@@ -168,61 +162,96 @@ export const authService = {
       };
     }
 
-    const cleanEmail = email.trim().toLowerCase();
+    try {
+      const res = await apiClient.post("/auth/login", {
+        email: email.trim().toLowerCase(),
+        password: password
+      });
 
-    // Tìm tài khoản phù hợp trong danh mục vai trò
-    const matchedRole = PROTOTYPE_ROLES.find(
-      (r) => r.email.toLowerCase() === cleanEmail
-    );
+      if (res.success && res.data?.token && res.data?.user) {
+        const token = res.data.token;
+        const user = {
+          ...res.data.user,
+          permissions: ROLE_PERMISSIONS[res.data.user.role] || ROLE_PERMISSIONS.MEMBER
+        };
 
-    // Mật khẩu mặc định kiểm thử là stu@2026 hoặc password123
-    const validPasswords = ["stu@2026", "password123", "admin123"];
+        const storage = rememberMe ? localStorage : sessionStorage;
+        storage.setItem(STORAGE_KEY_TOKEN, token);
+        storage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
 
-    if (!matchedRole || !validPasswords.includes(password)) {
-      // Trường hợp nhập sai thông tin
+        return {
+          success: true,
+          token,
+          user,
+          message: res.message || `Đăng nhập thành công! Chào mừng ${user.user_name}.`
+        };
+      }
+
       return {
         success: false,
-        message: "Thông tin email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại."
+        message: res.message || "Đăng nhập không thành công."
+      };
+    } catch (error) {
+      console.error("Lỗi xác thực đăng nhập API:", error);
+
+      if (error instanceof ValidationError) {
+        return {
+          success: false,
+          message: error.message,
+          errors: error.errors
+        };
+      }
+
+      return {
+        success: false,
+        message: error.message || "Đã xảy ra lỗi khi kết nối tới máy chủ xác thực."
       };
     }
-
-    // Tạo payload người dùng kèm thông tin vai trò và thẩm quyền
-    const permissions = ROLE_PERMISSIONS[matchedRole.key] || ROLE_PERMISSIONS.MEMBER;
-    const userPayload = {
-      ...matchedRole,
-      id: `usr-${matchedRole.key.toLowerCase()}`,
-      permissions
-    };
-
-    const mockToken = `stu_bearer_tok_${btoa(matchedRole.key + "_" + Date.now())}`;
-
-    // Lưu vào Storage tương ứng
-    const storage = rememberMe ? localStorage : sessionStorage;
-    storage.setItem(STORAGE_KEY_TOKEN, mockToken);
-    storage.setItem(STORAGE_KEY_USER, JSON.stringify(userPayload));
-
-    return {
-      success: true,
-      token: mockToken,
-      user: userPayload,
-      message: `Đăng nhập thành công! Chào mừng ${userPayload.user_name}.`
-    };
   },
 
   /**
-   * Đăng xuất hệ thống (Hủy bỏ phiên làm việc)
+   * Lấy thông tin tài khoản hiện tại từ Backend: GET /api/v1/auth/me
+   */
+  fetchCurrentUser: async () => {
+    try {
+      const token = authService.getToken();
+      if (!token) return null;
+
+      const res = await apiClient.get("/auth/me");
+      if (res.success && res.data?.user) {
+        const user = {
+          ...res.data.user,
+          permissions: ROLE_PERMISSIONS[res.data.user.role] || ROLE_PERMISSIONS.MEMBER
+        };
+        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+        return user;
+      }
+      return null;
+    } catch (error) {
+      console.warn("Không thể tải thông tin người dùng từ máy chủ:", error.message);
+      return null;
+    }
+  },
+
+  /**
+   * Đăng xuất hệ thống: POST /api/v1/auth/logout
    */
   logout: async () => {
-    await new Promise((r) => setTimeout(r, 100));
-    localStorage.removeItem(STORAGE_KEY_TOKEN);
-    localStorage.removeItem(STORAGE_KEY_USER);
-    sessionStorage.removeItem(STORAGE_KEY_TOKEN);
-    sessionStorage.removeItem(STORAGE_KEY_USER);
+    try {
+      await apiClient.post("/auth/logout");
+    } catch (e) {
+      console.warn("Lỗi khi gọi API đăng xuất:", e.message);
+    } finally {
+      localStorage.removeItem(STORAGE_KEY_TOKEN);
+      localStorage.removeItem(STORAGE_KEY_USER);
+      sessionStorage.removeItem(STORAGE_KEY_TOKEN);
+      sessionStorage.removeItem(STORAGE_KEY_USER);
+    }
     return { success: true };
   },
 
   /**
-   * Lấy thông tin người dùng đang đăng nhập từ bộ nhớ
+   * Lấy thông tin người dùng đang lưu trong bộ nhớ
    */
   getCurrentUser: () => {
     try {
@@ -231,51 +260,37 @@ export const authService = {
         return JSON.parse(stored);
       }
     } catch (e) {
-      console.error("Lỗi khi đọc phiên đăng nhập:", e);
+      console.error("Lỗi khi đọc phiên đăng nhập từ storage:", e);
     }
-    // Mặc định trả về Thư ký HĐT nếu chưa đăng nhập lần nào trong chế độ prototype
-    const defaultRole = PROTOTYPE_ROLES[2]; // SECRETARY
-    return {
-      ...defaultRole,
-      id: `usr-${defaultRole.key.toLowerCase()}`,
-      permissions: ROLE_PERMISSIONS[defaultRole.key]
-    };
+    return null;
   },
 
   /**
    * Lấy Bearer Token hiện tại
    */
   getToken: () => {
-    return localStorage.getItem(STORAGE_KEY_TOKEN) || sessionStorage.getItem(STORAGE_KEY_TOKEN) || "stu_prototype_token";
+    return localStorage.getItem(STORAGE_KEY_TOKEN) || sessionStorage.getItem(STORAGE_KEY_TOKEN) || null;
   },
 
   /**
    * Kiểm tra người dùng đã xác thực hay chưa
    */
   isAuthenticated: () => {
-    const token = localStorage.getItem(STORAGE_KEY_TOKEN) || sessionStorage.getItem(STORAGE_KEY_TOKEN);
-    return Boolean(token);
+    return Boolean(authService.getToken());
   },
 
   /**
-   * Chuyển đổi nhanh vai trò (Role Switcher Prototype)
+   * Chuyển đổi nhanh vai trò (Đăng nhập thật qua API với tài khoản vai trò tương ứng)
    */
-  switchRole: (roleKey) => {
+  switchRole: async (roleKey) => {
     const targetRole = PROTOTYPE_ROLES.find((r) => r.key === roleKey);
     if (!targetRole) return null;
 
-    const permissions = ROLE_PERMISSIONS[targetRole.key] || ROLE_PERMISSIONS.MEMBER;
-    const userPayload = {
-      ...targetRole,
-      id: `usr-${targetRole.key.toLowerCase()}`,
-      permissions
-    };
-
-    const mockToken = `stu_bearer_tok_${btoa(targetRole.key + "_" + Date.now())}`;
-    localStorage.setItem(STORAGE_KEY_TOKEN, mockToken);
-    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(userPayload));
-
-    return userPayload;
+    const res = await authService.login(targetRole.email, "stu@2026", true);
+    if (res.success) {
+      return res.user;
+    }
+    return null;
   },
 
   /**
@@ -286,11 +301,10 @@ export const authService = {
     const permissions = ROLE_PERMISSIONS[roleKey];
     if (!permissions) return false;
 
-    // Chuẩn hóa path (ví dụ /meetings/create -> /meetings)
     const baseModule = "/" + pathname.split("/").filter(Boolean)[0] || "/";
 
-    if (baseModule === "/") return true; // Mọi vai trò hợp lệ đều có quyền xem Bảng điều hành
-    if (baseModule === "/components") return true; // Showcase chung
+    if (baseModule === "/") return true;
+    if (baseModule === "/components") return true;
 
     return permissions.allowedRoutes.some((route) => {
       if (route === "/") return pathname === "/";

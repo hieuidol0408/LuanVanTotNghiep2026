@@ -28,7 +28,9 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   // Đường dẫn cần chuyển đến sau khi đăng nhập (nếu bị ProtectedRoute chặn trước đó)
-  const from = location.state?.from?.pathname || "/";
+  const searchParams = new URLSearchParams(location.search);
+  const isSessionExpired = searchParams.get("session_expired") === "1";
+  const from = location.state?.from?.pathname || searchParams.get("from") || "/";
 
   // Xử lý gửi biểu mẫu đăng nhập
   const handleSubmit = async (e) => {
@@ -203,6 +205,15 @@ export default function LoginPage() {
               Quản lý phiên họp và giám sát thực hiện nghị quyết Hội đồng trường.
             </p>
           </div>
+
+          {/* Thông báo hết phiên nếu có */}
+          {isSessionExpired && !errorMessage && (
+            <div style={{ marginBottom: "var(--space-4)" }}>
+              <Alert variant="warning" title="Hết phiên làm việc">
+                Phiên làm việc trước đó của bạn đã kết thúc. Vui lòng đăng nhập lại để tiếp tục.
+              </Alert>
+            </div>
+          )}
 
           {/* Thông báo lỗi nếu có */}
           {errorMessage && (

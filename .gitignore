@@ -12,6 +12,7 @@ frontend/dist-ssr/
 
 # Environment variables
 .env
+frontend/.env
 backend/.env
 backend/.env.backup
 backend/.env.production
