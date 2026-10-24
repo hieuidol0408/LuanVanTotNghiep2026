@@ -327,5 +327,46 @@ class DatabaseSeeder extends Seeder
                 'MaNguoiDung' => $userCntt?->MaNguoiDung ?? 1,
             ]
         );
+
+        // 9. Seed tài liệu mẫu TAI_LIEU & liên kết phiên họp / nghị quyết
+        $userThuky = User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $doc1 = \App\Models\TaiLieu::firstOrCreate(
+            ['TenTaiLieu' => 'Quy_che_to_chuc_va_hoat_dong_HDT_STU.pdf'],
+            [
+                'LoaiTaiLieu' => 'REGULATION',
+                'DuongDan' => 'documents/regulations/Quy_che_to_chuc_va_hoat_dong_HDT_STU.pdf',
+                'DinhDang' => 'application/pdf',
+                'DungLuong' => 1572864, // 1.5 MB
+                'NgayTaiLen' => '2026-01-10 09:00:00',
+                'MaNguoiDung' => $userThuky?->MaNguoiDung ?? 1,
+            ]
+        );
+
+        $doc2 = \App\Models\TaiLieu::firstOrCreate(
+            ['TenTaiLieu' => 'Chuong_trinh_hop_phien_5_chinh_thuc.pdf'],
+            [
+                'LoaiTaiLieu' => 'PUBLIC_AGENDA',
+                'DuongDan' => 'documents/meetings/Chuong_trinh_hop_phien_5_chinh_thuc.pdf',
+                'DinhDang' => 'application/pdf',
+                'DungLuong' => 460800, // 450 KB
+                'NgayTaiLen' => '2026-11-01 14:30:00',
+                'MaNguoiDung' => $userThuky?->MaNguoiDung ?? 1,
+            ]
+        );
+
+        $doc3 = \App\Models\TaiLieu::firstOrCreate(
+            ['TenTaiLieu' => 'To_trinh_kien_toan_nhan_su_mat.pdf'],
+            [
+                'LoaiTaiLieu' => 'INTERNAL',
+                'DuongDan' => 'documents/internal/To_trinh_kien_toan_nhan_su_mat.pdf',
+                'DinhDang' => 'application/pdf',
+                'DungLuong' => 798720, // 780 KB
+                'NgayTaiLen' => '2026-11-05 10:15:00',
+                'MaNguoiDung' => $userThuky?->MaNguoiDung ?? 1,
+            ]
+        );
+
+        $phienHop1->taiLieu()->syncWithoutDetaching([$doc2->MaTaiLieu, $doc3->MaTaiLieu]);
+        $nq1->taiLieu()->syncWithoutDetaching([$doc1->MaTaiLieu]);
     }
 }

@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CouncilController;
+use App\Http\Controllers\Api\V1\DocumentController;
 use App\Http\Controllers\Api\V1\DossierController;
 use App\Http\Controllers\Api\V1\MeetingController;
 use App\Http\Controllers\Api\V1\ResolutionController;
@@ -90,5 +92,20 @@ Route::prefix('v1')->group(function () {
         Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
         Route::post('/tasks/{id}/progress-logs', [TaskController::class, 'submitProgressLog']);
         Route::post('/tasks/progress-logs/{logId}/review', [TaskController::class, 'reviewProgressLog']);
+    });
+
+    // 7. Module Thành viên Hội đồng trường & Đơn vị (Councils & Departments)
+    Route::get('/departments', [CouncilController::class, 'departments']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/councils/members', [CouncilController::class, 'members']);
+        Route::get('/councils/terms', [CouncilController::class, 'terms']);
+    });
+
+    // 8. Module Kho Văn bản & Tài liệu an toàn (Documents)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/documents', [DocumentController::class, 'index']);
+        Route::post('/documents', [DocumentController::class, 'store']);
+        Route::get('/documents/{id}/download', [DocumentController::class, 'download']);
+        Route::delete('/documents/{id}', [DocumentController::class, 'destroy']);
     });
 });

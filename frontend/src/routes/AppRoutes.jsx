@@ -28,6 +28,12 @@ import ResolutionListPage from "../features/resolutions/pages/ResolutionListPage
 // Task Management Feature Pages
 import TaskListPage from "../features/tasks/pages/TaskListPage";
 
+// Council Management Feature Pages
+import CouncilMemberListPage from "../features/councils/pages/CouncilMemberListPage";
+
+// Document Management Feature Pages
+import DocumentListPage from "../features/documents/pages/DocumentListPage";
+
 import PageHeader from "../components/layout/PageHeader";
 import EmptyState from "../components/ui/EmptyState";
 import { Construction } from "lucide-react";
@@ -88,7 +94,7 @@ export default function AppRoutes() {
         {/* Các Tuyến đường Nghiệp vụ theo vai trò */}
         <Route
           path="/councils"
-          element={<ModulePlaceholder title="Quản lý Hội đồng trường" description="Quản lý danh sách các khóa nhiệm kỳ và thành viên Hội đồng trường STU." />}
+          element={<CouncilMemberListPage />}
         />
         <Route
           path="/dossiers"
@@ -108,7 +114,7 @@ export default function AppRoutes() {
         />
         <Route
           path="/documents"
-          element={<ModulePlaceholder title="Kho Văn bản & Tài liệu" description="Kho lưu trữ tập trung các văn bản quy chế, biểu mẫu và tài liệu HĐT STU." />}
+          element={<DocumentListPage />}
         />
         <Route
           path="/users"
