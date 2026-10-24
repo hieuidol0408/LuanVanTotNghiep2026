@@ -293,5 +293,39 @@ class DatabaseSeeder extends Seeder
         if ($vote1) {
             $nq1->noiDungBieuQuyet()->syncWithoutDetaching([$vote1->MaNoiDung]);
         }
+
+        // 8. Seed Nhiệm vụ phân rã NHIEM_VU & PHAN_CONG_NHIEM_VU & BAO_CAO
+        $userCntt = User::where('email', 'cntt@stu.edu.vn')->first();
+        $task1 = \App\Models\NghiQuyet::first()->nhiemVu()->firstOrCreate(
+            ['TenNhiemVu' => 'Xây dựng Đề án mở ngành Robot & AI và ban hành chuẩn đầu ra'],
+            [
+                'NoiDung' => 'Chủ trì phối hợp cùng Phòng Đào tạo hoàn thiện hồ sơ đề án mở ngành đào tạo mới theo Thông tư 02/2022/TT-BGDĐT.',
+                'NgayGiao' => '2026-10-21',
+                'NgayHoanThanh' => '2026-12-31',
+                'TrangThai' => 'IN_PROGRESS',
+            ]
+        );
+
+        $phanCong1 = \App\Models\PhanCongNhiemVu::firstOrCreate(
+            ['MaNhiemVu' => $task1->MaNhiemVu, 'MaDonVi' => $donViMap['K_CNTT']],
+            [
+                'VaiTroThucHien' => 'CHỦ TRÌ',
+                'TrangThaiThucHien' => 'Đang thực hiện',
+                'TenNguoiPhuTrach' => 'KS. Phạm Đơn Vị Thi Hành',
+            ]
+        );
+
+        \App\Models\BaoCao::firstOrCreate(
+            ['MaPhanCong' => $phanCong1->MaPhanCong, 'TienDo' => 45],
+            [
+                'NgayBaoCao' => '2026-10-23',
+                'NoiDungTienDo' => 'Đã hoàn thành dự thảo khung 132 tín chỉ và lấy ý kiến hội đồng khoa học khoa.',
+                'NoiDungKhoKhan' => 'Cần hỗ trợ kinh phí mời chuyên gia doanh nghiệp phản biện.',
+                'TrangThaiXacNhan' => 'APPROVED',
+                'NgayXacNhan' => '2026-10-24',
+                'GhiChu' => 'Thư ký HĐT đã tiếp nhận và ghi nhận tiến độ.',
+                'MaNguoiDung' => $userCntt?->MaNguoiDung ?? 1,
+            ]
+        );
     }
 }

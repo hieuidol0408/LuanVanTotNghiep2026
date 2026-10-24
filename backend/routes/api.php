@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DossierController;
 use App\Http\Controllers\Api\V1\MeetingController;
 use App\Http\Controllers\Api\V1\ResolutionController;
+use App\Http\Controllers\Api\V1\TaskController;
 use App\Http\Controllers\Api\V1\VotingController;
 use Illuminate\Support\Facades\Route;
 
@@ -78,5 +79,16 @@ Route::prefix('v1')->group(function () {
         Route::delete('/resolutions/{id}', [ResolutionController::class, 'destroy']);
         Route::post('/resolutions/{id}/sign', [ResolutionController::class, 'sign']);
         Route::post('/resolutions/{id}/publish', [ResolutionController::class, 'publish']);
+    });
+
+    // 6. Module Phân rã Nhiệm vụ & Theo dõi thực hiện (Tasks)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/tasks', [TaskController::class, 'index']);
+        Route::post('/tasks', [TaskController::class, 'store']);
+        Route::get('/tasks/{id}', [TaskController::class, 'show']);
+        Route::put('/tasks/{id}', [TaskController::class, 'update']);
+        Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
+        Route::post('/tasks/{id}/progress-logs', [TaskController::class, 'submitProgressLog']);
+        Route::post('/tasks/progress-logs/{logId}/review', [TaskController::class, 'reviewProgressLog']);
     });
 });

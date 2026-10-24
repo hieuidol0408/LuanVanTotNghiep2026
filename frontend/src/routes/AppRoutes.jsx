@@ -25,6 +25,9 @@ import VotingRoomPage from "../features/voting/pages/VotingRoomPage";
 // Resolution Management Feature Pages
 import ResolutionListPage from "../features/resolutions/pages/ResolutionListPage";
 
+// Task Management Feature Pages
+import TaskListPage from "../features/tasks/pages/TaskListPage";
+
 import PageHeader from "../components/layout/PageHeader";
 import EmptyState from "../components/ui/EmptyState";
 import { Construction } from "lucide-react";
@@ -101,7 +104,7 @@ export default function AppRoutes() {
         />
         <Route
           path="/tasks"
-          element={<ModulePlaceholder title="Phân rã Nhiệm vụ & Theo dõi thực hiện" description="Tách nhiệm vụ từ nghị quyết, phân công đơn vị chủ trì và theo dõi tiến độ, minh chứng." />}
+          element={<TaskListPage />}
         />
         <Route
           path="/documents"
