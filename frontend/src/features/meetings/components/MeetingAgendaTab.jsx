@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Plus, Clock, FileText, Vote, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Clock, FileText, Vote, Trash2, ArrowUp, ArrowDown, ExternalLink } from "lucide-react";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import EmptyState from "../../../components/ui/EmptyState";
 import AgendaModal from "./AgendaModal";
@@ -9,6 +10,7 @@ export default function MeetingAgendaTab({
   onAddAgenda,
   onDeleteAgenda
 }) {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const totalDuration = agendas.reduce((sum, item) => sum + (Number(item.duration_minutes) || 0), 0);
@@ -134,7 +136,9 @@ export default function MeetingAgendaTab({
                   </span>
 
                   {item.dossier_id && (
-                    <span
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/dossiers?search=${item.dossier_id}`)}
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
@@ -144,12 +148,16 @@ export default function MeetingAgendaTab({
                         border: "1px solid var(--color-border)",
                         borderRadius: "var(--radius-sm)",
                         color: "var(--color-primary)",
-                        fontWeight: "var(--font-weight-medium)"
+                        fontWeight: "var(--font-weight-medium)",
+                        cursor: "pointer",
+                        fontSize: "12px"
                       }}
+                      title="Bấm để xem chi tiết hồ sơ trình"
                     >
                       <FileText size={12} />
-                      Hồ sơ: {item.dossier_id}
-                    </span>
+                      <span>Hồ sơ: #{item.dossier_id}</span>
+                      <ExternalLink size={10} />
+                    </button>
                   )}
                 </div>
               </div>

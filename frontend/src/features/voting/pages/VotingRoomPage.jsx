@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   Vote,
   Lock,
@@ -17,6 +17,7 @@ import {
   UserCheck,
   FileText,
   ShieldCheck,
+  ScrollText,
   ChevronDown,
   ChevronUp
 } from "lucide-react";
@@ -33,6 +34,7 @@ import councilService from "../../councils/services/councilService";
 export default function VotingRoomPage() {
   const { user } = useAuth();
   const toast = useToast();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const [meetings, setMeetings] = useState([]);
@@ -756,9 +758,25 @@ export default function VotingRoomPage() {
                       </span>
                     </div>
 
-                    <span style={{ fontSize: "12px", color: "var(--color-text-muted)" }}>
-                      Đóng lúc: {selectedVoting.closed_at || "Vừa xong"}
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      {selectedVoting.result === "PASSED" && isSecretaryOrChair && (
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm"
+                          style={{ backgroundColor: "#059669", color: "#FFF", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                          onClick={() => {
+                            navigate(`/resolutions?create=true&meeting_id=${selectedVoting.meeting_id}&title=${encodeURIComponent(selectedVoting.title)}`);
+                          }}
+                          title="Tạo nhanh dự thảo Nghị quyết từ kết quả biểu quyết đã thông qua"
+                        >
+                          <ScrollText size={14} />
+                          <span>Lập dự thảo Nghị quyết</span>
+                        </button>
+                      )}
+                      <span style={{ fontSize: "12px", color: "var(--color-text-muted)" }}>
+                        Đóng lúc: {selectedVoting.closed_at || "Vừa xong"}
+                      </span>
+                    </div>
                   </div>
                 )}
 

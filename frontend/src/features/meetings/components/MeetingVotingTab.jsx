@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Vote, Lock, Unlock, ArrowRight, ShieldCheck } from "lucide-react";
+import { Vote, Lock, Unlock, ArrowRight, ShieldCheck, ScrollText } from "lucide-react";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import EmptyState from "../../../components/ui/EmptyState";
 
@@ -111,12 +111,25 @@ export default function MeetingVotingTab({ votings = [], meetingId }) {
                   </div>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexShrink: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", flexShrink: 0 }}>
                   <StatusBadge
-                    status={vote.status === "OPENED" ? "success" : "neutral"}
+                    status={vote.status === "OPENING" || vote.status === "OPENED" ? "success" : "neutral"}
                     label={vote.status_label}
                     size="sm"
                   />
+
+                  {vote.result === "PASSED" && (
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      style={{ backgroundColor: "#059669", color: "#FFF", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                      onClick={() => navigate(`/resolutions?create=true&meeting_id=${meetingId}&title=${encodeURIComponent(vote.title)}`)}
+                      title="Lập dự thảo Nghị quyết từ kết quả biểu quyết này"
+                    >
+                      <ScrollText size={13} />
+                      <span>Dự thảo NQ</span>
+                    </button>
+                  )}
 
                   <button
                     type="button"

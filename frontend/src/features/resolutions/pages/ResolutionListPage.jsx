@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ScrollText,
   Search,
@@ -29,6 +30,8 @@ import meetingService from "../../meetings/services/meetingService";
 export default function ResolutionListPage() {
   const { user } = useAuth();
   const toast = useToast();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [resolutions, setResolutions] = useState([]);
   const [meetings, setMeetings] = useState([]);
@@ -36,9 +39,9 @@ export default function ResolutionListPage() {
   const [meta, setMeta] = useState({ total: 0, current_page: 1, total_pages: 1 });
 
   // Filters
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [meetingFilter, setMeetingFilter] = useState("ALL");
+  const [meetingFilter, setMeetingFilter] = useState(searchParams.get("meeting_id") || "ALL");
   const [page, setPage] = useState(1);
 
   // Selected Resolution Detail Modal
@@ -46,15 +49,34 @@ export default function ResolutionListPage() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   // Create Modal
-  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const isCreateParam = searchParams.get("create") === "true";
+  const [createModalOpen, setCreateModalOpen] = useState(isCreateParam);
   const [formData, setFormData] = useState({
     resolution_number: "",
-    title: "",
-    content: "",
-    meeting_id: "",
+    title: searchParams.get("title") || "",
+    content: searchParams.get("title") ? `Căn cứ Biên bản và Kết quả biểu quyết thông qua về nội dung: ${searchParams.get("title")}.\n\nHội đồng trường quyết nghị ban hành...` : "",
+    meeting_id: searchParams.get("meeting_id") || "",
     issued_date: new Date().toISOString().split("T")[0],
     status: "DRAFT"
   });
+
+  // Tự động mở modal nếu có query param create
+  useEffect(() => {
+    if (searchParams.get("create") === "true") {
+      setCreateModalOpen(true);
+      const titleParam = searchParams.get("title") || "";
+      const meetingParam = searchParams.get("meeting_id") || "";
+      setFormData((prev) => ({
+        ...prev,
+        title: titleParam || prev.title,
+        meeting_id: meetingParam || prev.meeting_id,
+        content: titleParam ? `Căn cứ Biên bản và Kết quả biểu quyết thông qua về nội dung: ${titleParam}.\n\nHội đồng trường quyết nghị ban hành...` : prev.content
+      }));
+    }
+    if (searchParams.get("search")) {
+      setSearch(searchParams.get("search"));
+    }
+  }, [searchParams]);
 
   // Confirm dialog state
   const [confirmDialog, setConfirmDialog] = useState({
@@ -410,7 +432,26 @@ export default function ResolutionListPage() {
                         </div>
                       </td>
                       <td style={{ padding: "var(--space-3) var(--space-4)", whiteSpace: "nowrap" }}>
-                        <div style={{ fontSize: "13px", fontWeight: "var(--font-weight-medium)" }}>{nq.meeting_title}</div>
+                        <button
+                          type="button"
+                          onClick={() => nq.meeting_id && navigate(`/meetings/${nq.meeting_id}`)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            padding: 0,
+                            fontSize: "13px",
+                            fontWeight: "var(--font-weight-medium)",
+                            color: nq.meeting_id ? "var(--color-primary)" : "var(--color-text-primary)",
+                            cursor: nq.meeting_id ? "pointer" : "default",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px"
+                          }}
+                          title={nq.meeting_id ? "Bấm để xem chi tiết phiên họp" : ""}
+                        >
+                          <span>{nq.meeting_title}</span>
+                          {nq.meeting_id && <ExternalLink size={11} />}
+                        </button>
                         <div style={{ fontSize: "11px", color: "var(--color-text-muted)" }}>{nq.issued_date || "Chưa ấn định"}</div>
                       </td>
                       <td style={{ padding: "var(--space-3) var(--space-4)", textAlign: "center" }}>
@@ -421,9 +462,26 @@ export default function ResolutionListPage() {
                         />
                       </td>
                       <td style={{ padding: "var(--space-3) var(--space-4)", textAlign: "center", minWidth: "140px" }}>
-                        <div style={{ fontSize: "12px", fontWeight: "var(--font-weight-bold)", marginBottom: "4px" }}>
-                          {nq.total_tasks > 0 ? `${nq.progress_percentage}% (${nq.completed_tasks}/${nq.total_tasks} NV)` : "Chưa phân rã NV"}
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/tasks?resolution_id=${nq.id}`)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            fontWeight: "var(--font-weight-bold)",
+                            marginBottom: "4px",
+                            color: "var(--color-primary)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px"
+                          }}
+                          title="Bấm để xem các nhiệm vụ thuộc nghị quyết này"
+                        >
+                          <span>{nq.total_tasks > 0 ? `${nq.progress_percentage}% (${nq.completed_tasks}/${nq.total_tasks} NV)` : "Chưa phân rã NV"}</span>
+                          <ExternalLink size={10} />
+                        </button>
                         {nq.total_tasks > 0 && (
                           <div style={{ height: "6px", backgroundColor: "var(--color-bg-muted)", borderRadius: "var(--radius-full)", overflow: "hidden" }}>
                             <div

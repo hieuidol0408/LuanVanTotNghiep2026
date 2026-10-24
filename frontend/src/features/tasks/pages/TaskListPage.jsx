@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Layers,
   Search,
@@ -16,7 +17,8 @@ import {
   Award,
   ChevronRight,
   TrendingUp,
-  FileText
+  FileText,
+  ExternalLink
 } from "lucide-react";
 import PageHeader from "../../../components/layout/PageHeader";
 import StatusBadge from "../../../components/ui/StatusBadge";
@@ -31,6 +33,8 @@ import apiClient from "../../../services/apiClient";
 export default function TaskListPage() {
   const { user } = useAuth();
   const toast = useToast();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [tasks, setTasks] = useState([]);
   const [resolutions, setResolutions] = useState([]);
@@ -39,11 +43,21 @@ export default function TaskListPage() {
   const [meta, setMeta] = useState({ total: 0, current_page: 1, total_pages: 1 });
 
   // Filters
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [deptFilter, setDeptFilter] = useState("ALL");
-  const [resFilter, setResFilter] = useState("ALL");
+  const [resFilter, setResFilter] = useState(searchParams.get("resolution_id") || "ALL");
   const [page, setPage] = useState(1);
+
+  // Sync with searchParams
+  useEffect(() => {
+    if (searchParams.get("resolution_id")) {
+      setResFilter(searchParams.get("resolution_id"));
+    }
+    if (searchParams.get("search")) {
+      setSearch(searchParams.get("search"));
+    }
+  }, [searchParams]);
 
   // Selected Task Detail Modal
   const [selectedTask, setSelectedTask] = useState(null);
@@ -495,9 +509,26 @@ export default function TaskListPage() {
                         <div style={{ fontWeight: "var(--font-weight-semibold)", color: "var(--color-text-primary)", marginBottom: "2px" }}>
                           {task.title}
                         </div>
-                        <div style={{ fontSize: "11px", color: "var(--color-primary)", fontWeight: "var(--font-weight-bold)" }}>
-                          Nghị quyết: {task.resolution_number}
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/resolutions?search=${encodeURIComponent(task.resolution_number)}`)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            padding: 0,
+                            cursor: "pointer",
+                            fontSize: "11px",
+                            color: "var(--color-primary)",
+                            fontWeight: "var(--font-weight-bold)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "3px"
+                          }}
+                          title="Bấm để xem chi tiết Nghị quyết gốc"
+                        >
+                          <span>Nghị quyết: {task.resolution_number}</span>
+                          <ExternalLink size={10} />
+                        </button>
                       </td>
 
                       <td style={{ padding: "var(--space-3) var(--space-4)", whiteSpace: "nowrap" }}>
@@ -650,9 +681,29 @@ export default function TaskListPage() {
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", borderBottom: "1px solid var(--color-border)", paddingBottom: "var(--space-3)" }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "4px" }}>
-                  <span style={{ fontSize: "12px", fontWeight: "var(--font-weight-bold)", color: "var(--color-primary)" }}>
-                    Nghị quyết: {selectedTask.resolution_number}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDetailModalOpen(false);
+                      navigate(`/resolutions?search=${encodeURIComponent(selectedTask.resolution_number)}`);
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      fontWeight: "var(--font-weight-bold)",
+                      color: "var(--color-primary)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}
+                    title="Bấm để chuyển tới Nghị quyết gốc"
+                  >
+                    <span>Nghị quyết: {selectedTask.resolution_number}</span>
+                    <ExternalLink size={12} />
+                  </button>
                   <StatusBadge
                     status={selectedTask.status === "COMPLETED" ? "success" : selectedTask.is_overdue ? "danger" : "primary"}
                     label={selectedTask.status_label}
