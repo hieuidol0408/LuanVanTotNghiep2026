@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, Bell, User, KeyRound, LogOut, ChevronDown, Check, RefreshCw } from "lucide-react";
-import { PROTOTYPE_NOTIFICATIONS, PROTOTYPE_ROLES } from "../../mock/prototypeData";
+import { Menu, Bell, User, KeyRound, LogOut, ChevronDown, Check } from "lucide-react";
+import { PROTOTYPE_NOTIFICATIONS } from "../../mock/prototypeData";
 import { useAuth } from "../../features/auth/context/AuthContext";
 
 /**
@@ -13,11 +13,10 @@ export default function Header({
   pageTitle = "Hội đồng trường STU"
 }) {
   const navigate = useNavigate();
-  const { user, role, logout, switchRole } = useAuth();
+  const { user, role, logout } = useAuth();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showRoleSwitcherModal, setShowRoleSwitcherModal] = useState(false);
   const [notifications, setNotifications] = useState(PROTOTYPE_NOTIFICATIONS);
 
   const notifRef = useRef(null);
@@ -299,30 +298,6 @@ export default function Header({
                   gap: "var(--space-2)",
                   cursor: "pointer"
                 }}
-                onClick={() => {
-                  setShowUserMenu(false);
-                  setShowRoleSwitcherModal(true);
-                }}
-              >
-                <RefreshCw size={15} style={{ color: "var(--color-primary)" }} />
-                <span>Chuyển vai trò thử nghiệm</span>
-              </button>
-
-              <button
-                type="button"
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "var(--space-2) var(--space-4)",
-                  background: "none",
-                  border: "none",
-                  fontSize: "var(--font-size-sm)",
-                  color: "var(--color-text-secondary)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--space-2)",
-                  cursor: "pointer"
-                }}
                 onClick={() => setShowUserMenu(false)}
               >
                 <User size={15} />
@@ -376,92 +351,6 @@ export default function Header({
                 <LogOut size={15} />
                 <span>Đăng xuất</span>
               </button>
-            </div>
-          )}
-
-          {/* Modal chọn nhanh vai trò từ Header */}
-          {showRoleSwitcherModal && (
-            <div
-              style={{
-                position: "fixed",
-                inset: 0,
-                backgroundColor: "rgba(15, 23, 42, 0.5)",
-                backdropFilter: "blur(2px)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1000,
-                padding: "var(--space-4)"
-              }}
-              onClick={() => setShowRoleSwitcherModal(false)}
-            >
-              <div
-                style={{
-                  backgroundColor: "var(--color-bg-card)",
-                  borderRadius: "var(--radius-xl)",
-                  border: "1px solid var(--color-border)",
-                  padding: "var(--space-6)",
-                  maxWidth: "500px",
-                  width: "100%",
-                  boxShadow: "var(--shadow-xl)"
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-4)" }}>
-                  <h3 style={{ fontSize: "var(--font-size-base)", fontWeight: "var(--font-weight-bold)", color: "var(--color-text-primary)" }}>
-                    Chuyển đổi góc nhìn vai trò (Prototype)
-                  </h3>
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => setShowRoleSwitcherModal(false)}
-                    style={{ padding: "4px 8px" }}
-                  >
-                    Đóng
-                  </button>
-                </div>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                  {PROTOTYPE_ROLES.map((r) => {
-                    const isCurrent = r.key === role;
-                    return (
-                      <button
-                        key={r.key}
-                        type="button"
-                        onClick={() => {
-                          switchRole(r.key);
-                          setShowRoleSwitcherModal(false);
-                        }}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          padding: "var(--space-3)",
-                          borderRadius: "var(--radius-md)",
-                          border: isCurrent ? "2px solid var(--color-primary)" : "1px solid var(--color-border)",
-                          backgroundColor: isCurrent ? "var(--color-primary-light)" : "var(--color-bg-card)",
-                          cursor: "pointer",
-                          textAlign: "left"
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontWeight: "var(--font-weight-semibold)", fontSize: "var(--font-size-sm)", color: "var(--color-text-primary)" }}>
-                            {r.name}
-                          </div>
-                          <div style={{ fontSize: "var(--font-size-xs)", color: "var(--color-text-muted)" }}>
-                            {r.user_name} • {r.department}
-                          </div>
-                        </div>
-                        {isCurrent && (
-                          <span style={{ fontSize: "11px", fontWeight: "var(--font-weight-bold)", color: "var(--color-primary)" }}>
-                            Đang chọn
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
           )}
         </div>
