@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, ArrowRight, Eye, CheckSquare } from "lucide-react";
+import { FileText, ArrowRight, Eye } from "lucide-react";
 import DataTable from "../../../components/ui/DataTable";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import { PROTOTYPE_PENDING_DOSSIERS } from "../../../mock/prototypeData";

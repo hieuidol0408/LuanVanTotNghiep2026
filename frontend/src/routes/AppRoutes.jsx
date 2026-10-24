@@ -16,6 +16,9 @@ import MeetingListPage from "../features/meetings/pages/MeetingListPage";
 import MeetingFormPage from "../features/meetings/pages/MeetingFormPage";
 import MeetingDetailPage from "../features/meetings/pages/MeetingDetailPage";
 
+// Dossier Management Feature Pages
+import DossierListPage from "../features/dossiers/pages/DossierListPage";
+
 import PageHeader from "../components/layout/PageHeader";
 import EmptyState from "../components/ui/EmptyState";
 import { Construction } from "lucide-react";
@@ -80,7 +83,7 @@ export default function AppRoutes() {
         />
         <Route
           path="/dossiers"
-          element={<ModulePlaceholder title="Quản lý Hồ sơ trình" description="Quy trình nộp, tiếp nhận và thẩm tra hồ sơ tờ trình từ các đơn vị." />}
+          element={<DossierListPage />}
         />
         <Route
           path="/voting"

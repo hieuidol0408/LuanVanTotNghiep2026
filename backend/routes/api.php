@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\DossierController;
 use App\Http\Controllers\Api\V1\MeetingController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,5 +37,17 @@ Route::prefix('v1')->group(function () {
         Route::post('/{id}/checkin', [MeetingController::class, 'checkin']);
         Route::post('/{id}/send-invitations', [MeetingController::class, 'sendInvitations']);
         Route::post('/{id}/status', [MeetingController::class, 'changeStatus']);
+    });
+
+    // 3. Module Quản lý Hồ sơ trình (Dossiers)
+    Route::middleware('auth:sanctum')->prefix('dossiers')->group(function () {
+        Route::get('/', [DossierController::class, 'index']);
+        Route::post('/', [DossierController::class, 'store']);
+        Route::get('/{id}', [DossierController::class, 'show']);
+        Route::put('/{id}', [DossierController::class, 'update']);
+        Route::delete('/{id}', [DossierController::class, 'destroy']);
+
+        Route::post('/{id}/submit', [DossierController::class, 'submit']);
+        Route::post('/{id}/review', [DossierController::class, 'review']);
     });
 });
