@@ -45,6 +45,7 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/{id}/attendees', [MeetingController::class, 'addGuest']);
         Route::post('/{id}/checkin', [MeetingController::class, 'checkin']);
+        Route::post('/{id}/documents', [MeetingController::class, 'attachDocument']); // [BR-05]
         Route::post('/{id}/send-invitations', [MeetingController::class, 'sendInvitations']);
         Route::post('/{id}/status', [MeetingController::class, 'changeStatus']);
     });

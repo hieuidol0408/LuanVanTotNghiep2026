@@ -120,10 +120,12 @@ class ResolutionController extends Controller
                 'MaPhienHop' => $validated['meeting_id'],
             ]);
 
+            // [BR-06] Khóa chính kép cho bảng trung gian NGHI_QUYET_BIEU_QUYET (MaNghiQuyet, MaNoiDung)
             if (! empty($validated['voting_ids'])) {
                 $nq->noiDungBieuQuyet()->sync($validated['voting_ids']);
             }
 
+            // [BR-06] Khóa chính kép cho bảng trung gian NGHI_QUYET_HO_SO (MaNghiQuyet, MaHoSo)
             if (! empty($validated['dossier_ids'])) {
                 $nq->hoSoTrinh()->sync($validated['dossier_ids']);
             }

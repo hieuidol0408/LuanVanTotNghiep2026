@@ -106,15 +106,17 @@ class MeetingController extends Controller
                 'GhiChu' => $validated['description'] ?? null,
             ]);
 
-            // Tự động thêm toàn bộ thành viên Hội đồng trường chính thức vào danh sách tham dự
+            // [BR-02] Ràng buộc bộ duy nhất (MaPhienHop, MaThanhVien) trong bảng THAM_DU (UNIQUE)
+            // [BR-11] Cấu hình ThoiDiemXacNhan là NULLABLE khi mới lên danh sách mời
             $officialMembers = ThanhVienHdt::all();
             foreach ($officialMembers as $member) {
-                ThamDu::create([
-                    'TrangThaiThamDu' => 'INVITED',
-                    'ThoiDiemXacNhan' => now(),
-                    'GhiChu' => null,
+                ThamDu::firstOrCreate([
                     'MaPhienHop' => $phienHop->MaPhienHop,
                     'MaThanhVien' => $member->MaThanhVien,
+                ], [
+                    'TrangThaiThamDu' => 'INVITED',
+                    'ThoiDiemXacNhan' => null,
+                    'GhiChu' => null,
                 ]);
             }
 
@@ -284,6 +286,7 @@ class MeetingController extends Controller
             $dossierId = $defaultDossier->MaHoSo;
         }
 
+        // [BR-08] Liên kết Hồ sơ trình vào Phiên họp thông qua Chương trình họp (ThuTu xét duyệt > 0)
         $agenda = ChuongTrinhHop::create([
             'ThuTu' => $maxThuTu + 1,
             'TrangThai' => 'PENDING',
@@ -366,13 +369,27 @@ class MeetingController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $khachMoi = KhachMoi::create([
+        // [BR-11] Cấu hình các trường NULLABLE cho khách mời (ChucVu, DonViCongTac, Email, SoDienThoai)
+        $khachMoi = KhachMoi::firstOrCreate([
             'HoTen' => $validated['full_name'],
+            'Email' => $validated['email'] ?? null,
+        ], [
             'ChucVu' => $validated['academic_title'] ?? 'Khách mời',
             'DonViCongTac' => $validated['department'],
-            'Email' => $validated['email'] ?? null,
             'SoDienThoai' => $validated['phone'] ?? null,
         ]);
+
+        // [BR-03] Ràng buộc bộ duy nhất: Cặp (MaKhachMoi, MaPhienHop) bắt buộc phải là UNIQUE
+        $existingInvite = KhachMoiPhienHop::where('MaKhachMoi', $khachMoi->MaKhachMoi)
+            ->where('MaPhienHop', $id)
+            ->first();
+
+        if ($existingInvite) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Khách mời này đã được mời tham gia phiên họp này trước đó (BR-03).',
+            ], 422);
+        }
 
         $moi = KhachMoiPhienHop::create([
             'NoiDungMoi' => $validated['notes'] ?? 'Tham dự theo lời mời của HĐT',
@@ -400,6 +417,34 @@ class MeetingController extends Controller
             ],
             'errors' => null,
         ], 201);
+    }
+
+    /**
+     * [BR-05] Quản lý Tài liệu riêng của Phiên họp qua bảng trung gian TAI_LIEU_PHIEN_HOP
+     * [BR-06] Khóa chính kép (MaTaiLieu, MaPhienHop)
+     * POST /api/v1/meetings/{id}/documents
+     */
+    public function attachDocument(Request $request, int|string $id): JsonResponse
+    {
+        $meeting = PhienHop::find($id);
+        if (! $meeting) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy phiên họp.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'document_id' => ['required', 'integer', 'exists:tai_lieu,MaTaiLieu'],
+        ]);
+
+        // [BR-05 & BR-06] Khóa chính kép (MaTaiLieu, MaPhienHop) cho tài liệu riêng của phiên họp
+        $meeting->taiLieu()->syncWithoutDetaching([$validated['document_id']]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã liên kết tài liệu vào phiên họp thành công (BR-05).',
+        ]);
     }
 
     /**

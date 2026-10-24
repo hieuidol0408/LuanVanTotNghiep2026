@@ -143,11 +143,11 @@ class TaskController extends Controller
                 'MaNghiQuyet' => $validated['resolution_id'],
             ]);
 
-            // Gán đơn vị chủ trì
+            // [BR-10] Gán đơn vị chủ trì (Bắt buộc ghi nhận TenNguoiPhuTrach)
             PhanCongNhiemVu::create([
                 'VaiTroThucHien' => 'CHỦ TRÌ',
                 'TrangThaiThucHien' => 'Chưa thực hiện',
-                'TenNguoiPhuTrach' => $validated['person_in_charge'] ?? null,
+                'TenNguoiPhuTrach' => $validated['person_in_charge'] ?? 'Trưởng đơn vị', // [BR-10] NOT NULL
                 'MaNhiemVu' => $nv->MaNhiemVu,
                 'MaDonVi' => $validated['lead_department_id'],
             ]);
@@ -159,7 +159,7 @@ class TaskController extends Controller
                         PhanCongNhiemVu::create([
                             'VaiTroThucHien' => 'PHỐI HỢP',
                             'TrangThaiThucHien' => 'Chưa thực hiện',
-                            'TenNguoiPhuTrach' => null,
+                            'TenNguoiPhuTrach' => 'Đại diện phối hợp', // [BR-10] NOT NULL
                             'MaNhiemVu' => $nv->MaNhiemVu,
                             'MaDonVi' => $deptId,
                         ]);
@@ -350,24 +350,30 @@ class TaskController extends Controller
             ], 403);
         }
 
+        // [BR-10] Ràng buộc tiến độ: 0 <= TienDo <= 100
         $validated = $request->validate([
-            'progress_percentage' => ['required', 'integer', 'min:0', 'max:100'],
+            'progress_percentage' => ['required', 'integer', 'min:0', 'max:100'], // [BR-10]
             'report_content' => ['required', 'string', 'min:5'],
             'challenges' => ['nullable', 'string'],
         ], [
             'progress_percentage.required' => 'Vui lòng nhập tỷ lệ phần trăm tiến độ (0-100).',
+            'progress_percentage.min' => 'Tiến độ không thể nhỏ hơn 0% (BR-10).',
+            'progress_percentage.max' => 'Tiến độ không thể vượt quá 100% (BR-10).',
             'report_content.required' => 'Vui lòng nhập nội dung chi tiết báo cáo tiến độ.',
         ]);
 
         $report = DB::transaction(function () use ($validated, $assignment, $user, $task) {
             $progress = $validated['progress_percentage'];
 
+            // [BR-10] Tạo báo cáo với TienDo hợp lệ và trạng thái xác nhận
+            // [BR-11] Cấu hình NULLABLE cho NoiDungKhoKhan, NgayXacNhan, GhiChu
             $baoCao = BaoCao::create([
                 'NgayBaoCao' => now()->toDateString(),
                 'TienDo' => $progress,
+                'NoiDung' => $validated['report_content'],
                 'NoiDungTienDo' => $validated['report_content'],
                 'NoiDungKhoKhan' => $validated['challenges'] ?? null,
-                'TrangThaiXacNhan' => 'PENDING',
+                'TrangThaiXacNhan' => 'Chờ kiểm tra', // 'Chờ kiểm tra' | 'Đạt' | 'Yêu cầu bổ sung'
                 'NgayXacNhan' => null,
                 'GhiChu' => null,
                 'MaPhanCong' => $assignment->MaPhanCong,

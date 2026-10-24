@@ -17,6 +17,8 @@ class DocumentController extends Controller
 {
     /**
      * Danh sách Kho Văn bản & Tài liệu
+     * [BR-05] Quản lý Tài liệu riêng của Phiên họp qua bảng trung gian TAI_LIEU_PHIEN_HOP
+     * [BR-06] Áp dụng Khóa chính kép cho các bảng trung gian tài liệu (TAI_LIEU_PHIEN_HOP, TAI_LIEU_HO_SO, TAI_LIEU_NGHI_QUYET, TAI_LIEU_BAO_CAO)
      * GET /api/v1/documents
      */
     public function index(Request $request): JsonResponse

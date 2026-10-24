@@ -75,6 +75,7 @@ class DossierController extends Controller
     {
         $user = $request->user();
 
+        // [BR-11] Ràng buộc NOT NULL cho TieuDe, NoiDungTomTat, LinhVuc; GhiChu NULLable
         $validated = $request->validate([
             'title' => ['required', 'string', 'min:5', 'max:255'],
             'summary' => ['required', 'string'],

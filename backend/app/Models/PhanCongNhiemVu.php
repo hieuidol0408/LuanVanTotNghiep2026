@@ -20,6 +20,15 @@ class PhanCongNhiemVu extends Model
         'MaDonVi',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function ($model) {
+            if (empty($model->TenNguoiPhuTrach)) {
+                $model->TenNguoiPhuTrach = 'Người phụ trách đơn vị';
+            }
+        });
+    }
+
     public function nhiemVu(): BelongsTo
     {
         return $this->belongsTo(NhiemVu::class, 'MaNhiemVu', 'MaNhiemVu');

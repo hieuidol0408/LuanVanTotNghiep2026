@@ -123,11 +123,12 @@ class MeetingApiTest extends TestCase
         $secretary = User::where('email', 'thuky_hdt@stu.edu.vn')->first();
         $meeting = PhienHop::first();
 
+        $uniqueId = uniqid();
         $guestPayload = [
-            'full_name' => 'ThS. Nguyễn Khách Mời Mới',
+            'full_name' => 'ThS. Nguyễn Khách Mời ' . $uniqueId,
             'department' => 'Sở Giáo dục & Đào tạo TP.HCM',
             'academic_title' => 'ThS',
-            'email' => 'guest@hcm.edu.vn',
+            'email' => "guest_{$uniqueId}@hcm.edu.vn",
             'phone' => '0988776655',
             'notes' => 'Mời tham vấn chuyên môn về kiểm định chất lượng',
         ];

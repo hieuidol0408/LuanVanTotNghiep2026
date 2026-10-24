@@ -18,6 +18,7 @@ class NoiDungBieuQuyet extends Model
         'ThoiGianMo',
         'ThoiGianDong',
         'TrangThai',
+        'KetQuaBieuQuyet',
         'KetQua',
         'GhiChu',
         'MaChuongTrinh',

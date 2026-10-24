@@ -266,12 +266,22 @@ class VotingController extends Controller
             ], 422);
         }
 
-        // 2. RÀNG BUỘC CỨNG BR-VOT-01: Chỉ thành viên HĐT đã điểm danh có mặt (PRESENT) mới có quyền biểu quyết
+        // 2. RÀNG BUỘC CỨNG: Chỉ thành viên HĐT đã điểm danh có mặt (PRESENT) mới có quyền biểu quyết
         $thanhVien = ThanhVienHdt::where('MaNguoiDung', $user->MaNguoiDung)->first();
         if (! $thanhVien) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bạn không phải là Thành viên chính thức của Hội đồng trường và không có quyền biểu quyết.',
+                'data' => null,
+                'errors' => null,
+            ], 403);
+        }
+
+        // [BR-07] Kiểm tra quyền biểu quyết chính thức của thành viên HĐ trường (CoQuyenBieuQuyet)
+        if (! $thanhVien->CoQuyenBieuQuyet) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tài khoản thành viên này không có quyền tham gia biểu quyết theo quy chế (BR-07).',
                 'data' => null,
                 'errors' => null,
             ], 403);
@@ -339,7 +349,8 @@ class VotingController extends Controller
                 ], 422);
             }
 
-            // Lưu phiếu theo ủy quyền
+            // [BR-09] Ghi nhận phiếu theo ủy quyền: KET_QUA_BIEU_QUYET chỉ lưu 3 thuộc tính (MaKetQua, LuaChon, ThoiDiem) cùng FKs
+            // [BR-11] MaUyQuyen được ghi nhận khi bỏ phiếu theo văn bản ủy quyền
             KetQuaBieuQuyet::create([
                 'LuaChon' => $validated['choice'],
                 'ThoiDiem' => now(),
@@ -378,7 +389,8 @@ class VotingController extends Controller
                 ], 422);
             }
 
-            // Lưu phiếu trực tiếp
+            // [BR-09] Ghi nhận phiếu trực tiếp: KET_QUA_BIEU_QUYET chỉ lưu 3 thuộc tính chính (MaKetQua, LuaChon, ThoiDiem) cùng FKs
+            // [BR-11] MaUyQuyen bắt buộc để NULL khi thành viên tự biểu quyết trực tiếp
             KetQuaBieuQuyet::create([
                 'LuaChon' => $validated['choice'],
                 'ThoiDiem' => now(),
@@ -521,17 +533,19 @@ class VotingController extends Controller
             ], 404);
         }
 
+        // [BR-04] Ràng buộc Ủy quyền: MaThanhVienUyQuyen != MaThanhVienNhanUyQuyen (bắt buộc khác nhau)
+        // [BR-11] TaiLieuUyQuyen (văn bản ủy quyền) là tài liệu căn cứ bắt buộc
         $validated = $request->validate([
             'authorizer_member_id' => ['required', 'integer', 'exists:thanh_vien_hdt,MaThanhVien'],
-            'authorized_member_id' => ['required', 'integer', 'exists:thanh_vien_hdt,MaThanhVien', 'different:authorizer_member_id'],
+            'authorized_member_id' => ['required', 'integer', 'exists:thanh_vien_hdt,MaThanhVien', 'different:authorizer_member_id'], // [BR-04]
             'date' => ['nullable', 'date'],
             'scope' => ['nullable', 'string', 'max:255'],
             'document' => ['nullable', 'string', 'max:255'],
-            'status' => ['nullable', 'string', 'in:Hợp lệ,Chờ duyệt,Hết hiệu lực'],
+            'status' => ['nullable', 'string', 'in:Hợp lệ,Chờ duyệt,Hết hiệu lực,Còn hiệu lực,Đã hủy'],
         ], [
             'authorizer_member_id.required' => 'Vui lòng chọn thành viên ủy quyền.',
             'authorized_member_id.required' => 'Vui lòng chọn thành viên nhận ủy quyền.',
-            'authorized_member_id.different' => 'Thành viên nhận ủy quyền phải khác người ủy quyền.',
+            'authorized_member_id.different' => 'Thành viên nhận ủy quyền phải khác người ủy quyền (BR-04).',
         ]);
 
         $auth = UyQuyenBieuQuyet::create([

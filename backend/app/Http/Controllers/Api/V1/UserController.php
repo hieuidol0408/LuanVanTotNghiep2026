@@ -127,17 +127,19 @@ class UserController extends Controller
             ], 403);
         }
 
+        // [BR-11] Ràng buộc NOT NULL cho các trường bắt buộc và định dạng hợp lệ
+        // [BR-01] Ràng buộc tính duy nhất của Email người dùng (Unique Email trong NGUOI_DUNG)
         $validated = $request->validate([
             'HoTen' => 'required|string|max:100',
-            'email' => 'required|email|max:100|unique:nguoi_dung,email',
+            'email' => 'required|email|max:100|unique:nguoi_dung,email', // [BR-01] Email UNIQUE
             'MatKhau' => 'nullable|string|min:6',
             'MaVaiTro' => 'required|exists:vai_tro,MaVaiTro',
             'MaDonVi' => 'nullable|exists:don_vi,MaDonVi',
-            'TrangThai' => 'nullable|string|in:Hoạt động,Khóa,ACTIVE,INACTIVE',
+            'TrangThai' => 'nullable|string|in:Hoạt động,Khóa,ACTIVE,INACTIVE,Cho phép,Không cho phép',
         ], [
             'HoTen.required' => 'Họ và tên người dùng là bắt buộc.',
             'email.required' => 'Địa chỉ email là bắt buộc.',
-            'email.unique' => 'Địa chỉ email này đã tồn tại trong hệ thống.',
+            'email.unique' => 'Địa chỉ email này đã tồn tại trong hệ thống (BR-01).',
             'MaVaiTro.required' => 'Vui lòng chọn vai trò cho tài khoản.',
             'MaVaiTro.exists' => 'Vai trò được chọn không hợp lệ.',
         ]);
@@ -216,6 +218,7 @@ class UserController extends Controller
             ], 404);
         }
 
+        // [BR-01] Ràng buộc tính duy nhất của Email khi cập nhật (loại trừ chính tài khoản hiện tại)
         $validated = $request->validate([
             'HoTen' => 'sometimes|required|string|max:100',
             'email' => [
@@ -223,7 +226,7 @@ class UserController extends Controller
                 'required',
                 'email',
                 'max:100',
-                Rule::unique('nguoi_dung', 'email')->ignore($user->MaNguoiDung, 'MaNguoiDung'),
+                Rule::unique('nguoi_dung', 'email')->ignore($user->MaNguoiDung, 'MaNguoiDung'), // [BR-01] UNIQUE
             ],
             'MatKhau' => 'nullable|string|min:6',
             'MaVaiTro' => 'sometimes|required|exists:vai_tro,MaVaiTro',

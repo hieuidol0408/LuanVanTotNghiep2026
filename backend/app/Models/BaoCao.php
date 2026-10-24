@@ -15,6 +15,7 @@ class BaoCao extends Model
     protected $fillable = [
         'NgayBaoCao',
         'TienDo',
+        'NoiDung',
         'NoiDungTienDo',
         'NoiDungKhoKhan',
         'TrangThaiXacNhan',
@@ -23,6 +24,11 @@ class BaoCao extends Model
         'MaPhanCong',
         'MaNguoiDung',
     ];
+
+    public function getNoiDungAttribute($value)
+    {
+        return $value ?? $this->attributes['NoiDungTienDo'] ?? null;
+    }
 
     protected $casts = [
         'NgayBaoCao' => 'date',

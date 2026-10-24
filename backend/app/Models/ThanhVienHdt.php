@@ -13,8 +13,10 @@ class ThanhVienHdt extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'ChucDanh',
         'ChucDanhHoiDongTruong',
         'NhiemKy',
+        'NgayBatDauThamGia',
         'NgayBatDau',
         'NgayKetThuc',
         'CoQuyenBieuQuyet',
@@ -22,10 +24,21 @@ class ThanhVienHdt extends Model
     ];
 
     protected $casts = [
+        'NgayBatDauThamGia' => 'date',
         'NgayBatDau' => 'date',
         'NgayKetThuc' => 'date',
         'CoQuyenBieuQuyet' => 'integer',
     ];
+
+    public function getChucDanhAttribute($value)
+    {
+        return $value ?? $this->attributes['ChucDanhHoiDongTruong'] ?? null;
+    }
+
+    public function getNgayBatDauThamGiaAttribute($value)
+    {
+        return $value ?? $this->attributes['NgayBatDau'] ?? null;
+    }
 
     public function nguoiDung(): BelongsTo
     {

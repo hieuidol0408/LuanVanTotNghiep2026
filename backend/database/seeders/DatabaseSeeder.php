@@ -166,8 +166,10 @@ class DatabaseSeeder extends Seeder
                 ThanhVienHdt::updateOrCreate(
                     ['MaNguoiDung' => $user->MaNguoiDung],
                     [
+                        'ChucDanh' => $chucDanh,
                         'ChucDanhHoiDongTruong' => $chucDanh,
                         'NhiemKy' => '2020-2025',
+                        'NgayBatDauThamGia' => '2020-09-01',
                         'NgayBatDau' => '2020-09-01',
                         'NgayKetThuc' => '2025-08-31',
                         'CoQuyenBieuQuyet' => 1,
@@ -300,7 +302,9 @@ class DatabaseSeeder extends Seeder
             ['TenNhiemVu' => 'Xây dựng Đề án mở ngành Robot & AI và ban hành chuẩn đầu ra'],
             [
                 'NoiDung' => 'Chủ trì phối hợp cùng Phòng Đào tạo hoàn thiện hồ sơ đề án mở ngành đào tạo mới theo Thông tư 02/2022/TT-BGDĐT.',
+                'NgayGiaoNhiemVu' => '2026-10-21',
                 'NgayGiao' => '2026-10-21',
+                'NgayHoanThanhNhiemVu' => '2026-12-31',
                 'NgayHoanThanh' => '2026-12-31',
                 'TrangThai' => 'IN_PROGRESS',
             ]
@@ -319,6 +323,7 @@ class DatabaseSeeder extends Seeder
             ['MaPhanCong' => $phanCong1->MaPhanCong, 'TienDo' => 45],
             [
                 'NgayBaoCao' => '2026-10-23',
+                'NoiDung' => 'Đã hoàn thành dự thảo khung 132 tín chỉ và lấy ý kiến hội đồng khoa học khoa.',
                 'NoiDungTienDo' => 'Đã hoàn thành dự thảo khung 132 tín chỉ và lấy ý kiến hội đồng khoa học khoa.',
                 'NoiDungKhoKhan' => 'Cần hỗ trợ kinh phí mời chuyên gia doanh nghiệp phản biện.',
                 'TrangThaiXacNhan' => 'APPROVED',
