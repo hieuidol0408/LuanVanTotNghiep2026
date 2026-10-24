@@ -175,5 +175,76 @@ class DatabaseSeeder extends Seeder
                 );
             }
         }
+
+        // 5. Seed phiên họp mẫu PHIEN_HOP
+        $phienHop1 = \App\Models\PhienHop::firstOrCreate(
+            ['TenPhienHop' => 'Phiên họp lần thứ 5 Hội đồng trường STU (Khóa IV)'],
+            [
+                'NgayHop' => '2026-11-15',
+                'ThoiGianBatDau' => '2026-11-15 08:30:00',
+                'ThoiGianKetThuc' => '2026-11-15 11:45:00',
+                'DiaDiem' => 'Phòng họp A101, Nhà A - Trụ sở chính STU',
+                'HinhThuc' => 'IN_PERSON',
+                'TrangThai' => 'SCHEDULED',
+                'GhiChu' => 'Phiên họp định kỳ quý IV xem xét đề án mở ngành mới, thảo luận điều chỉnh quy chế chi tiêu và kiện toàn nhân sự Ban Kiểm soát.',
+            ]
+        );
+
+        // Gắn thành viên tham dự cho phiên họp 1
+        $thanhViens = ThanhVienHdt::all();
+        foreach ($thanhViens as $tv) {
+            \App\Models\ThamDu::firstOrCreate(
+                ['MaPhienHop' => $phienHop1->MaPhienHop, 'MaThanhVien' => $tv->MaThanhVien],
+                [
+                    'TrangThaiThamDu' => 'PRESENT',
+                    'ThoiDiemXacNhan' => '2026-11-15 08:15:00',
+                    'GhiChu' => 'Có mặt đúng giờ',
+                ]
+            );
+        }
+
+        // Tạo hồ sơ trình mẫu HO_SO_TRINH
+        $userDaoTao = User::where('email', 'daotao@stu.edu.vn')->first();
+        $hs1 = \App\Models\HoSoTrinh::firstOrCreate(
+            ['TieuDe' => 'Đề án mở ngành đào tạo Kỹ thuật Robot & Trí tuệ nhân tạo (AI) bậc Đại học'],
+            [
+                'NoiDungTomTat' => 'Mở ngành đào tạo mới đón đầu xu hướng công nghiệp 4.0 và nhu cầu nguồn nhân lực công nghệ cao.',
+                'NgayTrinh' => '2026-10-15',
+                'LinhVuc' => 'Đào tạo & Công nghệ',
+                'TrangThai' => 'APPROVED_FOR_MEETING',
+                'GhiChu' => 'Đã được Thư ký HĐT thẩm tra đạt yêu cầu',
+                'MaDonVi' => $donViMap['P_DT'],
+                'MaNguoiDung' => $userDaoTao?->MaNguoiDung ?? 1,
+            ]
+        );
+
+        // Gắn vào chương trình họp CHUONG_TRINH_HOP
+        \App\Models\ChuongTrinhHop::firstOrCreate(
+            ['MaPhienHop' => $phienHop1->MaPhienHop, 'ThuTu' => 1],
+            [
+                'TrangThai' => 'PENDING',
+                'GhiChu' => 'Xem xét và thảo luận Đề án mở ngành đào tạo Kỹ thuật Robot & Trí tuệ nhân tạo (AI) bậc Đại học',
+                'MaHoSo' => $hs1->MaHoSo,
+            ]
+        );
+
+        // Thêm khách mời KHACH_MOI & KHACH_MOI_PHIEN_HOP
+        $km = \App\Models\KhachMoi::firstOrCreate(
+            ['HoTen' => 'GS.TS. Hoàng Khách Mời'],
+            [
+                'ChucVu' => 'Chuyên gia Cố vấn Trí tuệ Nhân tạo',
+                'DonViCongTac' => 'Hội đồng Khoa học & Công nghệ TP.HCM',
+                'Email' => 'expert@hcm.edu.vn',
+                'SoDienThoai' => '0912345678',
+            ]
+        );
+
+        \App\Models\KhachMoiPhienHop::firstOrCreate(
+            ['MaPhienHop' => $phienHop1->MaPhienHop, 'MaKhachMoi' => $km->MaKhachMoi],
+            [
+                'NoiDungMoi' => 'Báo cáo tham luận và tư vấn khung chương trình đào tạo ngành Robot & AI',
+                'TrangThaiThamDu' => 'INVITED',
+            ]
+        );
     }
 }
