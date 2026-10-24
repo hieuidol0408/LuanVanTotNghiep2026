@@ -50,18 +50,20 @@ export default function Sidebar({ isCollapsed }) {
             width: "36px",
             height: "36px",
             borderRadius: "var(--radius-md)",
-            backgroundColor: "var(--color-primary-hover)",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
+            backgroundColor: "#FFFFFF",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontWeight: "var(--font-weight-bold)",
-            fontSize: "14px",
-            color: "#FFFFFF",
-            flexShrink: 0
+            padding: "3px",
+            flexShrink: 0,
+            boxShadow: "0 1px 3px rgba(0, 0, 0, 0.2)"
           }}
         >
-          STU
+          <img
+            src="/stu-logo.png"
+            alt="Logo STU"
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          />
         </div>
 
         {!isCollapsed && (

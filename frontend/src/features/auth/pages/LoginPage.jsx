@@ -113,7 +113,7 @@ export default function LoginPage() {
         }}
       />
 
-      {/* 1. Header Trang: Logo & Tên Trường */}
+      {/* 1. Header Trang: Tên Trường & Hội đồng trường */}
       <header
         style={{
           width: "100%",
@@ -127,28 +127,6 @@ export default function LoginPage() {
           marginBottom: "var(--space-4)"
         }}
       >
-        {/* Logo STU Huy hiệu */}
-        <div
-          style={{
-            width: "56px",
-            height: "56px",
-            borderRadius: "16px",
-            backgroundColor: "#003A8C",
-            border: "2px solid rgba(255, 255, 255, 0.25)",
-            color: "#FFFFFF",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontWeight: "900",
-            fontSize: "20px",
-            letterSpacing: "1px",
-            boxShadow: "0 8px 24px rgba(0, 58, 140, 0.5)",
-            marginBottom: "var(--space-3)"
-          }}
-        >
-          STU
-        </div>
-
         <div
           style={{
             color: "rgba(255, 255, 255, 0.85)",
@@ -193,14 +171,29 @@ export default function LoginPage() {
             position: "relative"
           }}
         >
+          {/* Logo Trường STU Chính thức */}
+          <div style={{ textAlign: "center", marginBottom: "var(--space-3)" }}>
+            <img
+              src="/stu-logo.png"
+              alt="Logo Trường Đại học Công nghệ Sài Gòn (STU)"
+              style={{
+                height: "82px",
+                maxWidth: "220px",
+                objectFit: "contain",
+                margin: "0 auto",
+                display: "block"
+              }}
+            />
+          </div>
+
           {/* Tiêu đề Đăng nhập */}
-          <div style={{ textAlign: "center", marginBottom: "var(--space-6)" }}>
+          <div style={{ textAlign: "center", marginBottom: "var(--space-5)" }}>
             <h1
               style={{
-                fontSize: "24px",
+                fontSize: "22px",
                 fontWeight: "800",
                 color: "#0F172A",
-                marginBottom: "6px"
+                marginBottom: "4px"
               }}
             >
               Đăng nhập hệ thống
