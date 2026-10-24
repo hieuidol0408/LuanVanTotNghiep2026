@@ -21,7 +21,7 @@ import dashboardService from "../services/dashboardService";
 export default function DashboardPage() {
   const toast = useToast();
   const navigate = useNavigate();
-  const { user, switchRole } = useAuth();
+  const { user } = useAuth();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -58,11 +58,6 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
-
-  const handleRoleChange = (newRole) => {
-    switchRole(newRole.key);
-    toast.info(`Đã chuyển góc nhìn sang vai trò: ${newRole.name}`);
-  };
 
   const handleRefresh = async () => {
     await fetchDashboardData();
@@ -118,10 +113,7 @@ export default function DashboardPage() {
       />
 
       {/* 2. Lời chào và thông tin người dùng hiện tại */}
-      <WelcomeBanner
-        currentRole={currentRole}
-        onRoleChange={handleRoleChange}
-      />
+      <WelcomeBanner currentRole={currentRole} />
 
       {/* Xử lý Trạng thái Lỗi (ErrorState) */}
       {isError ? (

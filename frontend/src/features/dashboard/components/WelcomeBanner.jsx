@@ -1,11 +1,10 @@
 import React from "react";
-import { UserCheck, ShieldCheck, Calendar, Building2, UserCircle2 } from "lucide-react";
-import { PROTOTYPE_ROLES } from "../../../mock/prototypeData";
+import { UserCheck, ShieldCheck, Calendar, Building2 } from "lucide-react";
 
 /**
- * WelcomeBanner - Lời chào, thông tin người dùng và bộ chuyển đổi vai trò (Role Switcher)
+ * WelcomeBanner - Lời chào và thông tin người dùng đăng nhập
  */
-export default function WelcomeBanner({ currentRole, onRoleChange }) {
+export default function WelcomeBanner({ currentRole }) {
   return (
     <div
       style={{
@@ -101,58 +100,6 @@ export default function WelcomeBanner({ currentRole, onRoleChange }) {
               </span>
             </div>
           </div>
-        </div>
-
-        {/* Bộ chuyển đổi vai trò (Role Switcher Prototype) */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            gap: "4px",
-            backgroundColor: "var(--color-bg-hover)",
-            padding: "var(--space-2) var(--space-3)",
-            borderRadius: "var(--radius-md)",
-            border: "1px solid var(--color-border)"
-          }}
-        >
-          <label
-            htmlFor="role-switcher"
-            style={{
-              fontSize: "11px",
-              fontWeight: "var(--font-weight-medium)",
-              color: "var(--color-text-muted)",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "4px"
-            }}
-          >
-            <UserCircle2 size={13} />
-            Xem giao diện theo vai trò (Prototype):
-          </label>
-          <select
-            id="role-switcher"
-            value={currentRole.key}
-            onChange={(e) => {
-              const selected = PROTOTYPE_ROLES.find((r) => r.key === e.target.value);
-              if (selected) onRoleChange(selected);
-            }}
-            className="form-select"
-            style={{
-              height: "32px",
-              fontSize: "var(--font-size-xs)",
-              fontWeight: "var(--font-weight-semibold)",
-              color: "var(--color-primary)",
-              padding: "2px 24px 2px 8px",
-              width: "auto"
-            }}
-          >
-            {PROTOTYPE_ROLES.map((r) => (
-              <option key={r.key} value={r.key}>
-                {r.name}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
     </div>
