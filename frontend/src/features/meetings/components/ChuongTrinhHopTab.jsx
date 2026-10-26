@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Clock, FileText, Vote, Trash2, ArrowUp, ArrowDown, ExternalLink } from "lucide-react";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import EmptyState from "../../../components/ui/EmptyState";
-import AgendaModal from "./AgendaModal";
+import ThemChuongTrinhModal from "./ThemChuongTrinhModal";
 
 export default function MeetingAgendaTab({
   agendas = [],
@@ -167,7 +167,7 @@ export default function MeetingAgendaTab({
       )}
 
       {/* Modal Thêm Agenda */}
-      <AgendaModal
+      <ThemChuongTrinhModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={(data) => {

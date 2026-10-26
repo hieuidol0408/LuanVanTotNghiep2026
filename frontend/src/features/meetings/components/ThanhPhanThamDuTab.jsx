@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { UserPlus, Check, X, Clock, AlertCircle, ShieldCheck, ShieldAlert } from "lucide-react";
 import StatusBadge from "../../../components/ui/StatusBadge";
 import DataTable from "../../../components/ui/DataTable";
-import AttendeeModal from "./AttendeeModal";
+import ThemKhachMoiModal from "./ThemKhachMoiModal";
 
 export default function MeetingAttendeesTab({
   attendees = [],
@@ -253,7 +253,7 @@ export default function MeetingAttendeesTab({
       />
 
       {/* Modal Thêm Khách mời */}
-      <AttendeeModal
+      <ThemKhachMoiModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={(guestData) => {

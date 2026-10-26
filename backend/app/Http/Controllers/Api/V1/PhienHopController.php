@@ -15,7 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class MeetingController extends Controller
+class PhienHopController extends Controller
 {
     /**
      * Danh sách phiên họp (hỗ trợ tìm kiếm, lọc trạng thái, phân trang)

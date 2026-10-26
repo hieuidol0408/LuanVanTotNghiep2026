@@ -9,7 +9,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class CouncilController extends Controller
+class ThanhVienHdtController extends Controller
 {
     /**
      * Danh sách Thành viên Hội đồng trường

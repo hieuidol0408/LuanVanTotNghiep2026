@@ -14,7 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class VotingController extends Controller
+class BieuQuyetController extends Controller
 {
     /**
      * Danh sách các nội dung biểu quyết của phiên họp

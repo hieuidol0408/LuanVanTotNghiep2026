@@ -12,7 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class TaskController extends Controller
+class NhiemVuController extends Controller
 {
     /**
      * Danh sách Nhiệm vụ phân rã từ Nghị quyết

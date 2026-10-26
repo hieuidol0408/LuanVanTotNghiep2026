@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 
-class DocumentController extends Controller
+class TaiLieuController extends Controller
 {
     /**
      * Danh sách Kho Văn bản & Tài liệu

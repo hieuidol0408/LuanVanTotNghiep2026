@@ -10,7 +10,7 @@ use App\Models\PhienHop;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class DashboardController extends Controller
+class BangDieuHanhController extends Controller
 {
     /**
      * Tổng quan chỉ số và dữ liệu bảng điều hành thời gian thực từ 16 bảng MySQL

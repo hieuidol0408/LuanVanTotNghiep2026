@@ -24,13 +24,13 @@ import ConfirmDialog from "../../../components/ui/ConfirmDialog";
 import { useToast } from "../../../components/ui/Toast";
 
 import meetingService from "../services/meetingService";
-import MeetingGeneralInfoTab from "../components/MeetingGeneralInfoTab";
-import MeetingAgendaTab from "../components/MeetingAgendaTab";
-import MeetingAttendeesTab from "../components/MeetingAttendeesTab";
-import MeetingDocumentsTab from "../components/MeetingDocumentsTab";
-import MeetingVotingTab from "../components/MeetingVotingTab";
+import MeetingGeneralInfoTab from "../components/ThongTinChungTab";
+import MeetingAgendaTab from "../components/ChuongTrinhHopTab";
+import MeetingAttendeesTab from "../components/ThanhPhanThamDuTab";
+import MeetingDocumentsTab from "../components/TaiLieuPhienHopTab";
+import MeetingVotingTab from "../components/BieuQuyetPhienHopTab";
 
-export default function MeetingDetailPage() {
+export default function ChiTietPhienHopPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();

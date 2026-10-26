@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
-class AuthController extends Controller
+class DangNhapController extends Controller
 {
     /**
      * Map vai trò sang danh sách thẩm quyền và nhãn hiển thị

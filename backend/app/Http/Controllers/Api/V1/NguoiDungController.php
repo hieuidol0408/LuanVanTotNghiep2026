@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
-class UserController extends Controller
+class NguoiDungController extends Controller
 {
     /**
      * Danh sách vai trò trong hệ thống

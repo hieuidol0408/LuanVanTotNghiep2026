@@ -7,7 +7,7 @@ use App\Models\HoSoTrinh;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class DossierController extends Controller
+class HoSoTrinhController extends Controller
 {
     /**
      * Danh sách hồ sơ trình (hỗ trợ tìm kiếm, lọc trạng thái, lọc theo đơn vị, phân trang)

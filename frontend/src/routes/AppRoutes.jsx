@@ -4,38 +4,38 @@ import AppShell from "../components/layout/AppShell";
 import ProtectedRoute from "./ProtectedRoute";
 
 // Auth Pages
-import LoginPage from "../features/auth/pages/LoginPage";
+import LoginPage from "../features/auth/pages/DangNhapPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 
 // Dashboard Page
-import DashboardPage from "../features/dashboard/pages/DashboardPage";
+import DashboardPage from "../features/dashboard/pages/BangDieuHanhPage";
 import ComponentShowcase from "../pages/ComponentShowcase";
 
 // Meeting Management Feature Pages
-import MeetingListPage from "../features/meetings/pages/MeetingListPage";
-import MeetingFormPage from "../features/meetings/pages/MeetingFormPage";
-import MeetingDetailPage from "../features/meetings/pages/MeetingDetailPage";
+import MeetingListPage from "../features/meetings/pages/DanhSachPhienHopPage";
+import MeetingFormPage from "../features/meetings/pages/TaoPhienHopPage";
+import MeetingDetailPage from "../features/meetings/pages/ChiTietPhienHopPage";
 
 // Dossier Management Feature Pages
-import DossierListPage from "../features/dossiers/pages/DossierListPage";
+import DossierListPage from "../features/dossiers/pages/DanhSachHoSoPage";
 
 // Voting Management Feature Pages
-import VotingRoomPage from "../features/voting/pages/VotingRoomPage";
+import VotingRoomPage from "../features/voting/pages/PhongBieuQuyetPage";
 
 // Resolution Management Feature Pages
-import ResolutionListPage from "../features/resolutions/pages/ResolutionListPage";
+import ResolutionListPage from "../features/resolutions/pages/DanhSachNghiQuyetPage";
 
 // Task Management Feature Pages
-import TaskListPage from "../features/tasks/pages/TaskListPage";
+import TaskListPage from "../features/tasks/pages/DanhSachNhiemVuPage";
 
 // Council Management Feature Pages
-import CouncilMemberListPage from "../features/councils/pages/CouncilMemberListPage";
+import CouncilMemberListPage from "../features/councils/pages/DanhSachThanhVienPage";
 
 // Document Management Feature Pages
-import DocumentListPage from "../features/documents/pages/DocumentListPage";
+import DocumentListPage from "../features/documents/pages/DanhSachTaiLieuPage";
 
 // User & Role Management Feature Pages (UC6)
-import UserListPage from "../features/users/pages/UserListPage";
+import UserListPage from "../features/users/pages/DanhSachNguoiDungPage";
 
 import PageHeader from "../components/layout/PageHeader";
 import EmptyState from "../components/ui/EmptyState";
