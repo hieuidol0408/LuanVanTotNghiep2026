@@ -129,9 +129,12 @@ export default function LoginPage() {
         justifyContent: "space-between",
         alignItems: "center",
         padding: "var(--space-6) var(--space-4)",
-        background: "radial-gradient(ellipse at 50% 10%, #1a365d 0%, #0f172a 65%, #090d16 100%)",
+        background: isDark
+          ? "radial-gradient(ellipse at 50% 10%, #0f172a 0%, #090d16 65%, #030712 100%)"
+          : "radial-gradient(ellipse at 50% 10%, #e0edfd 0%, #eef2f6 55%, #e2e8f0 100%)",
         position: "relative",
-        overflowX: "hidden"
+        overflowX: "hidden",
+        transition: "background 0.3s ease"
       }}
     >
       {/* Background Decor Subtle Circles */}
@@ -143,7 +146,9 @@ export default function LoginPage() {
           transform: "translateX(-50%)",
           width: "700px",
           height: "400px",
-          background: "radial-gradient(circle, rgba(0, 58, 140, 0.35) 0%, rgba(0, 0, 0, 0) 70%)",
+          background: isDark
+            ? "radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(0, 0, 0, 0) 70%)"
+            : "radial-gradient(circle, rgba(0, 58, 140, 0.12) 0%, rgba(0, 0, 0, 0) 70%)",
           filter: "blur(60px)",
           pointerEvents: "none",
           zIndex: 0
@@ -158,24 +163,25 @@ export default function LoginPage() {
           position: "absolute",
           top: "16px",
           right: "16px",
-          width: "38px",
-          height: "38px",
+          width: "42px",
+          height: "42px",
           borderRadius: "50%",
-          border: "1px solid rgba(255, 255, 255, 0.2)",
-          backgroundColor: "rgba(15, 23, 42, 0.65)",
-          backdropFilter: "blur(4px)",
-          color: isDark ? "#FBBF24" : "#FFFFFF",
+          border: isDark ? "1px solid rgba(255, 255, 255, 0.2)" : "1px solid #CBD5E1",
+          backgroundColor: isDark ? "rgba(15, 23, 42, 0.75)" : "rgba(255, 255, 255, 0.85)",
+          backdropFilter: "blur(6px)",
+          color: isDark ? "#FBBF24" : "#0F172A",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
           zIndex: 20,
+          boxShadow: isDark ? "0 4px 12px rgba(0,0,0,0.5)" : "0 4px 12px rgba(0,0,0,0.08)",
           transition: "all var(--transition-fast)"
         }}
         title={isDark ? "Đang bật Giao diện Tối - Bấm để chuyển sang Sáng" : "Đang bật Giao diện Sáng - Bấm để chuyển sang Tối"}
         aria-label="Chuyển đổi giao diện Sáng / Tối"
       >
-        {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        {isDark ? <Sun size={20} /> : <Moon size={20} />}
       </button>
 
       {/* 1. Header Trang: Tên Trường & Hội đồng trường */}
@@ -194,11 +200,12 @@ export default function LoginPage() {
       >
         <div
           style={{
-            color: "rgba(255, 255, 255, 0.85)",
+            color: isDark ? "rgba(255, 255, 255, 0.85)" : "#475569",
             fontSize: "12px",
             fontWeight: "700",
             letterSpacing: "1.5px",
-            textTransform: "uppercase"
+            textTransform: "uppercase",
+            transition: "color 0.3s ease"
           }}
         >
           Trường Đại học Công nghệ Sài Gòn
@@ -206,12 +213,13 @@ export default function LoginPage() {
 
         <div
           style={{
-            color: "#93C5FD",
+            color: isDark ? "#38BDF8" : "#003A8C",
             fontSize: "14px",
             fontWeight: "800",
             letterSpacing: "0.5px",
             textTransform: "uppercase",
-            marginTop: "2px"
+            marginTop: "2px",
+            transition: "color 0.3s ease"
           }}
         >
           Hội đồng trường
@@ -229,11 +237,15 @@ export default function LoginPage() {
       >
         <div
           style={{
-            backgroundColor: "#FFFFFF",
+            backgroundColor: isDark ? "#1E293B" : "#FFFFFF",
             borderRadius: "20px",
             padding: "var(--space-8) var(--space-8)",
-            boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)",
-            position: "relative"
+            boxShadow: isDark
+              ? "0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08)"
+              : "0 20px 40px -15px rgba(0, 58, 140, 0.15), 0 2px 8px rgba(0, 0, 0, 0.04)",
+            border: isDark ? "1px solid #334155" : "1px solid #E2E8F0",
+            position: "relative",
+            transition: "background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease"
           }}
         >
           {/* Logo Trường STU Chính thức (Hỗ trợ click 3 lần để bật chế độ kiểm thử) */}
@@ -261,8 +273,9 @@ export default function LoginPage() {
               style={{
                 fontSize: "22px",
                 fontWeight: "800",
-                color: "#0F172A",
-                marginBottom: "4px"
+                color: isDark ? "#F8FAFC" : "#0F172A",
+                marginBottom: "4px",
+                transition: "color 0.3s ease"
               }}
             >
               Đăng nhập hệ thống
@@ -270,9 +283,10 @@ export default function LoginPage() {
             <p
               style={{
                 fontSize: "13px",
-                color: "#64748B",
+                color: isDark ? "#94A3B8" : "#64748B",
                 lineHeight: "1.5",
-                margin: 0
+                margin: 0,
+                transition: "color 0.3s ease"
               }}
             >
               Cổng quản lý phiên họp và thực hiện nghị quyết
@@ -307,7 +321,7 @@ export default function LoginPage() {
                   display: "block",
                   fontSize: "13px",
                   fontWeight: "600",
-                  color: "#334155",
+                  color: isDark ? "#E2E8F0" : "#334155",
                   marginBottom: "6px"
                 }}
               >
@@ -320,7 +334,7 @@ export default function LoginPage() {
                     left: "14px",
                     top: "50%",
                     transform: "translateY(-50%)",
-                    color: "#94A3B8",
+                    color: isDark ? "#64748B" : "#94A3B8",
                     display: "flex",
                     pointerEvents: "none"
                   }}
@@ -337,9 +351,10 @@ export default function LoginPage() {
                     paddingLeft: "42px",
                     paddingRight: "14px",
                     borderRadius: "10px",
-                    border: "1px solid #CBD5E1",
+                    border: isDark ? "1px solid #475569" : "1px solid #CBD5E1",
                     fontSize: "14px",
-                    backgroundColor: "#F8FAFC",
+                    backgroundColor: isDark ? "#0F172A" : "#F8FAFC",
+                    color: isDark ? "#F8FAFC" : "#0F172A",
                     transition: "all var(--transition-fast)"
                   }}
                   placeholder="name@stu.edu.vn"
@@ -367,7 +382,7 @@ export default function LoginPage() {
                   style={{
                     fontSize: "13px",
                     fontWeight: "600",
-                    color: "#334155"
+                    color: isDark ? "#E2E8F0" : "#334155"
                   }}
                 >
                   Mật khẩu <span style={{ color: "var(--color-danger)" }}>*</span>
@@ -380,7 +395,7 @@ export default function LoginPage() {
                     border: "none",
                     padding: 0,
                     fontSize: "12px",
-                    color: "#003A8C",
+                    color: isDark ? "#38BDF8" : "#003A8C",
                     fontWeight: "600",
                     cursor: "pointer",
                     textDecoration: "none"
@@ -397,7 +412,7 @@ export default function LoginPage() {
                     left: "14px",
                     top: "50%",
                     transform: "translateY(-50%)",
-                    color: "#94A3B8",
+                    color: isDark ? "#64748B" : "#94A3B8",
                     display: "flex",
                     pointerEvents: "none"
                   }}
@@ -414,9 +429,10 @@ export default function LoginPage() {
                     paddingLeft: "42px",
                     paddingRight: "44px",
                     borderRadius: "10px",
-                    border: "1px solid #CBD5E1",
+                    border: isDark ? "1px solid #475569" : "1px solid #CBD5E1",
                     fontSize: "14px",
-                    backgroundColor: "#F8FAFC",
+                    backgroundColor: isDark ? "#0F172A" : "#F8FAFC",
+                    color: isDark ? "#F8FAFC" : "#0F172A",
                     transition: "all var(--transition-fast)"
                   }}
                   placeholder="••••••••"
@@ -436,7 +452,7 @@ export default function LoginPage() {
                     transform: "translateY(-50%)",
                     background: "none",
                     border: "none",
-                    color: "#64748B",
+                    color: isDark ? "#94A3B8" : "#64748B",
                     cursor: "pointer",
                     padding: "6px",
                     display: "flex",
@@ -463,14 +479,14 @@ export default function LoginPage() {
                   width: "16px",
                   height: "16px",
                   cursor: "pointer",
-                  accentColor: "#003A8C"
+                  accentColor: isDark ? "#38BDF8" : "#003A8C"
                 }}
               />
               <label
                 htmlFor="remember-me"
                 style={{
                   fontSize: "13px",
-                  color: "#64748B",
+                  color: isDark ? "#94A3B8" : "#64748B",
                   cursor: "pointer",
                   userSelect: "none"
                 }}
@@ -487,7 +503,7 @@ export default function LoginPage() {
                 width: "100%",
                 height: "46px",
                 marginTop: "var(--space-2)",
-                backgroundColor: "#003A8C",
+                backgroundColor: isDark ? "#2563EB" : "#003A8C",
                 color: "#FFFFFF",
                 border: "none",
                 borderRadius: "10px",
@@ -498,14 +514,14 @@ export default function LoginPage() {
                 justifyContent: "center",
                 gap: "8px",
                 cursor: isSubmitting ? "not-allowed" : "pointer",
-                boxShadow: "0 4px 12px rgba(0, 58, 140, 0.3)",
+                boxShadow: isDark ? "0 4px 16px rgba(37, 99, 235, 0.4)" : "0 4px 12px rgba(0, 58, 140, 0.3)",
                 transition: "all var(--transition-fast)"
               }}
               onMouseEnter={(e) => {
-                if (!isSubmitting) e.currentTarget.style.backgroundColor = "#002766";
+                if (!isSubmitting) e.currentTarget.style.backgroundColor = isDark ? "#1D4ED8" : "#002766";
               }}
               onMouseLeave={(e) => {
-                if (!isSubmitting) e.currentTarget.style.backgroundColor = "#003A8C";
+                if (!isSubmitting) e.currentTarget.style.backgroundColor = isDark ? "#2563EB" : "#003A8C";
               }}
             >
               {isSubmitting ? (
@@ -529,7 +545,7 @@ export default function LoginPage() {
               <div
                 style={{
                   margin: "var(--space-6) 0 var(--space-4) 0",
-                  borderTop: "1px dashed #93C5FD",
+                  borderTop: isDark ? "1px dashed #334155" : "1px dashed #93C5FD",
                   position: "relative",
                   textAlign: "center"
                 }}
@@ -540,10 +556,10 @@ export default function LoginPage() {
                     top: "-10px",
                     left: "50%",
                     transform: "translateX(-50%)",
-                    backgroundColor: "#FFFFFF",
+                    backgroundColor: isDark ? "#1E293B" : "#FFFFFF",
                     padding: "0 10px",
                     fontSize: "11px",
-                    color: "#2563EB",
+                    color: isDark ? "#60A5FA" : "#2563EB",
                     fontWeight: "700",
                     textTransform: "uppercase",
                     display: "flex",
@@ -565,9 +581,9 @@ export default function LoginPage() {
                     width: "100%",
                     padding: "9px 12px",
                     borderRadius: "8px",
-                    border: "1px solid #93C5FD",
-                    backgroundColor: "#EFF6FF",
-                    color: "#1E40AF",
+                    border: isDark ? "1px solid #3B82F6" : "1px solid #93C5FD",
+                    backgroundColor: isDark ? "#1E293B" : "#EFF6FF",
+                    color: isDark ? "#93C5FD" : "#1E40AF",
                     fontSize: "12px",
                     fontWeight: "600",
                     display: "flex",
@@ -578,7 +594,7 @@ export default function LoginPage() {
                   }}
                 >
                   <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <Sparkles size={14} style={{ color: "#2563EB" }} />
+                    <Sparkles size={14} style={{ color: isDark ? "#60A5FA" : "#2563EB" }} />
                     <span>Chọn nhanh tài khoản kiểm thử (7 vai trò)</span>
                   </span>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -594,7 +610,7 @@ export default function LoginPage() {
                         display: "flex",
                         alignItems: "center",
                         borderRadius: "4px",
-                        color: "#64748B"
+                        color: isDark ? "#94A3B8" : "#64748B"
                       }}
                     >
                       <X size={14} />
@@ -609,8 +625,8 @@ export default function LoginPage() {
                       marginTop: "8px",
                       padding: "8px",
                       borderRadius: "10px",
-                      backgroundColor: "#F8FAFC",
-                      border: "1px solid #E2E8F0",
+                      backgroundColor: isDark ? "#0F172A" : "#F8FAFC",
+                      border: isDark ? "1px solid #334155" : "1px solid #E2E8F0",
                       display: "flex",
                       flexDirection: "column",
                       gap: "6px",
@@ -618,7 +634,7 @@ export default function LoginPage() {
                       overflowY: "auto"
                     }}
                   >
-                    <div style={{ fontSize: "11px", color: "#64748B", padding: "2px 6px 4px 6px" }}>
+                    <div style={{ fontSize: "11px", color: isDark ? "#94A3B8" : "#64748B", padding: "2px 6px 4px 6px" }}>
                       Bấm vào vai trò để tự động điền tài khoản (Mật khẩu: <code>stu@2026</code>):
                     </div>
 
@@ -636,15 +652,15 @@ export default function LoginPage() {
                             padding: "6px 8px",
                             borderRadius: "6px",
                             border: isSelected ? "1px solid #2563EB" : "1px solid transparent",
-                            backgroundColor: isSelected ? "#DBEAFE" : "#FFFFFF",
+                            backgroundColor: isSelected ? (isDark ? "#1E3A5F" : "#DBEAFE") : (isDark ? "#1E293B" : "#FFFFFF"),
                             cursor: "pointer",
                             transition: "background-color 0.15s ease"
                           }}
                           onMouseEnter={(e) => {
-                            if (!isSelected) e.currentTarget.style.backgroundColor = "#F1F5F9";
+                            if (!isSelected) e.currentTarget.style.backgroundColor = isDark ? "#334155" : "#F1F5F9";
                           }}
                           onMouseLeave={(e) => {
-                            if (!isSelected) e.currentTarget.style.backgroundColor = "#FFFFFF";
+                            if (!isSelected) e.currentTarget.style.backgroundColor = isDark ? "#1E293B" : "#FFFFFF";
                           }}
                         >
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -653,8 +669,8 @@ export default function LoginPage() {
                                 width: "26px",
                                 height: "26px",
                                 borderRadius: "50%",
-                                backgroundColor: isSelected ? "#1E40AF" : "#E2E8F0",
-                                color: isSelected ? "#FFFFFF" : "#475569",
+                                backgroundColor: isSelected ? "#1E40AF" : (isDark ? "#334155" : "#E2E8F0"),
+                                color: isSelected ? "#FFFFFF" : (isDark ? "#CBD5E1" : "#475569"),
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -665,10 +681,10 @@ export default function LoginPage() {
                               {r.avatar_initials}
                             </div>
                             <div>
-                              <div style={{ fontSize: "12px", fontWeight: "600", color: "#0F172A" }}>
+                              <div style={{ fontSize: "12px", fontWeight: "600", color: isDark ? "#F8FAFC" : "#0F172A" }}>
                                 {r.name}
                               </div>
-                              <div style={{ fontSize: "10px", color: "#64748B" }}>
+                              <div style={{ fontSize: "10px", color: isDark ? "#94A3B8" : "#64748B" }}>
                                 {r.email}
                               </div>
                             </div>
@@ -695,7 +711,7 @@ export default function LoginPage() {
               justifyContent: "center",
               gap: "6px",
               fontSize: "11px",
-              color: "#94A3B8"
+              color: isDark ? "#94A3B8" : "#64748B"
             }}
           >
             <ShieldCheck size={14} style={{ color: "#10B981" }} />
@@ -711,15 +727,16 @@ export default function LoginPage() {
           maxWidth: "520px",
           textAlign: "center",
           fontSize: "12px",
-          color: "rgba(255, 255, 255, 0.6)",
+          color: isDark ? "rgba(255, 255, 255, 0.6)" : "#64748B",
           padding: "var(--space-4) 0 var(--space-2) 0",
-          zIndex: 1
+          zIndex: 1,
+          transition: "color 0.3s ease"
         }}
       >
         <div>
           © 2026 Hội đồng trường • Trường Đại học Công nghệ Sài Gòn (STU)
         </div>
-        <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.4)", marginTop: "4px" }}>
+        <div style={{ fontSize: "11px", color: isDark ? "rgba(255, 255, 255, 0.4)" : "#94A3B8", marginTop: "4px" }}>
           Hệ thống điều hành trực tuyến • Phiên bản 2.0
         </div>
       </footer>
@@ -742,12 +759,13 @@ export default function LoginPage() {
         >
           <div
             style={{
-              backgroundColor: "#FFFFFF",
+              backgroundColor: isDark ? "#1E293B" : "#FFFFFF",
               borderRadius: "16px",
               padding: "var(--space-6)",
               maxWidth: "420px",
               width: "100%",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+              border: isDark ? "1px solid #334155" : "1px solid #E2E8F0"
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -758,8 +776,8 @@ export default function LoginPage() {
                     width: "36px",
                     height: "36px",
                     borderRadius: "50%",
-                    backgroundColor: "#EFF6FF",
-                    color: "#003A8C",
+                    backgroundColor: isDark ? "#0F172A" : "#EFF6FF",
+                    color: isDark ? "#38BDF8" : "#003A8C",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center"
@@ -767,7 +785,7 @@ export default function LoginPage() {
                 >
                   <HelpCircle size={20} />
                 </div>
-                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#0F172A", margin: 0 }}>
+                <h3 style={{ fontSize: "16px", fontWeight: "700", color: isDark ? "#F8FAFC" : "#0F172A", margin: 0 }}>
                   Hỗ trợ khôi phục mật khẩu
                 </h3>
               </div>
@@ -778,7 +796,7 @@ export default function LoginPage() {
                   background: "none",
                   border: "none",
                   cursor: "pointer",
-                  color: "#94A3B8",
+                  color: isDark ? "#CBD5E1" : "#94A3B8",
                   padding: "4px"
                 }}
               >
@@ -786,19 +804,19 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <p style={{ fontSize: "13px", color: "#475569", lineHeight: "1.6", marginBottom: "var(--space-4)" }}>
+            <p style={{ fontSize: "13px", color: isDark ? "#CBD5E1" : "#475569", lineHeight: "1.6", marginBottom: "var(--space-4)" }}>
               Theo Quy chế bảo mật thông tin của Hội đồng trường STU, tài khoản được quản lý và cấp phát tập trung.
               Để đặt lại mật khẩu, quý Thầy/Cô vui lòng liên hệ:
             </p>
 
             <div
               style={{
-                backgroundColor: "#F8FAFC",
-                border: "1px solid #E2E8F0",
+                backgroundColor: isDark ? "#0F172A" : "#F8FAFC",
+                border: isDark ? "1px solid #334155" : "1px solid #E2E8F0",
                 borderRadius: "10px",
                 padding: "var(--space-3) var(--space-4)",
                 fontSize: "12px",
-                color: "#334155",
+                color: isDark ? "#E2E8F0" : "#334155",
                 marginBottom: "var(--space-4)",
                 lineHeight: "1.8"
               }}
