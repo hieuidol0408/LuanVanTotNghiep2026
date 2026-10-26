@@ -351,44 +351,6 @@ export default function Header({
                 <span>Đổi mật khẩu</span>
               </button>
 
-              {/* Chuyển đổi giao diện Sáng / Tối */}
-              <button
-                type="button"
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "var(--space-2) var(--space-4)",
-                  background: "none",
-                  border: "none",
-                  fontSize: "var(--font-size-sm)",
-                  color: "var(--color-text-secondary)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  cursor: "pointer"
-                }}
-                onClick={() => {
-                  toggleTheme();
-                  setShowUserMenu(false);
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-                  {isDark ? <Sun size={15} style={{ color: "#FBBF24" }} /> : <Moon size={15} />}
-                  <span>{isDark ? "Giao diện Tối" : "Giao diện Sáng"}</span>
-                </div>
-                <span
-                  style={{
-                    fontSize: "10px",
-                    padding: "2px 6px",
-                    borderRadius: "4px",
-                    backgroundColor: "var(--color-bg-hover)",
-                    color: "var(--color-text-muted)"
-                  }}
-                >
-                  {isDark ? "Đang bật" : "Đang tắt"}
-                </span>
-              </button>
-
               <div style={{ borderTop: "1px solid var(--color-border-subtle)", margin: "4px 0" }} />
 
               <button
