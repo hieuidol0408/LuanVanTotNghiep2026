@@ -8,7 +8,9 @@ import {
   Award,
   Mail,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  X,
+  RotateCcw
 } from "lucide-react";
 import PageHeader from "../../../components/layout/PageHeader";
 import StatusBadge from "../../../components/ui/StatusBadge";
@@ -102,42 +104,99 @@ export default function CouncilMemberListPage() {
           gap: "var(--space-3)"
         }}
       >
-        <div style={{ display: "flex", flex: 1, minWidth: "260px", position: "relative" }}>
+        <div style={{ display: "flex", flex: 1, minWidth: "280px", maxWidth: "460px", position: "relative" }}>
           <Search
             size={18}
             style={{
               position: "absolute",
-              left: "12px",
+              left: "14px",
               top: "50%",
               transform: "translateY(-50%)",
-              color: "var(--color-text-muted)"
+              color: "var(--color-text-muted)",
+              pointerEvents: "none"
             }}
           />
           <input
             type="text"
             className="form-control"
             placeholder="Tìm theo họ tên, chức danh hoặc email..."
-            style={{ paddingLeft: "38px" }}
+            style={{
+              paddingLeft: "42px",
+              paddingRight: search ? "36px" : "14px"
+            }}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                color: "var(--color-text-muted)",
+                cursor: "pointer",
+                padding: "4px",
+                display: "flex",
+                alignItems: "center",
+                borderRadius: "4px"
+              }}
+              title="Xóa tìm kiếm"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-          <Calendar size={16} style={{ color: "var(--color-text-muted)" }} />
-          <select
-            className="form-control"
-            style={{ width: "auto" }}
-            value={selectedTerm}
-            onChange={(e) => setSelectedTerm(e.target.value)}
-          >
-            <option value="ALL">Tất cả khóa nhiệm kỳ</option>
-            {terms.map((t, idx) => (
-              <option key={idx} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
+          <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            <Calendar
+              size={16}
+              style={{
+                position: "absolute",
+                left: "14px",
+                color: "var(--color-text-muted)",
+                pointerEvents: "none",
+                zIndex: 1
+              }}
+            />
+            <select
+              className="form-control"
+              style={{
+                paddingLeft: "38px",
+                minWidth: "220px",
+                fontWeight: "500"
+              }}
+              value={selectedTerm}
+              onChange={(e) => setSelectedTerm(e.target.value)}
+            >
+              <option value="ALL">Tất cả khóa nhiệm kỳ</option>
+              {terms.map((t, idx) => (
+                <option key={idx} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {(search || selectedTerm !== "ALL") && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                setSearch("");
+                setSelectedTerm("ALL");
+              }}
+              title="Đặt lại bộ lọc"
+            >
+              <RotateCcw size={15} />
+              <span>Đặt lại</span>
+            </button>
+          )}
         </div>
       </div>
 
