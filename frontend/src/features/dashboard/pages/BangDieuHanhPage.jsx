@@ -9,7 +9,7 @@ import UrgentTasksSection from "../components/UrgentTasksSection";
 import UpcomingMeetingsSection from "../components/UpcomingMeetingsSection";
 import PendingDossiersSection from "../components/PendingDossiersSection";
 import ResolutionProgressSection from "../components/ResolutionProgressSection";
-import { Plus, RotateCcw, AlertTriangle } from "lucide-react";
+import { Plus, RotateCcw } from "lucide-react";
 import { useAuth } from "../../auth/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import dashboardService from "../services/dashboardService";
@@ -64,11 +64,6 @@ export default function DashboardPage() {
     toast.success("Dữ liệu bảng điều hành đã được đồng bộ từ MySQL!");
   };
 
-  const handleToggleError = () => {
-    setIsError(true);
-    toast.error("Giả lập lỗi kết nối máy chủ để kiểm tra ErrorState.");
-  };
-
   return (
     <div>
       {/* 1. Header & Breadcrumb */}
@@ -89,16 +84,6 @@ export default function DashboardPage() {
             >
               <RotateCcw size={13} className={isLoading ? "animate-spin" : ""} />
               <span>Làm mới</span>
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={handleToggleError}
-              title="Mô phỏng kiểm tra ErrorState"
-              style={{ color: "var(--color-danger)" }}
-            >
-              <AlertTriangle size={13} />
-              <span>Thử lỗi</span>
             </button>
             <button
               type="button"
