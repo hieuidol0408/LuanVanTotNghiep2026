@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   Mail,
-  UserCheck
+  UserCheck,
+  X
 } from "lucide-react";
 import PageHeader from "../../../components/layout/PageHeader";
 import StatusBadge from "../../../components/ui/StatusBadge";
@@ -353,7 +354,7 @@ export default function UserListPage() {
           flexWrap: "wrap",
           gap: "var(--space-3)",
           alignItems: "center",
-          backgroundColor: "var(--color-bg-surface)"
+          backgroundColor: "var(--color-bg-card)"
         }}
       >
         {/* Tìm kiếm */}
@@ -570,13 +571,15 @@ export default function UserListPage() {
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backgroundColor: "rgba(15, 23, 42, 0.65)",
+            backdropFilter: "blur(4px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 1000,
             padding: "var(--space-4)"
           }}
+          onClick={() => setIsCreateModalOpen(false)}
         >
           <div
             className="card"
@@ -584,13 +587,35 @@ export default function UserListPage() {
               width: "100%",
               maxWidth: "520px",
               padding: "var(--space-6)",
-              backgroundColor: "var(--color-bg-surface)",
-              boxShadow: "var(--shadow-xl)"
+              backgroundColor: "var(--color-bg-card, #FFFFFF)",
+              borderRadius: "16px",
+              border: "1px solid var(--color-border)",
+              boxShadow: "var(--shadow-modal)"
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "var(--space-4)" }}>
-              Thêm Người dùng mới
-            </h3>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-4)" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: "700", margin: 0, color: "var(--color-text-primary)" }}>
+                Thêm Người dùng mới
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--color-text-muted)",
+                  cursor: "pointer",
+                  padding: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  borderRadius: "4px"
+                }}
+                title="Đóng"
+              >
+                <X size={18} />
+              </button>
+            </div>
             <form onSubmit={handleCreateSubmit}>
               <div style={{ marginBottom: "var(--space-3)" }}>
                 <label className="label" style={{ fontWeight: "500", display: "block", marginBottom: "4px" }}>
@@ -721,13 +746,15 @@ export default function UserListPage() {
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backgroundColor: "rgba(15, 23, 42, 0.65)",
+            backdropFilter: "blur(4px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 1000,
             padding: "var(--space-4)"
           }}
+          onClick={() => setIsEditModalOpen(false)}
         >
           <div
             className="card"
@@ -735,13 +762,35 @@ export default function UserListPage() {
               width: "100%",
               maxWidth: "520px",
               padding: "var(--space-6)",
-              backgroundColor: "var(--color-bg-surface)",
-              boxShadow: "var(--shadow-xl)"
+              backgroundColor: "var(--color-bg-card, #FFFFFF)",
+              borderRadius: "16px",
+              border: "1px solid var(--color-border)",
+              boxShadow: "var(--shadow-modal)"
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "var(--space-4)" }}>
-              Chỉnh sửa Người dùng #{selectedUser.id}
-            </h3>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-4)" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: "700", margin: 0, color: "var(--color-text-primary)" }}>
+                Chỉnh sửa Người dùng #{selectedUser.id}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--color-text-muted)",
+                  cursor: "pointer",
+                  padding: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  borderRadius: "4px"
+                }}
+                title="Đóng"
+              >
+                <X size={18} />
+              </button>
+            </div>
             <form onSubmit={handleEditSubmit}>
               <div style={{ marginBottom: "var(--space-3)" }}>
                 <label className="label" style={{ fontWeight: "500", display: "block", marginBottom: "4px" }}>
@@ -855,13 +904,15 @@ export default function UserListPage() {
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backgroundColor: "rgba(15, 23, 42, 0.65)",
+            backdropFilter: "blur(4px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 1000,
             padding: "var(--space-4)"
           }}
+          onClick={() => setIsResetPassModalOpen(false)}
         >
           <div
             className="card"
@@ -869,15 +920,37 @@ export default function UserListPage() {
               width: "100%",
               maxWidth: "440px",
               padding: "var(--space-6)",
-              backgroundColor: "var(--color-bg-surface)",
-              boxShadow: "var(--shadow-xl)"
+              backgroundColor: "var(--color-bg-card, #FFFFFF)",
+              borderRadius: "16px",
+              border: "1px solid var(--color-border)",
+              boxShadow: "var(--shadow-modal)"
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "var(--space-3)" }}>
-              <KeyRound size={20} style={{ color: "var(--color-primary)" }} />
-              <h3 style={{ fontSize: "18px", fontWeight: "600" }}>
-                Đặt lại Mật khẩu
-              </h3>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-3)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <KeyRound size={20} style={{ color: "var(--color-primary)" }} />
+                <h3 style={{ fontSize: "18px", fontWeight: "700", margin: 0, color: "var(--color-text-primary)" }}>
+                  Đặt lại Mật khẩu
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsResetPassModalOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--color-text-muted)",
+                  cursor: "pointer",
+                  padding: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  borderRadius: "4px"
+                }}
+                title="Đóng"
+              >
+                <X size={18} />
+              </button>
             </div>
             <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", marginBottom: "var(--space-4)" }}>
               Tài khoản: <strong>{selectedUser.full_name}</strong> ({selectedUser.email})
