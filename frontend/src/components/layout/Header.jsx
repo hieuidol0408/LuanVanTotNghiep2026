@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, Bell, User, KeyRound, LogOut, ChevronDown, Check } from "lucide-react";
+import { Menu, Bell, User, KeyRound, LogOut, ChevronDown, Check, Sun, Moon } from "lucide-react";
 import { PROTOTYPE_NOTIFICATIONS } from "../../mock/prototypeData";
 import { useAuth } from "../../features/auth/context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 /**
  * Header - Thanh điều hướng trên cùng kèm thông báo và menu tài khoản
@@ -14,6 +15,7 @@ export default function Header({
 }) {
   const navigate = useNavigate();
   const { user, role, logout } = useAuth();
+  const { theme, toggleTheme, isDark } = useTheme();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -80,8 +82,32 @@ export default function Header({
         </span>
       </div>
 
-      {/* Cụm chức năng bên phải: Thông báo & Tài khoản */}
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+      {/* Cụm chức năng bên phải: Nút Sáng/Tối, Thông báo & Tài khoản */}
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+        {/* Nút chuyển đổi Chế độ Sáng / Tối */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          style={{
+            position: "relative",
+            width: "38px",
+            height: "38px",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--color-border)",
+            backgroundColor: "var(--color-bg-card)",
+            color: isDark ? "#FBBF24" : "var(--color-text-secondary)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            transition: "all var(--transition-fast)"
+          }}
+          title={isDark ? "Đang bật Giao diện Tối - Bấm để chuyển sang Sáng" : "Đang bật Giao diện Sáng - Bấm để chuyển sang Tối"}
+          aria-label={isDark ? "Chuyển sang giao diện Sáng" : "Chuyển sang giao diện Tối"}
+        >
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+
         {/* Chuông Thông báo */}
         <div style={{ position: "relative" }} ref={notifRef}>
           <button
@@ -323,6 +349,44 @@ export default function Header({
               >
                 <KeyRound size={15} />
                 <span>Đổi mật khẩu</span>
+              </button>
+
+              {/* Chuyển đổi giao diện Sáng / Tối */}
+              <button
+                type="button"
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "var(--space-2) var(--space-4)",
+                  background: "none",
+                  border: "none",
+                  fontSize: "var(--font-size-sm)",
+                  color: "var(--color-text-secondary)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  cursor: "pointer"
+                }}
+                onClick={() => {
+                  toggleTheme();
+                  setShowUserMenu(false);
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                  {isDark ? <Sun size={15} style={{ color: "#FBBF24" }} /> : <Moon size={15} />}
+                  <span>{isDark ? "Giao diện Tối" : "Giao diện Sáng"}</span>
+                </div>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                    backgroundColor: "var(--color-bg-hover)",
+                    color: "var(--color-text-muted)"
+                  }}
+                >
+                  {isDark ? "Đang bật" : "Đang tắt"}
+                </span>
               </button>
 
               <div style={{ borderTop: "1px solid var(--color-border-subtle)", margin: "4px 0" }} />

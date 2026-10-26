@@ -12,10 +12,13 @@ import {
   ChevronUp,
   HelpCircle,
   X,
-  CheckCircle2
+  CheckCircle2,
+  Sun,
+  Moon
 } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../../../context/ThemeContext";
 import { PROTOTYPE_ROLES } from "../../../mock/prototypeData";
 import Alert from "../../../components/ui/Alert";
 
@@ -23,6 +26,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
+  const { toggleTheme, isDark } = useTheme();
 
   // Form states - Mặc định để trống như trang đăng nhập chuẩn mực
   const [email, setEmail] = useState("");
@@ -145,6 +149,34 @@ export default function LoginPage() {
           zIndex: 0
         }}
       />
+
+      {/* Nút bật Sáng / Tối góc trên bên phải */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        style={{
+          position: "absolute",
+          top: "16px",
+          right: "16px",
+          width: "38px",
+          height: "38px",
+          borderRadius: "50%",
+          border: "1px solid rgba(255, 255, 255, 0.2)",
+          backgroundColor: "rgba(15, 23, 42, 0.65)",
+          backdropFilter: "blur(4px)",
+          color: isDark ? "#FBBF24" : "#FFFFFF",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          zIndex: 20,
+          transition: "all var(--transition-fast)"
+        }}
+        title={isDark ? "Đang bật Giao diện Tối - Bấm để chuyển sang Sáng" : "Đang bật Giao diện Sáng - Bấm để chuyển sang Tối"}
+        aria-label="Chuyển đổi giao diện Sáng / Tối"
+      >
+        {isDark ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
 
       {/* 1. Header Trang: Tên Trường & Hội đồng trường */}
       <header
