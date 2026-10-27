@@ -482,15 +482,15 @@ export default function TaskListPage() {
           </div>
         ) : (
           <div className="table-responsive">
-            <table className="table" style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table className="table" style={{ width: "100%", minWidth: "1000px", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ backgroundColor: "var(--color-bg-muted)", borderBottom: "1px solid var(--color-border)" }}>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Tên nhiệm vụ & Nghị quyết</th>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Đơn vị chủ trì</th>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Hạn chót</th>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", textAlign: "center", fontSize: "12px", textTransform: "uppercase" }}>Tiến độ</th>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", textAlign: "center", fontSize: "12px", textTransform: "uppercase" }}>Trạng thái</th>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", textAlign: "right", fontSize: "12px", textTransform: "uppercase" }}>Thao tác</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", minWidth: "260px", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Tên nhiệm vụ & Nghị quyết</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "200px", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Đơn vị chủ trì</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "120px", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Hạn chót</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "130px", textAlign: "center", fontSize: "12px", textTransform: "uppercase" }}>Tiến độ</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "140px", textAlign: "center", fontSize: "12px", textTransform: "uppercase" }}>Trạng thái</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "150px", minWidth: "150px", textAlign: "right", fontSize: "12px", textTransform: "uppercase" }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>

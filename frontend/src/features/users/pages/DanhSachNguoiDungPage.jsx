@@ -442,7 +442,7 @@ export default function UserListPage() {
           </div>
         ) : (
           <div className="table-responsive">
-            <table className="table" style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table className="table" style={{ width: "100%", minWidth: "980px", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ backgroundColor: "var(--color-bg-subtle)", textAlign: "left", fontSize: "12px", borderBottom: "1px solid var(--color-border-subtle)" }}>
                   <th style={{ padding: "12px 16px", width: "70px" }}>MÃ</th>
