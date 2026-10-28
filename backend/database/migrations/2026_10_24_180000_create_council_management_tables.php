@@ -189,8 +189,8 @@ return new class extends Migration
             $table->unsignedInteger('MaThanhVienNhanUyQuyen');
 
             $table->foreign('MaPhienHop')->references('MaPhienHop')->on('phien_hop')->cascadeOnUpdate()->cascadeOnDelete();
-            $table->foreign('MaThanhVienUyQuyen')->references('MaThanhVien')->on('thanh_vien_hdt')->cascadeOnUpdate()->cascadeOnDelete();
-            $table->foreign('MaThanhVienNhanUyQuyen')->references('MaThanhVien')->on('thanh_vien_hdt')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreign('MaThanhVienUyQuyen')->references('MaThanhVien')->on('thanh_vien_hdt')->restrictOnUpdate()->restrictOnDelete();
+            $table->foreign('MaThanhVienNhanUyQuyen')->references('MaThanhVien')->on('thanh_vien_hdt')->restrictOnUpdate()->restrictOnDelete();
         });
 
         // [BR-04] Áp dụng CHECK constraint ở Database
