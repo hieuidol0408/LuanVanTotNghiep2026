@@ -10,12 +10,24 @@
         <span>Trang chủ</span>
     </a>
 
-    @foreach($items as $item)
+    @foreach($items as $key => $item)
+        @php
+            if (is_array($item)) {
+                $title = $item['title'] ?? (is_string($key) ? $key : '');
+                $url = $item['url'] ?? null;
+            } elseif (is_string($key)) {
+                $title = $key;
+                $url = $item;
+            } else {
+                $title = (string) $item;
+                $url = null;
+            }
+        @endphp
         <span class="stu-breadcrumb-separator">/</span>
-        @if(!$loop->last && !empty($item['url']))
-            <a href="{{ $item['url'] }}">{{ $item['title'] }}</a>
+        @if(!$loop->last && !empty($url))
+            <a href="{{ $url }}">{{ $title }}</a>
         @else
-            <span class="stu-breadcrumb-current">{{ $item['title'] }}</span>
+            <span class="stu-breadcrumb-current">{{ $title }}</span>
         @endif
     @endforeach
 </nav>

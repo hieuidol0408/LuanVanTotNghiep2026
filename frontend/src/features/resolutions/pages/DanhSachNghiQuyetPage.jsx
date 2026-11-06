@@ -404,16 +404,16 @@ export default function ResolutionListPage() {
             />
           </div>
         ) : (
-          <div className="table-responsive">
-            <table className="table" style={{ width: "100%", minWidth: "1020px", borderCollapse: "collapse" }}>
+          <div className="table-responsive" style={{ width: "100%", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+            <table className="table" style={{ width: "100%", minWidth: "1150px", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ backgroundColor: "var(--color-bg-muted)", borderBottom: "1px solid var(--color-border)" }}>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "170px", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Số hiệu</th>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", minWidth: "260px", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Trích yếu nội dung</th>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "230px", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Phiên họp & Ngày</th>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "140px", textAlign: "center", fontSize: "12px", textTransform: "uppercase" }}>Trạng thái</th>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "150px", textAlign: "center", fontSize: "12px", textTransform: "uppercase" }}>Tiến độ thực hiện</th>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "160px", minWidth: "160px", textAlign: "right", fontSize: "12px", textTransform: "uppercase" }}>Thao tác</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "180px", textAlign: "left", fontSize: "12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>Số hiệu</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", minWidth: "300px", maxWidth: "450px", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Trích yếu nội dung</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "220px", maxWidth: "250px", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Phiên họp & Ngày</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "150px", textAlign: "center", fontSize: "12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>Trạng thái</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "160px", textAlign: "center", fontSize: "12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>Tiến độ thực hiện</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "200px", minWidth: "200px", textAlign: "right", fontSize: "12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -426,12 +426,12 @@ export default function ResolutionListPage() {
                       <td style={{ padding: "var(--space-3) var(--space-4)", fontWeight: "var(--font-weight-bold)", color: "var(--color-primary)", whiteSpace: "nowrap" }}>
                         {nq.resolution_number}
                       </td>
-                      <td style={{ padding: "var(--space-3) var(--space-4)", minWidth: "260px", maxWidth: "420px" }}>
+                      <td style={{ padding: "var(--space-3) var(--space-4)", minWidth: "300px", maxWidth: "450px" }}>
                         <div style={{ fontWeight: "var(--font-weight-medium)", color: "var(--color-text-primary)", lineHeight: "1.5", wordBreak: "break-word" }}>
                           {nq.title}
                         </div>
                       </td>
-                      <td style={{ padding: "var(--space-3) var(--space-4)", whiteSpace: "nowrap" }}>
+                      <td style={{ padding: "var(--space-3) var(--space-4)", maxWidth: "240px" }}>
                         <button
                           type="button"
                           onClick={() => nq.meeting_id && navigate(`/meetings/${nq.meeting_id}`)}
@@ -445,16 +445,18 @@ export default function ResolutionListPage() {
                             cursor: nq.meeting_id ? "pointer" : "default",
                             display: "inline-flex",
                             alignItems: "center",
-                            gap: "4px"
+                            gap: "4px",
+                            textAlign: "left",
+                            lineHeight: "1.4"
                           }}
                           title={nq.meeting_id ? "Bấm để xem chi tiết phiên họp" : ""}
                         >
                           <span>{nq.meeting_title}</span>
-                          {nq.meeting_id && <ExternalLink size={11} />}
+                          {nq.meeting_id && <ExternalLink size={11} style={{ flexShrink: 0 }} />}
                         </button>
-                        <div style={{ fontSize: "11px", color: "var(--color-text-muted)" }}>{nq.issued_date || "Chưa ấn định"}</div>
+                        <div style={{ fontSize: "11px", color: "var(--color-text-muted)", marginTop: "2px" }}>{nq.issued_date || "Chưa ấn định"}</div>
                       </td>
-                      <td style={{ padding: "var(--space-3) var(--space-4)", textAlign: "center" }}>
+                      <td style={{ padding: "var(--space-3) var(--space-4)", textAlign: "center", whiteSpace: "nowrap" }}>
                         <StatusBadge
                           status={nq.status === "PUBLISHED" ? "success" : nq.status === "SIGNED" ? "primary" : "neutral"}
                           label={nq.status_label}
@@ -494,8 +496,8 @@ export default function ResolutionListPage() {
                           </div>
                         )}
                       </td>
-                      <td style={{ padding: "var(--space-3) var(--space-4)", textAlign: "right", whiteSpace: "nowrap" }}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)" }}>
+                      <td style={{ padding: "var(--space-3) var(--space-4)", textAlign: "right", whiteSpace: "nowrap", width: "200px", minWidth: "200px" }}>
+                        <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: "var(--space-2)" }}>
                           <button
                             type="button"
                             className="btn btn-secondary btn-sm"

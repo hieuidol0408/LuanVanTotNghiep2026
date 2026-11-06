@@ -58,4 +58,16 @@ class PhienHop extends Model
     {
         return $this->belongsToMany(TaiLieu::class, 'tai_lieu_phien_hop', 'MaPhienHop', 'MaTaiLieu');
     }
+
+    public function noiDungBieuQuyet(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(
+            NoiDungBieuQuyet::class,
+            ChuongTrinhHop::class,
+            'MaPhienHop',
+            'MaChuongTrinh',
+            'MaPhienHop',
+            'MaChuongTrinh'
+        );
+    }
 }
