@@ -2,11 +2,14 @@
 
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\DocumentWebController;
 use App\Http\Controllers\Web\MeetingWebController;
+use App\Http\Controllers\Web\MemberWebController;
 use App\Http\Controllers\Web\ResolutionWebController;
 use App\Http\Controllers\Web\SubmissionWebController;
 use App\Http\Controllers\Web\TaskReportWebController;
 use App\Http\Controllers\Web\TaskWebController;
+use App\Http\Controllers\Web\UserWebController;
 use App\Http\Controllers\Web\VoteWebController;
 use Illuminate\Support\Facades\Route;
 
@@ -101,6 +104,22 @@ Route::prefix('task-reports')->name('task-reports.')->group(function () {
     Route::post('/', [TaskReportWebController::class, 'store'])->name('store');
     Route::get('/{id}', [TaskReportWebController::class, 'show'])->name('show');
     Route::post('/{id}/review', [TaskReportWebController::class, 'review'])->name('review');
+});
+
+// --- PHÂN HỆ QUẢN TRỊ DỮ LIỆU & HỆ THỐNG ---
+Route::get('/agendas', fn () => redirect()->route('meetings.index'));
+
+Route::prefix('documents')->name('documents.')->group(function () {
+    Route::get('/', [DocumentWebController::class, 'index'])->name('index');
+    Route::get('/{id}/download', [DocumentWebController::class, 'download'])->name('download');
+});
+
+Route::prefix('members')->name('members.')->group(function () {
+    Route::get('/', [MemberWebController::class, 'index'])->name('index');
+});
+
+Route::prefix('users')->name('users.')->group(function () {
+    Route::get('/', [UserWebController::class, 'index'])->name('index');
 });
 
 

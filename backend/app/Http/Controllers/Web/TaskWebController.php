@@ -104,7 +104,7 @@ class TaskWebController extends Controller
             return redirect()->route('tasks.index')->with('error', 'Đơn vị thực hiện không có quyền giao nhiệm vụ mới.');
         }
 
-        $resolutions = NghiQuyet::where('TrangThai', 'PUBLISHED')
+        $resolutions = NghiQuyet::whereIn('TrangThai', ['PUBLISHED', 'Đã công bố hiệu lực', 'Đã công bố'])
             ->orderByDesc('NgayBanHanh')
             ->get(['MaNghiQuyet', 'SoNghiQuyet', 'TrichYeu']);
 
