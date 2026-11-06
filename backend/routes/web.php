@@ -3,7 +3,11 @@
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\MeetingWebController;
+use App\Http\Controllers\Web\ResolutionWebController;
 use App\Http\Controllers\Web\SubmissionWebController;
+use App\Http\Controllers\Web\TaskReportWebController;
+use App\Http\Controllers\Web\TaskWebController;
+use App\Http\Controllers\Web\VoteWebController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -54,4 +58,49 @@ Route::prefix('submissions')->name('submissions.')->group(function () {
     Route::get('/{id}', [SubmissionWebController::class, 'show'])->name('show');
     Route::post('/{id}/review', [SubmissionWebController::class, 'review'])->name('review');
 });
+
+// --- PHÂN HỆ BIỂU QUYẾT & BỎ PHIẾU (VOTES) ---
+Route::get('/voting', fn () => redirect()->route('votes.index'));
+Route::prefix('votes')->name('votes.')->group(function () {
+    Route::get('/', [VoteWebController::class, 'index'])->name('index');
+    Route::get('/{id}', [VoteWebController::class, 'show'])->name('show');
+    Route::post('/{id}/open', [VoteWebController::class, 'open'])->name('open');
+    Route::post('/{id}/close', [VoteWebController::class, 'close'])->name('close');
+    Route::post('/{id}/vote', [VoteWebController::class, 'vote'])->name('vote');
+    Route::post('/delegations', [VoteWebController::class, 'storeDelegation'])->name('delegations.store');
+});
+
+// --- PHÂN HỆ QUẢN LÝ NGHỊ QUYẾT (RESOLUTIONS) ---
+Route::prefix('resolutions')->name('resolutions.')->group(function () {
+    Route::get('/', [ResolutionWebController::class, 'index'])->name('index');
+    Route::get('/create', [ResolutionWebController::class, 'create'])->name('create');
+    Route::post('/', [ResolutionWebController::class, 'store'])->name('store');
+    Route::get('/{id}', [ResolutionWebController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [ResolutionWebController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [ResolutionWebController::class, 'update'])->name('update');
+    Route::post('/{id}/sign', [ResolutionWebController::class, 'sign'])->name('sign');
+    Route::post('/{id}/publish', [ResolutionWebController::class, 'publish'])->name('publish');
+});
+
+// --- PHÂN HỆ PHÂN CÔNG NHIỆM VỤ (TASKS) ---
+Route::prefix('tasks')->name('tasks.')->group(function () {
+    Route::get('/', [TaskWebController::class, 'index'])->name('index');
+    Route::get('/create', [TaskWebController::class, 'create'])->name('create');
+    Route::post('/', [TaskWebController::class, 'store'])->name('store');
+    Route::get('/{id}', [TaskWebController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [TaskWebController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [TaskWebController::class, 'update'])->name('update');
+    Route::delete('/{id}', [TaskWebController::class, 'destroy'])->name('destroy');
+});
+
+// --- PHÂN HỆ BÁO CÁO & THEO DÕI TIẾN ĐỘ (TASK REPORTS) ---
+Route::get('/reports', fn () => redirect()->route('task-reports.index'));
+Route::prefix('task-reports')->name('task-reports.')->group(function () {
+    Route::get('/', [TaskReportWebController::class, 'index'])->name('index');
+    Route::get('/create', [TaskReportWebController::class, 'create'])->name('create');
+    Route::post('/', [TaskReportWebController::class, 'store'])->name('store');
+    Route::get('/{id}', [TaskReportWebController::class, 'show'])->name('show');
+    Route::post('/{id}/review', [TaskReportWebController::class, 'review'])->name('review');
+});
+
 
