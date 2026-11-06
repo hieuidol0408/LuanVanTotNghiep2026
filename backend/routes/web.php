@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Web\AuthController;
+use App\Http\Controllers\Web\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -7,19 +9,20 @@ use Illuminate\Support\Facades\Route;
 | Web Routes - Hệ thống Quản lý Hoạt động Hội đồng trường STU
 |--------------------------------------------------------------------------
 |
-| Định tuyến giao diện Laravel Blade MVC theo chuẩn Modern Enterprise Dashboard.
+| Kiến trúc Laravel Blade MVC theo phong cách Modern Enterprise Dashboard.
 |
 */
 
-// Trang Design System & Showcase các Blade Components dùng chung (Giai đoạn 1)
-Route::get('/', function () {
-    return view('pages.design-system-showcase');
-})->name('home');
+// --- XÁC THỰC NGƯỜI DÙNG (AUTHENTICATION) ---
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// --- BẢNG ĐIỀU HÀNH TỔNG QUAN (DASHBOARD) ---
+Route::get('/', [DashboardController::class, 'index'])->name('home');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+// --- THƯ VIỆN DESIGN SYSTEM & BLADE COMPONENTS SHOWCASE ---
 Route::get('/design-system', function () {
     return view('pages.design-system-showcase');
 })->name('design-system');
-
-Route::get('/dashboard', function () {
-    return view('pages.design-system-showcase');
-})->name('dashboard');
