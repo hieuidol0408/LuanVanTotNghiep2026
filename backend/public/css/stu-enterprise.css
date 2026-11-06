@@ -1,0 +1,1357 @@
+/**
+ * STU ENTERPRISE DESIGN SYSTEM
+ * Trường Đại học Công nghệ Sài Gòn (STU)
+ * Hệ thống Quản lý Hoạt động Hội đồng trường STU
+ * 
+ * Kiến trúc 3 tầng Design Tokens:
+ * 1. Primitive Tokens (Giá trị nguyên bản)
+ * 2. Semantic Tokens (Định danh theo ngữ cảnh nghiệp vụ)
+ * 3. Component Tokens (Quy cách riêng cho từng Blade Component)
+ */
+
+/* ==========================================================================
+   1. DESIGN TOKENS
+   ========================================================================== */
+:root {
+  /* --- 1.1 Primitive Color Tokens --- */
+  --stu-blue-900: #001D47;
+  --stu-blue-800: #002766;
+  --stu-blue-700: #003A8C; /* STU Primary Brand Color */
+  --stu-blue-600: #0958D9;
+  --stu-blue-500: #1677FF;
+  --stu-blue-400: #4096FF;
+  --stu-blue-300: #69B1FF;
+  --stu-blue-200: #91CAFF; /* STU Secondary Accent */
+  --stu-blue-100: #BAE0FF;
+  --stu-blue-50:  #E6F4FF;
+
+  --stu-gray-900: #0F172A; /* Slate 900 */
+  --stu-gray-800: #1E293B; /* Slate 800 */
+  --stu-gray-700: #334155; /* Slate 700 */
+  --stu-gray-600: #475569; /* Slate 600 */
+  --stu-gray-500: #64748B; /* Slate 500 */
+  --stu-gray-400: #94A3B8; /* Slate 400 */
+  --stu-gray-300: #CBD5E1; /* Slate 300 */
+  --stu-gray-200: #E2E8F0; /* Slate 200 - Border */
+  --stu-gray-100: #F1F5F9; /* Slate 100 */
+  --stu-gray-50:  #F8FAFC; /* Slate 50 - Background */
+
+  --stu-green-700: #15803D;
+  --stu-green-600: #16A34A;
+  --stu-green-500: #22C55E;
+  --stu-green-100: #DCFCE7;
+  --stu-green-50:  #F0FDF4;
+
+  --stu-amber-700: #B45309;
+  --stu-amber-600: #D97706;
+  --stu-amber-500: #F59E0B;
+  --stu-amber-100: #FEF3C7;
+  --stu-amber-50:  #FFFBEB;
+
+  --stu-red-700:   #B91C1C;
+  --stu-red-600:   #DC2626;
+  --stu-red-500:   #EF4444;
+  --stu-red-100:   #FEE2E2;
+  --stu-red-50:    #FEF2F2;
+
+  --stu-cyan-700:  #0369A1;
+  --stu-cyan-600:  #0284C7;
+  --stu-cyan-500:  #0EA5E9;
+  --stu-cyan-100:  #E0F2FE;
+  --stu-cyan-50:   #F0F9FF;
+
+  --stu-white:     #FFFFFF;
+
+  /* --- 1.2 Semantic Color Tokens (Light Mode - Default) --- */
+  --color-primary: var(--stu-blue-700);
+  --color-primary-hover: var(--stu-blue-800);
+  --color-primary-active: var(--stu-blue-900);
+  --color-primary-light: var(--stu-blue-50);
+  --color-primary-border: var(--stu-blue-200);
+  --color-primary-focus: rgba(0, 58, 140, 0.25);
+
+  --color-secondary: var(--stu-blue-200);
+  --color-secondary-hover: var(--stu-blue-300);
+
+  --color-bg-app: var(--stu-gray-50);
+  --color-bg-surface: var(--stu-white);
+  --color-bg-surface-hover: var(--stu-gray-100);
+  --color-bg-subtle: var(--stu-gray-100);
+  --color-border: var(--stu-gray-200);
+  --color-border-subtle: var(--stu-gray-100);
+  --color-divider: var(--stu-gray-200);
+
+  --color-text-main: var(--stu-gray-900);
+  --color-text-body: var(--stu-gray-700);
+  --color-text-secondary: var(--stu-gray-600);
+  --color-text-muted: var(--stu-gray-500);
+  --color-text-inverse: var(--stu-white);
+
+  /* Status Tokens */
+  --color-success: var(--stu-green-600);
+  --color-success-bg: var(--stu-green-50);
+  --color-success-border: var(--stu-green-100);
+  --color-success-text: var(--stu-green-700);
+
+  --color-warning: var(--stu-amber-600);
+  --color-warning-bg: var(--stu-amber-50);
+  --color-warning-border: var(--stu-amber-100);
+  --color-warning-text: var(--stu-amber-700);
+
+  --color-danger: var(--stu-red-600);
+  --color-danger-bg: var(--stu-red-50);
+  --color-danger-border: var(--stu-red-100);
+  --color-danger-text: var(--stu-red-700);
+
+  --color-info: var(--stu-cyan-600);
+  --color-info-bg: var(--stu-cyan-50);
+  --color-info-border: var(--stu-cyan-100);
+  --color-info-text: var(--stu-cyan-700);
+
+  /* --- 1.3 8px Spacing Grid System --- */
+  --space-0: 0px;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;   /* Base grid 1x */
+  --space-3: 12px;
+  --space-4: 16px;  /* Base grid 2x */
+  --space-5: 20px;
+  --space-6: 24px;  /* Base grid 3x */
+  --space-8: 32px;  /* Base grid 4x */
+  --space-10: 40px; /* Base grid 5x */
+  --space-12: 48px; /* Base grid 6x */
+  --space-16: 64px; /* Base grid 8x */
+
+  /* --- 1.4 Typography Tokens --- */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-size-xs: 0.75rem;     /* 12px */
+  --font-size-sm: 0.875rem;    /* 14px */
+  --font-size-base: 1rem;       /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-size-3xl: 1.875rem;   /* 30px */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+
+  /* --- 1.5 Border Radius Tokens --- */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 9999px;
+
+  /* --- 1.6 Elevation & Shadows --- */
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  --shadow-sticky-right: -4px 0 8px -2px rgba(15, 23, 42, 0.06);
+
+  /* --- 1.7 Transitions & Timings --- */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* --- 1.8 Z-Index Tokens --- */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-header: 1030;
+  --z-sidebar: 1040;
+  --z-modal-backdrop: 1050;
+  --z-modal: 1060;
+  --z-toast: 1070;
+
+  /* --- 1.9 Layout Metrics --- */
+  --sidebar-width: 260px;
+  --sidebar-width-collapsed: 72px;
+  --header-height: 64px;
+  --footer-height: 48px;
+}
+
+/* ==========================================================================
+   2. DARK MODE TOKENS (Via [data-theme="dark"])
+   ========================================================================== */
+[data-theme="dark"] {
+  --color-primary: var(--stu-blue-400);
+  --color-primary-hover: var(--stu-blue-300);
+  --color-primary-active: var(--stu-blue-200);
+  --color-primary-light: rgba(64, 150, 255, 0.15);
+  --color-primary-border: rgba(64, 150, 255, 0.3);
+  --color-primary-focus: rgba(64, 150, 255, 0.35);
+
+  --color-secondary: var(--stu-blue-400);
+  --color-secondary-hover: var(--stu-blue-300);
+
+  --color-bg-app: #0B1120;
+  --color-bg-surface: #1E293B;
+  --color-bg-surface-hover: #334155;
+  --color-bg-subtle: #1E293B;
+  --color-border: #334155;
+  --color-border-subtle: #243044;
+  --color-divider: #334155;
+
+  --color-text-main: #F8FAFC;
+  --color-text-body: #CBD5E1;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+  --color-text-inverse: #0F172A;
+
+  --color-success: #4ADE80;
+  --color-success-bg: rgba(34, 197, 94, 0.12);
+  --color-success-border: rgba(34, 197, 94, 0.25);
+  --color-success-text: #86EFAC;
+
+  --color-warning: #FBBF24;
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-warning-border: rgba(245, 158, 11, 0.25);
+  --color-warning-text: #FDE68A;
+
+  --color-danger: #F87171;
+  --color-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-danger-border: rgba(239, 68, 68, 0.25);
+  --color-danger-text: #FCA5A5;
+
+  --color-info: #38BDF8;
+  --color-info-bg: rgba(14, 165, 233, 0.12);
+  --color-info-border: rgba(14, 165, 233, 0.25);
+  --color-info-text: #BAE6FD;
+
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+  --shadow-sticky-right: -4px 0 8px -2px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   3. RESET & BASE STYLING
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-main);
+  background-color: var(--color-bg-app);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* ==========================================================================
+   4. MASTER LAYOUT ARCHITECTURE
+   ========================================================================== */
+.stu-app {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-bg-app);
+}
+
+/* --- 4.1 Sidebar --- */
+.stu-sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  background-color: var(--color-bg-surface);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: var(--z-sidebar);
+  transition: width var(--transition-normal), transform var(--transition-normal);
+}
+
+.stu-sidebar.collapsed {
+  width: var(--sidebar-width-collapsed);
+  min-width: var(--sidebar-width-collapsed);
+}
+
+.stu-sidebar-brand {
+  height: var(--header-height);
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  text-decoration: none;
+}
+
+.stu-sidebar-brand img {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+}
+
+.stu-sidebar-brand-title {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.stu-sidebar-brand-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.stu-sidebar-brand-sub {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.stu-sidebar.collapsed .stu-sidebar-brand-title {
+  display: none;
+}
+
+.stu-sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-2);
+}
+
+.stu-nav-group {
+  margin-bottom: var(--space-4);
+}
+
+.stu-nav-group-label {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-1);
+}
+
+.stu-sidebar.collapsed .stu-nav-group-label {
+  display: none;
+}
+
+.stu-nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2-5, 10px) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text-body);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  margin-bottom: var(--space-1);
+}
+
+.stu-nav-link:hover {
+  background-color: var(--color-bg-surface-hover);
+  color: var(--color-primary);
+}
+
+.stu-nav-link.active {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  border-left: 3px solid var(--color-primary);
+}
+
+.stu-nav-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stu-nav-badge {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: var(--stu-white);
+  font-weight: var(--font-weight-bold);
+}
+
+.stu-sidebar.collapsed .stu-nav-text,
+.stu-sidebar.collapsed .stu-nav-badge {
+  display: none;
+}
+
+.stu-sidebar-footer {
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+/* --- 4.2 Main Area (Header + Content + Footer) --- */
+.stu-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--sidebar-width);
+  min-width: 0;
+  transition: margin-left var(--transition-normal);
+}
+
+.stu-app.sidebar-collapsed .stu-main-wrapper {
+  margin-left: var(--sidebar-width-collapsed);
+}
+
+/* --- 4.3 Header --- */
+.stu-header {
+  height: var(--header-height);
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-6);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+}
+
+.stu-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.stu-sidebar-toggle {
+  background: none;
+  border: 1px solid var(--color-border);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.stu-sidebar-toggle:hover {
+  background-color: var(--color-bg-surface-hover);
+  color: var(--color-primary);
+}
+
+.stu-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.stu-icon-btn {
+  background: none;
+  border: 1px solid var(--color-border);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.stu-icon-btn:hover {
+  background-color: var(--color-bg-surface-hover);
+  color: var(--color-primary);
+  border-color: var(--color-primary-border);
+}
+
+.stu-user-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-surface-hover);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.stu-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: var(--stu-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xs);
+}
+
+.stu-user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.stu-user-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-main);
+}
+
+.stu-user-role {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* --- 4.4 Main Content Area --- */
+.stu-content {
+  flex: 1;
+  padding: var(--space-6);
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.stu-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.stu-page-title-group h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  letter-spacing: -0.02em;
+}
+
+.stu-page-title-group p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+.stu-page-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* --- 4.5 Footer --- */
+.stu-footer {
+  height: var(--footer-height);
+  background-color: var(--color-bg-surface);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-6);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   5. BLADE COMPONENTS STYLING
+   ========================================================================== */
+
+/* --- 5.1 Stat Card (`<x-stat-card>`) --- */
+.stu-stat-card {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.stu-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-border);
+}
+
+.stu-stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stu-stat-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.stu-stat-value {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.stu-stat-trend {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.stu-stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stu-stat-icon-primary {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+.stu-stat-icon-success {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+.stu-stat-icon-warning {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+.stu-stat-icon-danger {
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+.stu-stat-icon-info {
+  background-color: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+/* --- 5.2 Responsive Table (`<x-table>`) - FIX TRÀN KHUNG & ACTION COLUMN --- */
+.stu-card {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: var(--space-6);
+}
+
+.stu-card-header {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.stu-card-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+}
+
+.stu-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+.stu-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--font-size-sm);
+  text-align: left;
+}
+
+.stu-table th {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.stu-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-body);
+  vertical-align: middle;
+  background-color: var(--color-bg-surface);
+}
+
+.stu-table tr:hover td {
+  background-color: var(--color-bg-surface-hover);
+}
+
+.stu-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Cố định cột Actions để giải quyết dứt điểm lỗi xén nút */
+.stu-table th.col-actions,
+.stu-table td.col-actions {
+  text-align: right;
+  white-space: nowrap;
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  box-shadow: var(--shadow-sticky-right);
+}
+
+.stu-table-actions-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  justify-content: flex-end;
+}
+
+/* Empty State */
+.stu-empty-state {
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.stu-empty-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+  opacity: 0.7;
+}
+
+.stu-empty-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-main);
+  margin-bottom: var(--space-1);
+}
+
+.stu-empty-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  max-width: 400px;
+  margin-bottom: var(--space-4);
+}
+
+/* --- 5.3 Buttons (`<x-button>`) --- */
+.stu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.stu-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.stu-btn:disabled,
+.stu-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.stu-btn-primary {
+  background-color: var(--color-primary);
+  color: var(--stu-white);
+  border-color: var(--color-primary);
+}
+.stu-btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  color: var(--stu-white);
+}
+
+.stu-btn-secondary {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-main);
+  border-color: var(--color-border);
+}
+.stu-btn-secondary:hover {
+  background-color: var(--color-bg-surface-hover);
+  border-color: var(--color-border);
+}
+
+.stu-btn-outline {
+  background-color: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.stu-btn-outline:hover {
+  background-color: var(--color-primary-light);
+}
+
+.stu-btn-danger {
+  background-color: var(--color-danger);
+  color: var(--stu-white);
+  border-color: var(--color-danger);
+}
+.stu-btn-danger:hover {
+  background-color: var(--stu-red-700);
+  border-color: var(--stu-red-700);
+  color: var(--stu-white);
+}
+
+.stu-btn-sm {
+  padding: var(--space-1) var(--space-2-5, 10px);
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-sm);
+}
+
+.stu-btn-lg {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-lg);
+}
+
+/* --- 5.4 Status Badges (`<x-status-badge>`) --- */
+.stu-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.stu-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+}
+
+.stu-badge-success {
+  background-color: var(--color-success-bg);
+  border-color: var(--color-success-border);
+  color: var(--color-success-text);
+}
+.stu-badge-success .stu-badge-dot { background-color: var(--color-success); }
+
+.stu-badge-warning {
+  background-color: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning-text);
+}
+.stu-badge-warning .stu-badge-dot { background-color: var(--color-warning); }
+
+.stu-badge-danger {
+  background-color: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger-text);
+}
+.stu-badge-danger .stu-badge-dot { background-color: var(--color-danger); }
+
+.stu-badge-info {
+  background-color: var(--color-info-bg);
+  border-color: var(--color-info-border);
+  color: var(--color-info-text);
+}
+.stu-badge-info .stu-badge-dot { background-color: var(--color-info); }
+
+.stu-badge-neutral {
+  background-color: var(--color-bg-subtle);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+}
+.stu-badge-neutral .stu-badge-dot { background-color: var(--color-text-muted); }
+
+/* --- 5.5 Progress Bar (`<x-progress-bar>`) --- */
+.stu-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.stu-progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.stu-progress-track {
+  height: 8px;
+  width: 100%;
+  background-color: var(--color-bg-subtle);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.stu-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width var(--transition-normal);
+}
+
+.stu-progress-fill-low {
+  background-color: var(--color-danger);
+}
+.stu-progress-fill-medium {
+  background-color: var(--color-warning);
+}
+.stu-progress-fill-high {
+  background-color: var(--color-success);
+}
+
+/* --- 5.6 Form Controls (`<x-form.*>`) --- */
+.stu-form-group {
+  margin-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.stu-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-main);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.stu-required {
+  color: var(--color-danger);
+  font-weight: var(--font-weight-bold);
+}
+
+.stu-input,
+.stu-select,
+.stu-textarea {
+  width: 100%;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2-5, 10px) var(--space-3);
+  transition: all var(--transition-fast);
+}
+
+.stu-input:focus,
+.stu-select:focus,
+.stu-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-focus);
+}
+
+.stu-input.is-invalid,
+.stu-select.is-invalid,
+.stu-textarea.is-invalid {
+  border-color: var(--color-danger);
+}
+
+.stu-input.is-invalid:focus,
+.stu-select.is-invalid:focus,
+.stu-textarea.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25);
+}
+
+.stu-form-error {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  margin-top: 2px;
+}
+
+.stu-form-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* --- 5.7 Modal Dialog (`<x-modal>`) --- */
+.stu-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: var(--z-modal-backdrop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-fast);
+}
+
+.stu-modal-backdrop.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.stu-modal {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.96);
+  transition: transform var(--transition-fast);
+  overflow: hidden;
+}
+
+.stu-modal-backdrop.show .stu-modal {
+  transform: scale(1);
+}
+
+.stu-modal-lg { max-width: 800px; }
+.stu-modal-xl { max-width: 1000px; }
+
+.stu-modal-header {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stu-modal-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+}
+
+.stu-modal-close {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+.stu-modal-close:hover { color: var(--color-danger); }
+
+.stu-modal-body {
+  padding: var(--space-6);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.stu-modal-footer {
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+/* --- 5.8 Tabs Component (`<x-tabs>`) --- */
+.stu-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  gap: var(--space-1);
+  margin-bottom: var(--space-6);
+  overflow-x: auto;
+}
+
+.stu-tab-btn {
+  background: none;
+  border: none;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stu-tab-btn:hover {
+  color: var(--color-primary);
+}
+
+.stu-tab-btn.active {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  border-bottom-color: var(--color-primary);
+}
+
+.stu-tab-badge {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+}
+.stu-tab-btn.active .stu-tab-badge {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.stu-tab-pane {
+  display: none;
+}
+.stu-tab-pane.active {
+  display: block;
+}
+
+/* --- 5.9 Breadcrumbs (`<x-breadcrumb>`) --- */
+.stu-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.stu-breadcrumb a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+.stu-breadcrumb a:hover {
+  color: var(--color-primary);
+}
+
+.stu-breadcrumb-separator {
+  color: var(--color-text-muted);
+  user-select: none;
+}
+
+.stu-breadcrumb-current {
+  color: var(--color-text-main);
+  font-weight: var(--font-weight-medium);
+}
+
+/* --- 5.10 Alerts (`<x-alert>`) --- */
+.stu-alert {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.stu-alert-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.stu-alert-content {
+  flex: 1;
+}
+
+.stu-alert-title {
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 2px;
+}
+
+.stu-alert-success {
+  background-color: var(--color-success-bg);
+  border-color: var(--color-success-border);
+  color: var(--color-success-text);
+}
+.stu-alert-warning {
+  background-color: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning-text);
+}
+.stu-alert-danger {
+  background-color: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger-text);
+}
+.stu-alert-info {
+  background-color: var(--color-info-bg);
+  border-color: var(--color-info-border);
+  color: var(--color-info-text);
+}
+
+/* --- 5.11 Dropdown Menu Helper --- */
+.stu-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.stu-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: var(--space-1);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  min-width: 180px;
+  z-index: var(--z-dropdown);
+  display: none;
+  flex-direction: column;
+  padding: var(--space-1);
+}
+
+.stu-dropdown.open .stu-dropdown-menu {
+  display: flex;
+}
+
+.stu-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-body);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.stu-dropdown-item:hover {
+  background-color: var(--color-bg-surface-hover);
+  color: var(--color-primary);
+}
+
+.stu-dropdown-divider {
+  height: 1px;
+  background-color: var(--color-border);
+  margin: var(--space-1) 0;
+}
+
+/* ==========================================================================
+   6. UTILITY CLASSES & RESPONSIVE GRID
+   ========================================================================== */
+.stu-grid { display: grid; gap: var(--space-4); }
+.stu-grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.stu-grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.stu-grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.stu-grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.stu-flex { display: flex; }
+.stu-items-center { align-items: center; }
+.stu-justify-between { justify-content: space-between; }
+.stu-justify-end { justify-content: flex-end; }
+.stu-gap-2 { gap: var(--space-2); }
+.stu-gap-3 { gap: var(--space-3); }
+.stu-gap-4 { gap: var(--space-4); }
+
+.stu-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stu-max-w-xs { max-width: 20rem; }
+.stu-max-w-md { max-width: 28rem; }
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .stu-sidebar {
+    transform: translateX(-100%);
+  }
+  .stu-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  .stu-main-wrapper {
+    margin-left: 0 !important;
+  }
+  .stu-grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stu-grid-cols-3 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .stu-content { padding: var(--space-3); }
+  .stu-header { padding: 0 var(--space-3); }
+  .stu-grid-cols-2 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .stu-page-header { flex-direction: column; align-items: flex-start; }
+}
