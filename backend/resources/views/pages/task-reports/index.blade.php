@@ -3,61 +3,69 @@
 @section('title', 'Danh sách Báo cáo Tiến độ - Hội đồng trường STU')
 
 @section('content')
-<div class="page-container">
+<div class="stu-page-container">
     {{-- Header & Breadcrumb --}}
-    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <x-breadcrumb :items="['Báo cáo Tiến độ' => null]" />
+
+    <div class="stu-page-header stu-flex stu-items-center stu-justify-between stu-mb-6">
         <div>
-            <x-breadcrumb :items="[
-                ['label' => 'Bảng điều hành', 'url' => route('dashboard')],
-                ['label' => 'Quản lý Nhiệm vụ', 'url' => route('tasks.index')],
-                ['label' => 'Báo cáo Tiến độ', 'url' => null]
-            ]" />
-            <h1 class="page-title mt-2">Báo cáo Tiến độ &amp; Đôn đốc Thực hiện</h1>
-            <p class="text-muted">Theo dõi, đánh giá và thẩm định các báo cáo tiến độ từ các đơn vị thực hiện theo BR-10</p>
+            <h1 class="stu-page-title" style="font-size: 24px; font-weight: 800; color: var(--color-primary); margin: 0;">
+                Báo cáo Tiến độ &amp; Đôn đốc Thực hiện
+            </h1>
+            <p style="font-size: 13px; color: var(--color-text-muted); margin: 4px 0 0 0;">
+                Theo dõi, đánh giá và thẩm định các báo cáo tiến độ từ các đơn vị thực hiện theo BR-10
+            </p>
         </div>
         <div>
-            <a href="{{ route('task-reports.create') }}" class="btn btn-primary">
-                <i class="bi bi-journal-plus me-1"></i> Nộp báo cáo tiến độ
+            <a href="{{ route('task-reports.create') }}" class="stu-btn stu-btn-primary" style="height: 38px;">
+                <i class="bi bi-journal-plus"></i>
+                <span>Nộp báo cáo tiến độ</span>
             </a>
         </div>
     </div>
 
     {{-- Bộ lọc & Tìm kiếm --}}
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ route('task-reports.index') }}" class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label small text-muted">Trạng thái thẩm định</label>
-                    <select name="status" class="form-select">
-                        <option value="">-- Tất cả trạng thái --</option>
-                        <option value="Chờ kiểm tra" {{ request('status') === 'Chờ kiểm tra' ? 'selected' : '' }}>Chờ kiểm tra / Chờ duyệt</option>
-                        <option value="APPROVED" {{ request('status') === 'APPROVED' ? 'selected' : '' }}>Đã phê duyệt (APPROVED)</option>
-                        <option value="REJECTED" {{ request('status') === 'REJECTED' ? 'selected' : '' }}>Yêu cầu bổ sung (REJECTED)</option>
-                    </select>
-                </div>
-                <div class="col-md-5">
-                    <label class="form-label small text-muted">Đơn vị thực hiện</label>
-                    <select name="department_id" class="form-select">
-                        <option value="">-- Tất cả đơn vị --</option>
-                        @foreach($departments as $dept)
-                            <option value="{{ $dept->MaDonVi }}" {{ request('department_id') == $dept->MaDonVi ? 'selected' : '' }}>
-                                {{ $dept->TenDonVi }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end gap-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-funnel"></i> Lọc
-                    </button>
-                    @if(request()->anyFilled(['status', 'department_id', 'task_id']))
-                        <a href="{{ route('task-reports.index') }}" class="btn btn-outline-secondary" title="Xóa bộ lọc">
-                            <i class="bi bi-x-circle"></i>
-                        </a>
-                    @endif
-                </div>
-            </form>
-        </div>
+    <div class="stu-card stu-mb-6" style="padding: 20px 24px; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
+        <form method="GET" action="{{ route('task-reports.index') }}" class="stu-grid" style="grid-template-columns: 2fr 2fr auto auto; gap: 14px; align-items: flex-end;">
+            <div class="stu-form-group" style="margin-bottom: 0;">
+                <label class="stu-form-label">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Trạng thái thẩm định</span>
+                </label>
+                <select name="status" class="stu-form-control">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    <option value="Chờ kiểm tra" {{ request('status') === 'Chờ kiểm tra' ? 'selected' : '' }}>Chờ kiểm tra / Chờ duyệt</option>
+                    <option value="APPROVED" {{ request('status') === 'APPROVED' ? 'selected' : '' }}>Đã phê duyệt (APPROVED)</option>
+                    <option value="REJECTED" {{ request('status') === 'REJECTED' ? 'selected' : '' }}>Yêu cầu bổ sung (REJECTED)</option>
+                </select>
+            </div>
+            <div class="stu-form-group" style="margin-bottom: 0;">
+                <label class="stu-form-label">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span>Đơn vị thực hiện</span>
+                </label>
+                <select name="department_id" class="stu-form-control">
+                    <option value="">-- Tất cả đơn vị --</option>
+                    @foreach($departments as $dept)
+                        <option value="{{ $dept->MaDonVi }}" {{ request('department_id') == $dept->MaDonVi ? 'selected' : '' }}>
+                            {{ $dept->TenDonVi }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="stu-btn stu-btn-primary" style="height: 38px; padding: 0 18px; font-weight: 600; box-shadow: 0 1px 2px 0 rgba(0, 58, 140, 0.2);">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Lọc</span>
+                </button>
+            </div>
+            <div>
+                <a href="{{ route('task-reports.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px; padding: 0 14px;" title="Xóa bộ lọc về mặc định">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Xóa</span>
+                </a>
+            </div>
+        </form>
     </div>
 
     {{-- Bảng danh sách Báo cáo --}}

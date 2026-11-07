@@ -3,121 +3,106 @@
 @section('title', 'Phân công & Theo dõi Nhiệm vụ - Hội đồng trường STU')
 
 @section('content')
-<div class="page-container">
+<div class="stu-page-container">
     {{-- Header & Breadcrumb --}}
-    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <x-breadcrumb :items="['Quản lý Nhiệm vụ' => null]" />
+
+    <div class="stu-page-header stu-flex stu-items-center stu-justify-between stu-mb-6">
         <div>
-            <x-breadcrumb :items="[
-                ['label' => 'Bảng điều hành', 'url' => route('dashboard')],
-                ['label' => 'Quản lý Nhiệm vụ', 'url' => null]
-            ]" />
-            <h1 class="page-title mt-2">Theo dõi &amp; Phân công Nhiệm vụ</h1>
-            <p class="text-muted">Phân rã nhiệm vụ từ các Nghị quyết Hội đồng trường đã ban hành và đôn đốc tiến độ thực hiện</p>
+            <h1 class="stu-page-title" style="font-size: 24px; font-weight: 800; color: var(--color-primary); margin: 0;">
+                Theo dõi &amp; Phân công Nhiệm vụ
+            </h1>
+            <p style="font-size: 13px; color: var(--color-text-muted); margin: 4px 0 0 0;">
+                Phân rã nhiệm vụ từ các Nghị quyết Hội đồng trường đã ban hành và đôn đốc tiến độ thực hiện
+            </p>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('task-reports.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-journal-check me-1"></i> Báo cáo tiến độ
+        <div style="display: flex; gap: 10px;">
+            <a href="{{ route('task-reports.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px;">
+                <i class="bi bi-journal-check"></i>
+                <span>Báo cáo tiến độ</span>
             </a>
             @if(Auth::user() && Auth::user()->role !== 'EXECUTING_UNIT')
-                <a href="{{ route('tasks.create') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-1"></i> Giao nhiệm vụ mới
+                <a href="{{ route('tasks.create') }}" class="stu-btn stu-btn-primary" style="height: 38px;">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Giao nhiệm vụ mới</span>
                 </a>
             @endif
         </div>
     </div>
 
     {{-- KPI Cards --}}
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card kpi-card shadow-sm border-0 border-start border-primary border-4">
-                <div class="card-body">
-                    <div class="text-muted small fw-semibold text-uppercase">Tổng số nhiệm vụ</div>
-                    <div class="d-flex align-items-baseline justify-content-between mt-2">
-                        <h2 class="mb-0 fw-bold text-primary">{{ $totalTasks }}</h2>
-                        <span class="badge bg-primary-subtle text-primary"><i class="bi bi-list-task"></i></span>
-                    </div>
-                </div>
-            </div>
+    <div class="stu-grid stu-grid-cols-4 stu-mb-6" style="gap: 16px;">
+        <div class="stu-card" style="padding: 18px; border-left: 4px solid var(--color-primary);">
+            <div style="font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase;">Tổng số nhiệm vụ</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--color-primary); margin-top: 4px;">{{ $totalTasks }}</div>
         </div>
-        <div class="col-md-3">
-            <div class="card kpi-card shadow-sm border-0 border-start border-warning border-4">
-                <div class="card-body">
-                    <div class="text-muted small fw-semibold text-uppercase">Đang thực hiện</div>
-                    <div class="d-flex align-items-baseline justify-content-between mt-2">
-                        <h2 class="mb-0 fw-bold text-warning">{{ $inProgressTasks }}</h2>
-                        <span class="badge bg-warning-subtle text-warning"><i class="bi bi-arrow-repeat"></i></span>
-                    </div>
-                </div>
-            </div>
+        <div class="stu-card" style="padding: 18px; border-left: 4px solid var(--color-warning);">
+            <div style="font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase;">Đang thực hiện</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--color-warning); margin-top: 4px;">{{ $inProgressTasks }}</div>
         </div>
-        <div class="col-md-3">
-            <div class="card kpi-card shadow-sm border-0 border-start border-success border-4">
-                <div class="card-body">
-                    <div class="text-muted small fw-semibold text-uppercase">Đã hoàn thành</div>
-                    <div class="d-flex align-items-baseline justify-content-between mt-2">
-                        <h2 class="mb-0 fw-bold text-success">{{ $completedTasks }}</h2>
-                        <span class="badge bg-success-subtle text-success"><i class="bi bi-check2-circle"></i></span>
-                    </div>
-                </div>
-            </div>
+        <div class="stu-card" style="padding: 18px; border-left: 4px solid var(--color-success);">
+            <div style="font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase;">Đã hoàn thành</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--color-success); margin-top: 4px;">{{ $completedTasks }}</div>
         </div>
-        <div class="col-md-3">
-            <div class="card kpi-card shadow-sm border-0 border-start border-danger border-4">
-                <div class="card-body">
-                    <div class="text-muted small fw-semibold text-uppercase">Quá hạn thực hiện</div>
-                    <div class="d-flex align-items-baseline justify-content-between mt-2">
-                        <h2 class="mb-0 fw-bold text-danger">{{ $overdueTasks }}</h2>
-                        <span class="badge bg-danger-subtle text-danger"><i class="bi bi-exclamation-triangle"></i></span>
-                    </div>
-                </div>
-            </div>
+        <div class="stu-card" style="padding: 18px; border-left: 4px solid var(--color-danger);">
+            <div style="font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase;">Quá hạn thực hiện</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--color-danger); margin-top: 4px;">{{ $overdueTasks }}</div>
         </div>
     </div>
 
     {{-- Bộ lọc & Tìm kiếm --}}
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ route('tasks.index') }}" class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label small text-muted">Tìm kiếm nhiệm vụ</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                        <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Tên hoặc nội dung nhiệm vụ...">
-                    </div>
+    <div class="stu-card stu-mb-6" style="padding: 20px 24px; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
+        <form method="GET" action="{{ route('tasks.index') }}" class="stu-grid" style="grid-template-columns: 2fr 1.4fr 2fr auto auto; gap: 14px; align-items: flex-end;">
+            <div class="stu-form-group" style="margin-bottom: 0;">
+                <label class="stu-form-label">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <span>Tìm kiếm nhiệm vụ</span>
+                </label>
+                <div style="position: relative;">
+                    <svg width="15" height="15" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" name="search" value="{{ request('search') }}" class="stu-form-control" style="padding-left: 36px;" placeholder="Tên hoặc nội dung nhiệm vụ...">
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label small text-muted">Trạng thái</label>
-                    <select name="status" class="form-select">
-                        <option value="">-- Tất cả trạng thái --</option>
-                        <option value="ASSIGNED" {{ request('status') === 'ASSIGNED' ? 'selected' : '' }}>Chưa thực hiện / Mới giao</option>
-                        <option value="IN_PROGRESS" {{ request('status') === 'IN_PROGRESS' ? 'selected' : '' }}>Đang thực hiện</option>
-                        <option value="COMPLETED" {{ request('status') === 'COMPLETED' ? 'selected' : '' }}>Đã hoàn thành</option>
-                        <option value="OVERDUE" {{ request('status') === 'OVERDUE' ? 'selected' : '' }}>Quá hạn</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small text-muted">Nghị quyết căn cứ</label>
-                    <select name="resolution_id" class="form-select">
-                        <option value="">-- Tất cả Nghị quyết --</option>
-                        @foreach($resolutions as $res)
-                            <option value="{{ $res->MaNghiQuyet }}" {{ request('resolution_id') == $res->MaNghiQuyet ? 'selected' : '' }}>
-                                {{ $res->SoNghiQuyet }} - {{ Str::limit($res->TrichYeu, 35) }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex align-items-end gap-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-funnel"></i> Lọc
-                    </button>
-                    @if(request()->anyFilled(['search', 'status', 'resolution_id', 'department_id']))
-                        <a href="{{ route('tasks.index') }}" class="btn btn-outline-secondary" title="Xóa bộ lọc">
-                            <i class="bi bi-x-circle"></i>
-                        </a>
-                    @endif
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class="stu-form-group" style="margin-bottom: 0;">
+                <label class="stu-form-label">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Trạng thái</span>
+                </label>
+                <select name="status" class="stu-form-control">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    <option value="ASSIGNED" {{ request('status') === 'ASSIGNED' ? 'selected' : '' }}>Chưa thực hiện / Mới giao</option>
+                    <option value="IN_PROGRESS" {{ request('status') === 'IN_PROGRESS' ? 'selected' : '' }}>Đang thực hiện</option>
+                    <option value="COMPLETED" {{ request('status') === 'COMPLETED' ? 'selected' : '' }}>Đã hoàn thành</option>
+                    <option value="OVERDUE" {{ request('status') === 'OVERDUE' ? 'selected' : '' }}>Quá hạn</option>
+                </select>
+            </div>
+            <div class="stu-form-group" style="margin-bottom: 0;">
+                <label class="stu-form-label">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Nghị quyết căn cứ</span>
+                </label>
+                <select name="resolution_id" class="stu-form-control">
+                    <option value="">-- Tất cả Nghị quyết --</option>
+                    @foreach($resolutions as $res)
+                        <option value="{{ $res->MaNghiQuyet }}" {{ request('resolution_id') == $res->MaNghiQuyet ? 'selected' : '' }}>
+                            {{ $res->SoNghiQuyet }} - {{ Str::limit($res->TrichYeu, 35) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="stu-btn stu-btn-primary" style="height: 38px; padding: 0 16px; font-weight: 600; box-shadow: 0 1px 2px 0 rgba(0, 58, 140, 0.2);">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Lọc</span>
+                </button>
+            </div>
+            <div>
+                <a href="{{ route('tasks.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px; padding: 0 14px;" title="Xóa bộ lọc về mặc định">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Xóa</span>
+                </a>
+            </div>
+        </form>
     </div>
 
     {{-- Bảng danh sách Nhiệm vụ --}}

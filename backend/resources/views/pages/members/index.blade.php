@@ -3,43 +3,28 @@
 @section('title', 'Thành viên Hội đồng trường STU - Khóa IV')
 
 @section('content')
-<div class="page-container">
-    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+<div class="stu-page-container">
+    <div class="stu-page-header stu-flex stu-items-center stu-justify-between stu-mb-6">
         <div>
-            <x-breadcrumb :items="[
-                ['label' => 'Bảng điều hành', 'url' => route('dashboard')],
-                ['label' => 'Thành viên Hội đồng', 'url' => null]
-            ]" />
-            <h1 class="page-title mt-2">Danh sách Thành viên Hội đồng trường STU</h1>
-            <p class="text-muted">Nhiệm kỳ IV (2020 - 2025) - Đại học Công nghệ Sài Gòn</p>
+            <x-breadcrumb :items="['Thành viên Hội đồng' => null]" />
+            <h1 class="stu-page-title" style="font-size: 24px; font-weight: 800; color: var(--color-primary); margin: 0;">Danh sách Thành viên Hội đồng trường STU</h1>
+            <p style="font-size: 13px; color: var(--color-text-muted); margin: 4px 0 0 0;">Nhiệm kỳ IV (2020 - 2025) - Đại học Công nghệ Sài Gòn</p>
         </div>
     </div>
 
     {{-- Thống kê nhanh --}}
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm border-start border-primary border-4">
-                <div class="card-body">
-                    <div class="small text-muted text-uppercase fw-semibold">Tổng số thành viên</div>
-                    <h3 class="fw-bold text-primary mb-0 mt-2">{{ $stats['total'] }}</h3>
-                </div>
-            </div>
+    <div class="stu-grid stu-grid-cols-3 stu-mb-6" style="gap: 16px;">
+        <div class="stu-card" style="padding: 18px; border-left: 4px solid var(--color-primary);">
+            <div style="font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase;">Tổng số thành viên</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--color-primary); margin-top: 4px;">{{ $stats['total'] }}</div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm border-start border-success border-4">
-                <div class="card-body">
-                    <div class="small text-muted text-uppercase fw-semibold">Có quyền biểu quyết (BR-07)</div>
-                    <h3 class="fw-bold text-success mb-0 mt-2">{{ $stats['voting_eligible'] }}</h3>
-                </div>
-            </div>
+        <div class="stu-card" style="padding: 18px; border-left: 4px solid var(--color-success);">
+            <div style="font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase;">Có quyền biểu quyết (BR-07)</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--color-success); margin-top: 4px;">{{ $stats['voting_eligible'] }}</div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm border-start border-warning border-4">
-                <div class="card-body">
-                    <div class="small text-muted text-uppercase fw-semibold">Thường trực Hội đồng</div>
-                    <h3 class="fw-bold text-warning mb-0 mt-2">{{ $stats['chair'] }}</h3>
-                </div>
-            </div>
+        <div class="stu-card" style="padding: 18px; border-left: 4px solid var(--color-warning);">
+            <div style="font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase;">Thường trực Hội đồng</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--color-warning); margin-top: 4px;">{{ $stats['chair'] }}</div>
         </div>
     </div>
 

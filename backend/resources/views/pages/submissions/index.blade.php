@@ -40,25 +40,34 @@
     @endif
 
     {{-- Bộ lọc đa tiêu chí (Search & Filter) --}}
-    <div class="stu-card stu-mb-6" style="padding: 18px 24px;">
-        <form method="GET" action="{{ route('submissions.index') }}" class="stu-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) 120px 90px; gap: 14px; align-items: flex-end;">
+    <div class="stu-card stu-mb-6" style="padding: 20px 24px; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
+        <form method="GET" action="{{ route('submissions.index') }}" class="stu-grid" style="grid-template-columns: 2fr 1.6fr 1.4fr 1.5fr auto auto; gap: 14px; align-items: flex-end;">
             {{-- Từ khóa --}}
             <div class="stu-form-group" style="margin-bottom: 0;">
-                <label class="stu-form-label" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Tìm kiếm</label>
-                <input 
-                    type="text" 
-                    name="search" 
-                    value="{{ request('search') }}" 
-                    placeholder="Tiêu đề, nội dung tóm tắt..." 
-                    class="stu-form-control"
-                    style="font-size: 13px;"
-                >
+                <label class="stu-form-label">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <span>Tìm kiếm</span>
+                </label>
+                <div style="position: relative;">
+                    <svg width="15" height="15" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input 
+                        type="text" 
+                        name="search" 
+                        value="{{ request('search') }}" 
+                        placeholder="Tiêu đề, nội dung tóm tắt..." 
+                        class="stu-form-control"
+                        style="padding-left: 36px;"
+                    >
+                </div>
             </div>
 
             {{-- Đơn vị trình (nếu không bị khóa theo UNIT_REP) --}}
             <div class="stu-form-group" style="margin-bottom: 0;">
-                <label class="stu-form-label" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Đơn vị trình</label>
-                <select name="department_id" class="stu-form-control" style="font-size: 13px;" {{ $role === 'UNIT_REP' ? 'disabled' : '' }}>
+                <label class="stu-form-label">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span>Đơn vị trình</span>
+                </label>
+                <select name="department_id" class="stu-form-control" {{ $role === 'UNIT_REP' ? 'disabled' : '' }}>
                     <option value="">Tất cả đơn vị</option>
                     @foreach($departments as $dept)
                         <option value="{{ $dept->MaDonVi }}" {{ request('department_id') == $dept->MaDonVi || ($role === 'UNIT_REP' && $userDeptId == $dept->MaDonVi) ? 'selected' : '' }}>
@@ -70,8 +79,11 @@
 
             {{-- Lĩnh vực --}}
             <div class="stu-form-group" style="margin-bottom: 0;">
-                <label class="stu-form-label" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Lĩnh vực</label>
-                <select name="field" class="stu-form-control" style="font-size: 13px;">
+                <label class="stu-form-label">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    <span>Lĩnh vực</span>
+                </label>
+                <select name="field" class="stu-form-control">
                     <option value="">Tất cả lĩnh vực</option>
                     @foreach($fields as $f)
                         @if($f)
@@ -83,8 +95,11 @@
 
             {{-- Trạng thái --}}
             <div class="stu-form-group" style="margin-bottom: 0;">
-                <label class="stu-form-label" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Trạng thái thẩm định</label>
-                <select name="status" class="stu-form-control" style="font-size: 13px;">
+                <label class="stu-form-label">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Trạng thái thẩm định</span>
+                </label>
+                <select name="status" class="stu-form-control">
                     <option value="">Tất cả trạng thái</option>
                     <option value="Mới tạo" {{ request('status') === 'Mới tạo' ? 'selected' : '' }}>Mới tạo</option>
                     <option value="Chờ bổ sung" {{ request('status') === 'Chờ bổ sung' ? 'selected' : '' }}>Chờ bổ sung</option>
@@ -95,14 +110,15 @@
 
             {{-- Nút bấm Lọc & Reset --}}
             <div>
-                <button type="submit" class="stu-btn stu-btn-secondary" style="width: 100%; justify-content: center; height: 38px;">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <button type="submit" class="stu-btn stu-btn-primary" style="height: 38px; padding: 0 16px; font-weight: 600; box-shadow: 0 1px 2px 0 rgba(0, 58, 140, 0.2);">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <span>Lọc</span>
                 </button>
             </div>
             <div>
-                <a href="{{ route('submissions.index') }}" class="stu-btn stu-btn-ghost" style="width: 100%; justify-content: center; height: 38px;">
-                    Xóa
+                <a href="{{ route('submissions.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px; padding: 0 14px;" title="Xóa bộ lọc về mặc định">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Xóa</span>
                 </a>
             </div>
         </form>

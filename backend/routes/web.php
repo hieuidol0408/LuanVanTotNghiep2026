@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Web\AuthController;
+use App\Http\Controllers\Web\ChuongTrinhHopWebController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DocumentWebController;
+use App\Http\Controllers\Web\HoSoCaNhanWebController;
 use App\Http\Controllers\Web\MeetingWebController;
 use App\Http\Controllers\Web\MemberWebController;
 use App\Http\Controllers\Web\ResolutionWebController;
@@ -106,8 +108,10 @@ Route::prefix('task-reports')->name('task-reports.')->group(function () {
     Route::post('/{id}/review', [TaskReportWebController::class, 'review'])->name('review');
 });
 
-// --- PHÂN HỆ QUẢN TRỊ DỮ LIỆU & HỆ THỐNG ---
-Route::get('/agendas', fn () => redirect()->route('meetings.index'));
+// --- PHÂN HỆ QUẢN LÝ CHƯƠNG TRÌNH HỌP (AGENDAS / BR-08) ---
+Route::prefix('agendas')->name('agendas.')->group(function () {
+    Route::get('/', [ChuongTrinhHopWebController::class, 'index'])->name('index');
+});
 
 Route::prefix('documents')->name('documents.')->group(function () {
     Route::get('/', [DocumentWebController::class, 'index'])->name('index');
@@ -121,5 +125,11 @@ Route::prefix('members')->name('members.')->group(function () {
 Route::prefix('users')->name('users.')->group(function () {
     Route::get('/', [UserWebController::class, 'index'])->name('index');
 });
+
+// --- PHÂN HỆ HỒ SƠ CÁ NHÂN (USER PROFILE) ---
+Route::get('/profile', [HoSoCaNhanWebController::class, 'show'])->name('profile.show');
+Route::put('/profile', [HoSoCaNhanWebController::class, 'update'])->name('profile.update');
+Route::get('/ho-so-ca-nhan', fn () => redirect()->route('profile.show'));
+
 
 

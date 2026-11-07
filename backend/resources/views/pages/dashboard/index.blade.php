@@ -120,115 +120,156 @@
     <!-- CỘT TRÁI: PHIÊN HỌP & THEO DÕI NHIỆM VỤ -->
     <div style="display: flex; flex-direction: column; gap: var(--space-6);">
         <!-- 2.1 Phiên họp sắp tới -->
-        <x-table 
-            cardTitle="Lịch phiên họp Hội đồng trường"
-            :headers="['Mã / Tên phiên họp', 'Thời gian', 'Địa điểm / Hình thức', 'Trạng thái']"
-            :hasActions="true"
-            actionTitle="Thao tác"
-            :empty="$upcomingMeetings->isEmpty()"
-            emptyTitle="Chưa có phiên họp nào"
-            emptyMessage="Hiện tại chưa có phiên họp mới nào được lập lịch."
-        >
-            <x-slot:cardActions>
-                <a href="{{ url('/meetings') }}" style="font-size: var(--font-size-xs); font-weight: 600; color: var(--color-primary); display: flex; align-items: center; gap: 4px;">
-                    Xem tất cả
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </a>
-            </x-slot:cardActions>
-
-            @foreach($upcomingMeetings as $meeting)
-                <tr>
-                    <td style="font-weight: 600;">
-                        <a href="{{ url('/meetings/' . $meeting->MaPhienHop) }}" style="color: var(--color-primary); display: block;">
-                            {{ $meeting->TenPhienHop }}
-                        </a>
-                        <span style="font-size: 11px; color: var(--color-text-muted); font-weight: 400;">Mã: #{{ $meeting->MaPhienHop }}</span>
-                    </td>
-                    <td style="white-space: nowrap;">
-                        <div style="font-weight: 500;">
-                            {{ $meeting->ThoiGianBatDau ? date('d/m/Y', strtotime($meeting->ThoiGianBatDau)) : 'Chưa định ngày' }}
-                        </div>
-                        <div style="font-size: 11px; color: var(--color-text-muted);">
-                            {{ $meeting->ThoiGianBatDau ? date('H:i', strtotime($meeting->ThoiGianBatDau)) : '08:30' }}
-                        </div>
-                    </td>
-                    <td style="font-size: var(--font-size-xs);">
-                        <div>{{ $meeting->DiaDiem ?: 'Phòng họp A - Cơ sở chính' }}</div>
-                        <span class="stu-badge stu-badge-info" style="margin-top: 4px; padding: 2px 6px;">
-                            {{ $meeting->HinhThuc ?: 'Trực tiếp' }}
-                        </span>
-                    </td>
-                    <td>
-                        <x-status-badge :status="$meeting->TrangThai ?: 'Sắp diễn ra'" />
-                    </td>
-                    <td class="col-actions">
-                        <x-button variant="outline" size="sm" href="{{ url('/meetings/' . $meeting->MaPhienHop) }}">
-                            <span>Chi tiết</span>
-                        </x-button>
-                    </td>
-                </tr>
-            @endforeach
-        </x-table>
+        <div class="stu-card">
+            <div class="stu-card-header">
+                <h3 class="stu-card-title">Lịch phiên họp Hội đồng trường</h3>
+                <div class="stu-card-actions">
+                    <a href="{{ url('/meetings') }}" style="font-size: var(--font-size-xs); font-weight: 600; color: var(--color-primary); display: flex; align-items: center; gap: 4px;">
+                        Xem tất cả
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </div>
+            <div style="overflow: hidden;">
+                @if($upcomingMeetings->isEmpty())
+                    <div class="stu-empty-state">
+                        <div class="stu-empty-title">Chưa có phiên họp nào</div>
+                        <div class="stu-empty-desc">Hiện tại chưa có phiên họp mới nào được lập lịch.</div>
+                    </div>
+                @else
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--font-size-sm); table-layout: fixed;">
+                        <colgroup>
+                            <col style="width: 35%;">
+                            <col style="width: 15%;">
+                            <col style="width: 20%;">
+                            <col style="width: 16%;">
+                            <col style="width: 14%;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--color-border);">Tên phiên họp</th>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--color-border);">Thời gian</th>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--color-border);">Địa điểm</th>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--color-border);">Trạng thái</th>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--color-border); text-align: center;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($upcomingMeetings as $meeting)
+                                @php
+                                    $rawStatus = $meeting->TrangThai ?: 'PREPARING';
+                                    $displayStatus = match(strtoupper($rawStatus)) {
+                                        'PREPARING' => 'Chuẩn bị',
+                                        'SCHEDULED' => 'Đã lên lịch',
+                                        'HAPPENING', 'ONGOING' => 'Đang diễn ra',
+                                        'COMPLETED' => 'Đã hoàn thành',
+                                        'CANCELLED' => 'Đã hủy',
+                                        default => $rawStatus
+                                    };
+                                @endphp
+                                <tr>
+                                    <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle;">
+                                        <a href="{{ url('/meetings/' . $meeting->MaPhienHop) }}" style="color: var(--color-primary); font-weight: 600; font-size: 13px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="{{ $meeting->TenPhienHop }}">
+                                            {{ $meeting->TenPhienHop }}
+                                        </a>
+                                        <span style="font-size: 11px; color: var(--color-text-muted);">Mã: #{{ $meeting->MaPhienHop }}</span>
+                                    </td>
+                                    <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle; white-space: nowrap;">
+                                        <div style="font-weight: 600; font-size: 13px; color: var(--color-text-main);">{{ $meeting->ThoiGianBatDau ? date('d/m/Y', strtotime($meeting->ThoiGianBatDau)) : '—' }}</div>
+                                        <div style="font-size: 11px; color: var(--color-text-muted);">{{ $meeting->ThoiGianBatDau ? date('H:i', strtotime($meeting->ThoiGianBatDau)) : '' }}</div>
+                                    </td>
+                                    <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle;">
+                                        <div style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;" title="{{ $meeting->DiaDiem ?: 'Phòng họp A - Cơ sở chính' }}">
+                                            {{ $meeting->DiaDiem ?: 'Phòng họp A - Cơ sở chính' }}
+                                        </div>
+                                        <span class="stu-badge stu-badge-info" style="padding: 1px 6px; font-size: 10px; margin-top: 3px; display: inline-block;">
+                                            {{ $meeting->HinhThuc === 'IN_PERSON' ? 'Trực tiếp' : ($meeting->HinhThuc === 'ONLINE' ? 'Trực tuyến' : ($meeting->HinhThuc ?: 'Trực tiếp')) }}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle; white-space: nowrap;">
+                                        <x-status-badge :status="$displayStatus" />
+                                    </td>
+                                    <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle; text-align: center; white-space: nowrap;">
+                                        <a href="{{ url('/meetings/' . $meeting->MaPhienHop) }}" style="font-size: 12px; font-weight: 500; color: var(--color-primary); padding: 4px 10px; border: 1px solid var(--color-primary); border-radius: 6px; white-space: nowrap; display: inline-block; text-decoration: none; background: #fff; transition: all 0.2s;" onmouseover="this.style.background='var(--color-primary)';this.style.color='#fff';" onmouseout="this.style.background='#fff';this.style.color='var(--color-primary)';">
+                                            Chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endif
+            </div>
+        </div>
 
         <!-- 2.2 Theo dõi thực hiện nhiệm vụ -->
-        <x-table 
-            cardTitle="Nhiệm vụ phân công theo Nghị quyết"
-            :headers="['Tên nhiệm vụ & NQ nguồn', 'Đơn vị thực hiện', 'Hạn hoàn thành', 'Tiến độ', 'Trạng thái']"
-            :hasActions="true"
-            actionTitle="Thao tác"
-            :empty="$trackedTasks->isEmpty()"
-            emptyTitle="Không có nhiệm vụ cần hiển thị"
-            emptyMessage="Tất cả nhiệm vụ đã được nghiệm thu hoặc chưa có phân công mới."
-        >
-            <x-slot:cardActions>
-                <a href="{{ url('/tasks') }}" style="font-size: var(--font-size-xs); font-weight: 600; color: var(--color-primary); display: flex; align-items: center; gap: 4px;">
-                    Xem tất cả
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </a>
-            </x-slot:cardActions>
-
-            @foreach($trackedTasks as $task)
-                @php
-                    $assignee = $task->phanCongNhiemVu->first();
-                    $unitName = $assignee?->donVi?->TenDonVi ?: 'Đang cập nhật';
-                    $person = $assignee?->TenNguoiPhuTrach;
-                    $isOverdue = $task->NgayHoanThanh && $task->NgayHoanThanh->toDateString() < now()->toDateString() && !in_array($task->TrangThai, ['COMPLETED', 'Đã hoàn thành']);
-                    $progressVal = in_array($task->TrangThai, ['COMPLETED', 'Đã hoàn thành']) ? 100 : ($isOverdue ? 40 : 70);
-                @endphp
-                <tr>
-                    <td class="stu-max-w-xs">
-                        <div class="stu-truncate" style="font-weight: 600;" title="{{ $task->TenNhiemVu }}">
-                            {{ $task->TenNhiemVu }}
-                        </div>
-                        <div style="font-size: 11px; color: var(--color-primary);">
-                            {{ $task->nghiQuyet?->SoNghiQuyet ?: 'NQ-HĐT' }}
-                        </div>
-                    </td>
-                    <td style="font-size: var(--font-size-xs);">
-                        <div style="font-weight: 500;">{{ $unitName }}</div>
-                        @if($person)
-                            <div style="color: var(--color-text-muted);">{{ $person }}</div>
-                        @endif
-                    </td>
-                    <td style="white-space: nowrap; font-size: var(--font-size-xs);">
-                        <div style="{{ $isOverdue ? 'color: var(--color-danger); font-weight: 600;' : '' }}">
-                            {{ $task->NgayHoanThanh ? $task->NgayHoanThanh->format('d/m/Y') : 'Không thời hạn' }}
-                        </div>
-                    </td>
-                    <td style="min-width: 110px;">
-                        <x-progress-bar :value="$progressVal" />
-                    </td>
-                    <td>
-                        <x-status-badge :status="$isOverdue ? 'Quá hạn' : ($task->TrangThai ?: 'Đang thực hiện')" />
-                    </td>
-                    <td class="col-actions">
-                        <x-button variant="outline" size="sm" href="{{ url('/tasks/' . $task->MaNhiemVu) }}">
-                            <span>Xem</span>
-                        </x-button>
-                    </td>
-                </tr>
-            @endforeach
-        </x-table>
+        <div class="stu-card">
+            <div class="stu-card-header">
+                <h3 class="stu-card-title">Nhiệm vụ phân công theo Nghị quyết</h3>
+                <div class="stu-card-actions">
+                    <a href="{{ url('/tasks') }}" style="font-size: var(--font-size-xs); font-weight: 600; color: var(--color-primary); display: flex; align-items: center; gap: 4px;">
+                        Xem tất cả
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </div>
+            <div style="overflow: hidden;">
+                @if($trackedTasks->isEmpty())
+                    <div class="stu-empty-state">
+                        <div class="stu-empty-title">Không có nhiệm vụ cần hiển thị</div>
+                        <div class="stu-empty-desc">Tất cả nhiệm vụ đã được nghiệm thu hoặc chưa có phân công mới.</div>
+                    </div>
+                @else
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--font-size-sm); table-layout: fixed;">
+                        <colgroup>
+                            <col style="width: 36%;">
+                            <col style="width: 28%;">
+                            <col style="width: 20%;">
+                            <col style="width: 16%;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 12px; border-bottom: 1px solid var(--color-border);">Nhiệm vụ</th>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 12px; border-bottom: 1px solid var(--color-border);">Đơn vị & Hạn</th>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 12px; border-bottom: 1px solid var(--color-border);">Tiến độ</th>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 12px; border-bottom: 1px solid var(--color-border);">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($trackedTasks as $task)
+                                @php
+                                    $assignee = $task->phanCongNhiemVu->first();
+                                    $unitName = $assignee?->donVi?->TenDonVi ?: 'Đang cập nhật';
+                                    $person = $assignee?->TenNguoiPhuTrach;
+                                    $isOverdue = $task->NgayHoanThanh && $task->NgayHoanThanh->toDateString() < now()->toDateString() && !in_array($task->TrangThai, ['COMPLETED', 'Đã hoàn thành']);
+                                    $progressVal = in_array($task->TrangThai, ['COMPLETED', 'Đã hoàn thành']) ? 100 : ($isOverdue ? 40 : 70);
+                                @endphp
+                                <tr>
+                                    <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle;">
+                                        <a href="{{ url('/tasks/' . $task->MaNhiemVu) }}" style="font-weight: 600; font-size: 13px; color: var(--color-primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35;" title="{{ $task->TenNhiemVu }}">
+                                            {{ $task->TenNhiemVu }}
+                                        </a>
+                                        <span style="font-size: 11px; color: var(--color-text-muted);">{{ $task->nghiQuyet?->SoNghiQuyet ?: 'NQ-HĐT' }}</span>
+                                    </td>
+                                    <td style="padding: 8px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle; overflow: hidden;">
+                                        <div style="font-weight: 500; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $unitName }}">{{ $unitName }}</div>
+                                        <div style="font-size: 11px; {{ $isOverdue ? 'color: var(--color-danger); font-weight: 600;' : 'color: var(--color-text-muted);' }}">
+                                            {{ $task->NgayHoanThanh ? $task->NgayHoanThanh->format('d/m/Y') : 'Không thời hạn' }}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 8px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle;">
+                                        <x-progress-bar :value="$progressVal" />
+                                    </td>
+                                    <td style="padding: 8px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle;">
+                                        <x-status-badge :status="$isOverdue ? 'Quá hạn' : ($task->TrangThai ?: 'Đang thực hiện')" />
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endif
+            </div>
+        </div>
     </div>
 
     <!-- CỘT PHẢI: TIẾN ĐỘ TỔNG THỂ & NGHỊ QUYẾT MỚI & BÁO CÁO CHỜ DUYỆT -->

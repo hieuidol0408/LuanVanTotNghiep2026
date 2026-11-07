@@ -1,0 +1,225 @@
+@extends('layouts.app')
+
+@section('title', 'Chương trình họp - Hội đồng trường STU')
+
+@section('header_title')
+    <x-breadcrumb :items="[
+        ['title' => 'Quản lý phiên họp', 'url' => route('meetings.index')],
+        ['title' => 'Chương trình họp']
+    ]" />
+@endsection
+
+@section('content')
+<div class="stu-page-header">
+    <div class="stu-page-title-group">
+        <h1>Chương trình họp Hội Đồng Trường</h1>
+        <p>Quản lý và điều hành thứ tự nghị sự, liên kết hồ sơ trình vào các phiên họp theo quy tắc <strong>BR-08</strong>.</p>
+    </div>
+    <div class="stu-page-actions" style="display: flex; gap: 10px;">
+        <a href="{{ route('meetings.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px;">
+            <i class="bi bi-calendar-event"></i>
+            <span>Quản lý phiên họp</span>
+        </a>
+        <a href="{{ route('submissions.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px;">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>Hồ sơ trình</span>
+        </a>
+    </div>
+</div>
+
+{{-- KPI Cards --}}
+<div class="stu-grid stu-grid-cols-4 stu-mb-6" style="gap: 16px; margin-bottom: 24px;">
+    <div class="stu-card" style="padding: 18px; border-left: 4px solid var(--color-primary); background: #ffffff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase;">Tổng mục nghị sự</div>
+        <div style="font-size: 26px; font-weight: 800; color: var(--color-primary); margin-top: 4px;">{{ $totalAgendas }}</div>
+    </div>
+    <div class="stu-card" style="padding: 18px; border-left: 4px solid #0EA5E9; background: #ffffff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase;">Hồ sơ đã xếp lịch</div>
+        <div style="font-size: 26px; font-weight: 800; color: #0EA5E9; margin-top: 4px;">{{ $totalDossiers }}</div>
+    </div>
+    <div class="stu-card" style="padding: 18px; border-left: 4px solid var(--color-success); background: #ffffff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase;">Đã thông qua</div>
+        <div style="font-size: 26px; font-weight: 800; color: var(--color-success); margin-top: 4px;">{{ $approvedAgendas }}</div>
+    </div>
+    <div class="stu-card" style="padding: 18px; border-left: 4px solid var(--color-warning); background: #ffffff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="font-size: 12px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase;">Phiên có chương trình</div>
+        <div style="font-size: 26px; font-weight: 800; color: var(--color-warning); margin-top: 4px;">{{ $activeMeetingsCount }}</div>
+    </div>
+</div>
+
+@if($selectedMeeting)
+    {{-- Banner thông tin phiên họp đang lọc --}}
+    <div class="stu-card" style="padding: 16px 20px; margin-bottom: 20px; background: linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%); border-left: 4px solid var(--color-primary); border-radius: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--color-primary); letter-spacing: 0.5px;">
+                    Đang xem chương trình của phiên họp
+                </div>
+                <div style="font-size: 16px; font-weight: 700; color: #1E293B; margin-top: 2px;">
+                    {{ $selectedMeeting->TenPhienHop }}
+                </div>
+                <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px;">
+                    <i class="bi bi-calendar3"></i> {{ $selectedMeeting->ThoiGianBatDau ? date('d/m/Y H:i', strtotime($selectedMeeting->ThoiGianBatDau)) : 'Chưa định ngày' }}
+                    &bull; <i class="bi bi-geo-alt"></i> {{ $selectedMeeting->DiaDiem }}
+                    &bull; <span class="stu-badge stu-badge-info">{{ $selectedMeeting->HinhThuc }}</span>
+                </div>
+            </div>
+            <div>
+                <a href="{{ route('meetings.show', $selectedMeeting->MaPhienHop) }}" class="stu-btn stu-btn-primary" style="height: 36px; padding: 0 16px;">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                    <span>Chi tiết phiên họp</span>
+                </a>
+            </div>
+        </div>
+    </div>
+@endif
+
+<!-- BỘ LỌC ĐA TIÊU CHÍ -->
+<div class="stu-card" style="padding: 18px 24px; margin-bottom: var(--space-6); border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
+    <form method="GET" action="{{ route('agendas.index') }}" style="display: grid; grid-template-columns: 2fr 2fr 1.5fr auto auto; gap: 12px; align-items: center;">
+        <!-- Ô tìm kiếm -->
+        <div style="position: relative;">
+            <svg width="15" height="15" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input 
+                type="text" 
+                name="search" 
+                placeholder="Tìm tiêu đề hồ sơ, mã hồ sơ, ghi chú..." 
+                value="{{ request('search') }}" 
+                class="stu-form-control"
+                style="padding-left: 36px; height: 38px;"
+            >
+        </div>
+
+        <!-- Lọc theo Phiên họp -->
+        <div>
+            <select name="meeting_id" class="stu-form-control" style="height: 38px;">
+                <option value="ALL">-- Tất cả các phiên họp --</option>
+                @foreach($meetings as $m)
+                    <option value="{{ $m->MaPhienHop }}" {{ (request('meeting_id') == $m->MaPhienHop) ? 'selected' : '' }}>
+                        #{{ $m->MaPhienHop }} - {{ Str::limit($m->TenPhienHop, 45) }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <!-- Lọc theo trạng thái xử lý -->
+        <div>
+            <select name="status" class="stu-form-control" style="height: 38px;">
+                <option value="ALL">-- Tất cả trạng thái --</option>
+                <option value="Chưa xem xét" {{ request('status') == 'Chưa xem xét' ? 'selected' : '' }}>Chưa xem xét</option>
+                <option value="Đang xem xét" {{ request('status') == 'Đang xem xét' ? 'selected' : '' }}>Đang xem xét</option>
+                <option value="Đã thông qua" {{ request('status') == 'Đã thông qua' ? 'selected' : '' }}>Đã thông qua</option>
+                <option value="Hoãn lại" {{ request('status') == 'Hoãn lại' ? 'selected' : '' }}>Hoãn lại</option>
+            </select>
+        </div>
+
+        <!-- Nút Lọc -->
+        <div>
+            <button type="submit" class="stu-btn stu-btn-primary" style="height: 38px; padding: 0 18px; font-weight: 600;">
+                <i class="bi bi-funnel"></i>
+                <span>Lọc</span>
+            </button>
+        </div>
+
+        <!-- Nút Xóa bộ lọc -->
+        <div>
+            @if(request()->anyFilled(['search', 'meeting_id', 'status']))
+                <a href="{{ route('agendas.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px; padding: 0 14px;" title="Xóa bộ lọc">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                    <span>Xóa</span>
+                </a>
+            @endif
+        </div>
+    </form>
+</div>
+
+<!-- BẢNG DỮ LIỆU CHƯƠNG TRÌNH HỌP -->
+<x-table 
+    :headers="['Thứ tự', 'Phiên họp', 'Hồ sơ trình xem xét', 'Đơn vị trình', 'Trạng thái', 'Ghi chú', 'Thao tác']"
+    :hasActions="true"
+    actionTitle="Thao tác"
+    :empty="$agendas->isEmpty()"
+    emptyTitle="Chưa có mục chương trình họp nào"
+    emptyMessage="Không tìm thấy mục chương trình nghị sự nào phù hợp với điều kiện tìm kiếm và bộ lọc."
+>
+    @foreach($agendas as $agenda)
+        @php 
+            $dossier = $agenda->hoSoTrinh;
+            $meeting = $agenda->phienHop;
+        @endphp
+        <tr>
+            <td style="font-weight: 700; color: var(--color-primary); text-align: center; width: 65px;">
+                <span class="stu-badge stu-badge-primary" style="font-size: 12px; padding: 4px 8px;">
+                    #{{ $agenda->ThuTu }}
+                </span>
+            </td>
+            <td style="max-width: 200px;">
+                @if($meeting)
+                    <a href="{{ route('meetings.show', $meeting->MaPhienHop) }}" style="font-weight: 600; color: var(--color-primary); display: block;" title="{{ $meeting->TenPhienHop }}">
+                        {{ Str::limit($meeting->TenPhienHop, 40) }}
+                    </a>
+                    <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
+                        <i class="bi bi-calendar3"></i> {{ $meeting->ThoiGianBatDau ? date('d/m/Y', strtotime($meeting->ThoiGianBatDau)) : 'Chưa định ngày' }}
+                        &bull; {{ $meeting->HinhThuc }}
+                    </div>
+                @else
+                    <span style="color: var(--color-text-muted);">Phiên họp #{{ $agenda->MaPhienHop }}</span>
+                @endif
+            </td>
+            <td class="stu-max-w-xs">
+                @if($dossier)
+                    <a href="{{ route('submissions.show', $dossier->MaHoSo) }}" style="font-weight: 600; color: #1E293B; display: block;" title="{{ $dossier->TieuDe }}">
+                        {{ $dossier->TieuDe }}
+                    </a>
+                    <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+                        <span style="font-size: 11px; color: var(--color-text-muted);">Mã: HST-{{ $dossier->MaHoSo }}</span>
+                        @if($dossier->LinhVuc)
+                            <span class="stu-badge stu-badge-info" style="font-size: 10px; padding: 1px 6px;">{{ $dossier->LinhVuc }}</span>
+                        @endif
+                        @if($agenda->noiDungBieuQuyet && $agenda->noiDungBieuQuyet->count() > 0)
+                            <span class="stu-badge stu-badge-success" style="font-size: 10px; padding: 1px 6px;">
+                                <i class="bi bi-check2-square"></i> {{ $agenda->noiDungBieuQuyet->count() }} biểu quyết
+                            </span>
+                        @endif
+                    </div>
+                @else
+                    <span style="color: var(--color-text-muted);">Hồ sơ #{{ $agenda->MaHoSo }}</span>
+                @endif
+            </td>
+            <td style="font-size: var(--font-size-xs); white-space: nowrap;">
+                <div style="font-weight: 500;">{{ $dossier?->donVi?->TenDonVi ?: '-' }}</div>
+                <div style="font-size: 11px; color: var(--color-text-muted);">{{ $dossier?->nguoiDung?->name ?: '' }}</div>
+            </td>
+            <td style="white-space: nowrap;">
+                <x-status-badge :status="$agenda->TrangThai" />
+            </td>
+            <td style="font-size: var(--font-size-xs); color: var(--color-text-muted); max-width: 160px;">
+                {{ $agenda->GhiChu ?: '-' }}
+            </td>
+            <td class="col-actions">
+                <div class="stu-table-actions-group">
+                    @if($meeting)
+                        <a href="{{ route('meetings.show', $meeting->MaPhienHop) }}" class="stu-btn-action" title="Xem chi tiết phiên họp">
+                            <i class="bi bi-eye"></i>
+                            <span>Phiên họp</span>
+                        </a>
+                    @endif
+                    @if($dossier)
+                        <a href="{{ route('submissions.show', $dossier->MaHoSo) }}" class="stu-btn-action" title="Xem hồ sơ trình">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>Hồ sơ</span>
+                        </a>
+                    @endif
+                </div>
+            </td>
+        </tr>
+    @endforeach
+</x-table>
+
+@if($agendas->hasPages())
+    <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+        {{ $agendas->links() }}
+    </div>
+@endif
+
+@endsection

@@ -13,7 +13,7 @@
     @foreach($items as $key => $item)
         @php
             if (is_array($item)) {
-                $title = $item['title'] ?? (is_string($key) ? $key : '');
+                $title = $item['title'] ?? $item['label'] ?? (is_string($key) ? $key : '');
                 $url = $item['url'] ?? null;
             } elseif (is_string($key)) {
                 $title = $key;

@@ -16,7 +16,8 @@ import {
   Layers,
   FileText,
   Vote,
-  ExternalLink
+  ExternalLink,
+  Download
 } from "lucide-react";
 import PageHeader from "../../../components/layout/PageHeader";
 import StatusBadge from "../../../components/ui/StatusBadge";
@@ -26,6 +27,8 @@ import { useAuth } from "../../auth/context/AuthContext";
 import { useToast } from "../../../components/ui/Toast";
 import resolutionService from "../services/resolutionService";
 import meetingService from "../../meetings/services/meetingService";
+import { xuatPdf } from "../../../utils/xuatPdf";
+import MauVanBanNghiQuyet from "../../../components/pdf/MauVanBanNghiQuyet";
 
 export default function ResolutionListPage() {
   const { user } = useAuth();
@@ -47,6 +50,7 @@ export default function ResolutionListPage() {
   // Selected Resolution Detail Modal
   const [selectedResolution, setSelectedResolution] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   // Create Modal
   const isCreateParam = searchParams.get("create") === "true";
@@ -207,6 +211,27 @@ export default function ResolutionListPage() {
         }
       }
     });
+  };
+
+  // Xuất văn bản Nghị quyết sang định dạng PDF (html2pdf.js)
+  const handleExportPdf = async () => {
+    if (!selectedResolution) return;
+    try {
+      setExportingPdf(true);
+      const safeNumber = (selectedResolution.resolution_number || "NQ").replace(/[/\\?%*:|"<>]/g, "_");
+      const filename = `Nghi_quyet_so_${safeNumber}.pdf`;
+      await xuatPdf("resolution-document-print", {
+        filename,
+        orientation: "portrait",
+        margin: [20, 30, 20, 15],
+      });
+      toast.success(`Đã xuất văn bản Nghị quyết (${filename}) thành công.`);
+    } catch (err) {
+      console.error("Lỗi xuất PDF:", err);
+      toast.error("Không thể xuất tệp PDF: " + (err.message || "Lỗi không xác định"));
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   // Xóa dự thảo
@@ -763,6 +788,19 @@ export default function ResolutionListPage() {
                 </button>
               )}
 
+              {/* Nút Xuất văn bản Nghị quyết (html2pdf.js) */}
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleExportPdf}
+                disabled={exportingPdf}
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                title="Xuất văn bản Nghị quyết ra tệp PDF chuẩn thể thức hành chính A4"
+              >
+                <Download size={16} />
+                <span>{exportingPdf ? "Đang xuất PDF..." : "Xuất văn bản PDF"}</span>
+              </button>
+
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -770,6 +808,11 @@ export default function ResolutionListPage() {
               >
                 Đóng
               </button>
+            </div>
+
+            {/* Template in ẩn phục vụ html2pdf.js xuất bản A4 */}
+            <div style={{ position: "fixed", left: "-9999px", top: 0, width: "794px", zIndex: -100 }}>
+              <MauVanBanNghiQuyet resolution={selectedResolution} />
             </div>
           </div>
         </div>
