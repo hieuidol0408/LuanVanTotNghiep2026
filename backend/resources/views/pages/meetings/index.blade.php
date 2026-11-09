@@ -155,7 +155,7 @@
 </x-table>
 
 <!-- PHÂN TRANG -->
-<div style="margin-top: var(--space-4); display: flex; justify-content: flex-end;">
+<div style="margin-top: var(--space-4); width: 100%;">
     {{ $meetings->links() }}
 </div>
 @endsection

@@ -217,7 +217,7 @@
 </x-table>
 
 @if($agendas->hasPages())
-    <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+    <div style="margin-top: 20px; width: 100%;">
         {{ $agendas->links() }}
     </div>
 @endif

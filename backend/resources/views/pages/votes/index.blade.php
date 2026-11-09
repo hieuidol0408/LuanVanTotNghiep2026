@@ -211,7 +211,7 @@
 
     {{-- Phân trang --}}
     @if($votings->hasPages())
-        <div class="stu-mt-6" style="display: flex; justify-content: flex-end;">
+        <div class="stu-mt-6" style="width: 100%;">
             {{ $votings->links() }}
         </div>
     @endif

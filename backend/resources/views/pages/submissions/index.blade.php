@@ -186,7 +186,7 @@
 
     {{-- Phân trang --}}
     @if($submissions->hasPages())
-        <div class="stu-mt-6" style="display: flex; justify-content: flex-end;">
+        <div class="stu-mt-6" style="width: 100%;">
             {{ $submissions->links() }}
         </div>
     @endif

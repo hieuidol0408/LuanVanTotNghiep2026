@@ -227,7 +227,7 @@
 
     {{-- Phân trang --}}
     @if($resolutions->hasPages())
-        <div class="stu-mt-6" style="display: flex; justify-content: flex-end;">
+        <div class="stu-mt-6" style="width: 100%;">
             {{ $resolutions->links() }}
         </div>
     @endif
