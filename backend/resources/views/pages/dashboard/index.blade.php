@@ -222,17 +222,17 @@
                 @else
                     <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--font-size-sm); table-layout: fixed;">
                         <colgroup>
-                            <col style="width: 36%;">
-                            <col style="width: 28%;">
-                            <col style="width: 20%;">
-                            <col style="width: 16%;">
+                            <col style="width: 35%;">
+                            <col style="width: 25%;">
+                            <col style="width: 18%;">
+                            <col style="width: 22%;">
                         </colgroup>
                         <thead>
                             <tr>
-                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 12px; border-bottom: 1px solid var(--color-border);">Nhiệm vụ</th>
-                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 12px; border-bottom: 1px solid var(--color-border);">Đơn vị & Hạn</th>
-                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 12px; border-bottom: 1px solid var(--color-border);">Tiến độ</th>
-                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 12px; border-bottom: 1px solid var(--color-border);">Trạng thái</th>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--color-border);">Nhiệm vụ</th>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--color-border);">Đơn vị & Hạn</th>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--color-border);">Tiến độ</th>
+                                <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--color-border); text-align: center;">Trạng thái</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -240,9 +240,24 @@
                                 @php
                                     $assignee = $task->phanCongNhiemVu->first();
                                     $unitName = $assignee?->donVi?->TenDonVi ?: 'Đang cập nhật';
-                                    $person = $assignee?->TenNguoiPhuTrach;
-                                    $isOverdue = $task->NgayHoanThanh && $task->NgayHoanThanh->toDateString() < now()->toDateString() && !in_array($task->TrangThai, ['COMPLETED', 'Đã hoàn thành']);
-                                    $progressVal = in_array($task->TrangThai, ['COMPLETED', 'Đã hoàn thành']) ? 100 : ($isOverdue ? 40 : 70);
+                                    $rawStatus = strtoupper($task->TrangThai ?: 'IN_PROGRESS');
+                                    $isCompleted = in_array($rawStatus, ['COMPLETED', 'ĐÃ HOÀN THÀNH', 'HOÀN THÀNH']);
+                                    $isOverdue = $task->NgayHoanThanh && $task->NgayHoanThanh->toDateString() < now()->toDateString() && !$isCompleted;
+                                    $progressVal = $isCompleted ? 100 : ($isOverdue ? 40 : 70);
+
+                                    if ($isCompleted) {
+                                        $displayStatus = 'Đã hoàn thành';
+                                        $badgeType = 'success';
+                                    } elseif ($isOverdue) {
+                                        $displayStatus = 'Quá hạn';
+                                        $badgeType = 'danger';
+                                    } elseif ($rawStatus === 'PENDING' || $rawStatus === 'ASSIGNED') {
+                                        $displayStatus = 'Chờ tiếp nhận';
+                                        $badgeType = 'warning';
+                                    } else {
+                                        $displayStatus = 'Đang thực hiện';
+                                        $badgeType = 'warning';
+                                    }
                                 @endphp
                                 <tr>
                                     <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle;">
@@ -251,17 +266,20 @@
                                         </a>
                                         <span style="font-size: 11px; color: var(--color-text-muted);">{{ $task->nghiQuyet?->SoNghiQuyet ?: 'NQ-HĐT' }}</span>
                                     </td>
-                                    <td style="padding: 8px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle; overflow: hidden;">
-                                        <div style="font-weight: 500; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $unitName }}">{{ $unitName }}</div>
-                                        <div style="font-size: 11px; {{ $isOverdue ? 'color: var(--color-danger); font-weight: 600;' : 'color: var(--color-text-muted);' }}">
+                                    <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle; overflow: hidden;">
+                                        <div style="font-weight: 500; font-size: 12px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;" title="{{ $unitName }}">{{ $unitName }}</div>
+                                        <div style="font-size: 11px; margin-top: 2px; {{ $isOverdue ? 'color: var(--color-danger); font-weight: 600;' : 'color: var(--color-text-muted);' }}">
                                             {{ $task->NgayHoanThanh ? $task->NgayHoanThanh->format('d/m/Y') : 'Không thời hạn' }}
                                         </div>
                                     </td>
-                                    <td style="padding: 8px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle;">
+                                    <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle;">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                                            <span style="font-size: 11px; font-weight: 600; color: var(--color-text-main);">{{ $progressVal }}%</span>
+                                        </div>
                                         <x-progress-bar :value="$progressVal" />
                                     </td>
-                                    <td style="padding: 8px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle;">
-                                        <x-status-badge :status="$isOverdue ? 'Quá hạn' : ($task->TrangThai ?: 'Đang thực hiện')" />
+                                    <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle; text-align: center; white-space: nowrap;">
+                                        <x-status-badge :status="$displayStatus" :type="$badgeType" />
                                     </td>
                                 </tr>
                             @endforeach

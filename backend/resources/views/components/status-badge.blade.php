@@ -13,6 +13,7 @@
         $inferredType = match(true) {
             // Thành công / Đã xong / Có mặt / Đạt / Đã công bố / Hợp lệ
             str_contains($normalized, 'hoàn thành') || 
+            str_contains($normalized, 'completed') || 
             str_contains($normalized, 'đã công bố') || 
             str_contains($normalized, 'có mặt') || 
             str_contains($normalized, 'đủ điều kiện') || 
@@ -25,9 +26,12 @@
 
             // Chờ xử lý / Đang thực hiện / Đang mở / Cần bổ sung / Có xin phép
             str_contains($normalized, 'đang thực hiện') || 
+            str_contains($normalized, 'in_progress') || 
+            str_contains($normalized, 'ongoing') || 
             str_contains($normalized, 'đang diễn ra') || 
             str_contains($normalized, 'đang mở') || 
             str_contains($normalized, 'chờ') || 
+            str_contains($normalized, 'pending') || 
             str_contains($normalized, 'yêu cầu bổ sung') || 
             str_contains($normalized, 'có xin phép') || 
             str_contains($normalized, 'sắp diễn ra') || 
@@ -35,9 +39,11 @@
 
             // Nguy hiểm / Lỗi / Hủy / Vắng không phép / Không tán thành / Quá hạn
             str_contains($normalized, 'hủy') || 
+            str_contains($normalized, 'cancelled') || 
             str_contains($normalized, 'không xin phép') || 
             str_contains($normalized, 'vắng') || 
             str_contains($normalized, 'quá hạn') || 
+            str_contains($normalized, 'overdue') || 
             str_contains($normalized, 'không tán thành') || 
             str_contains($normalized, 'từ chối') => 'danger',
 
