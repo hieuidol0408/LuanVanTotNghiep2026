@@ -176,4 +176,50 @@ class MeetingWebTest extends TestCase
             $response->assertSessionHas('warning');
         }
     }
+
+    /**
+     * 8. [BR-08] Chống xung đột trùng lịch họp: Thư ký và HĐT không thể họp 2 phiên cùng một khung giờ.
+     */
+    public function test_meeting_prevents_scheduling_conflict_overlapping_times(): void
+    {
+        $testDate = '2029-05-20';
+
+        // Tạo phiên họp ban đầu: 10:00 - 10:30
+        $meeting1 = PhienHop::create([
+            'TenPhienHop' => 'Phiên họp kiểm thử lịch 1',
+            'NgayHop' => $testDate,
+            'ThoiGianBatDau' => "{$testDate} 10:00:00",
+            'ThoiGianKetThuc' => "{$testDate} 10:30:00",
+            'DiaDiem' => 'Phòng họp A',
+            'HinhThuc' => 'IN_PERSON',
+            'TrangThai' => 'Sắp diễn ra',
+        ]);
+
+        // Cố tình tạo phiên họp thứ 2 trùng giờ: 10:15 - 11:00
+        $response = $this->post(route('meetings.store'), [
+            'TenPhienHop' => 'Phiên họp kiểm thử xung đột trùng lịch',
+            'NgayHop' => $testDate,
+            'GioBatDau' => '10:15',
+            'GioKetThuc' => '11:00',
+            'DiaDiem' => 'Phòng họp B',
+            'HinhThuc' => 'IN_PERSON',
+        ]);
+
+        $response->assertSessionHasErrors('GioBatDau');
+
+        // Tạo phiên họp tiếp nối hợp lệ: 10:30 - 11:30 (không giao nhau)
+        $responseValid = $this->post(route('meetings.store'), [
+            'TenPhienHop' => 'Phiên họp tiếp nối hợp lệ',
+            'NgayHop' => $testDate,
+            'GioBatDau' => '10:30',
+            'GioKetThuc' => '11:30',
+            'DiaDiem' => 'Phòng họp A',
+            'HinhThuc' => 'IN_PERSON',
+        ]);
+
+        $responseValid->assertSessionHasNoErrors();
+
+        // Dọn dẹp dữ liệu test
+        PhienHop::where('NgayHop', $testDate)->delete();
+    }
 }

@@ -119,6 +119,25 @@ class MeetingWebController extends Controller
                 ->withErrors(['GioKetThuc' => 'Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.']);
         }
 
+        // [BR-08] Kiểm tra chống xung đột thời gian phiên họp (Thư ký & HĐT không thể họp trùng lịch)
+        $conflictingMeeting = PhienHop::whereNotIn('TrangThai', ['Đã hủy', 'CANCELLED'])
+            ->where(function ($query) use ($startDateTime, $endDateTime) {
+                $query->where('ThoiGianBatDau', '<', $endDateTime)
+                      ->where('ThoiGianKetThuc', '>', $startDateTime);
+            })
+            ->first();
+
+        if ($conflictingMeeting) {
+            $conflictStart = date('H:i', strtotime($conflictingMeeting->ThoiGianBatDau));
+            $conflictEnd = date('H:i', strtotime($conflictingMeeting->ThoiGianKetThuc));
+            $conflictDate = date('d/m/Y', strtotime($conflictingMeeting->NgayHop));
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'GioBatDau' => "Xung đột lịch họp: Đã có phiên họp \"{$conflictingMeeting->TenPhienHop}\" diễn ra từ {$conflictStart} đến {$conflictEnd} ngày {$conflictDate}. Thư ký và Hội đồng trường không thể tham gia 2 cuộc họp trùng thời gian."
+                ]);
+        }
+
         $phienHop = DB::transaction(function () use ($validated, $startDateTime, $endDateTime) {
             $meeting = PhienHop::create([
                 'TenPhienHop' => $validated['TenPhienHop'],
@@ -256,6 +275,26 @@ class MeetingWebController extends Controller
             return back()
                 ->withInput()
                 ->withErrors(['GioKetThuc' => 'Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.']);
+        }
+
+        // [BR-08] Kiểm tra chống xung đột thời gian phiên họp khi cập nhật
+        $conflictingMeeting = PhienHop::where('MaPhienHop', '!=', $id)
+            ->whereNotIn('TrangThai', ['Đã hủy', 'CANCELLED'])
+            ->where(function ($query) use ($startDateTime, $endDateTime) {
+                $query->where('ThoiGianBatDau', '<', $endDateTime)
+                      ->where('ThoiGianKetThuc', '>', $startDateTime);
+            })
+            ->first();
+
+        if ($conflictingMeeting) {
+            $conflictStart = date('H:i', strtotime($conflictingMeeting->ThoiGianBatDau));
+            $conflictEnd = date('H:i', strtotime($conflictingMeeting->ThoiGianKetThuc));
+            $conflictDate = date('d/m/Y', strtotime($conflictingMeeting->NgayHop));
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'GioBatDau' => "Xung đột lịch họp: Đã có phiên họp \"{$conflictingMeeting->TenPhienHop}\" diễn ra từ {$conflictStart} đến {$conflictEnd} ngày {$conflictDate}."
+                ]);
         }
 
         $meeting->update([
