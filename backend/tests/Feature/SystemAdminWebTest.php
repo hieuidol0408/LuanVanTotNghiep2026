@@ -87,4 +87,56 @@ class SystemAdminWebTest extends TestCase
             $this->assertTrue(true);
         }
     }
+
+    /**
+     * 6. Admin tạo mới người dùng thành công với vai trò RBAC và liên kết đơn vị.
+     */
+    public function test_admin_can_create_new_user(): void
+    {
+        $admin = User::whereHas('vaiTro', fn($q) => $q->where('TenVaiTro', 'ADMIN'))->first();
+        $this->actingAs($admin);
+
+        $uniqueEmail = 'giangvien_' . time() . '@stu.edu.vn';
+        $postData = [
+            'HoTen' => 'TS. Kiểm Thử Hệ Thống Mới',
+            'email' => $uniqueEmail,
+            'password' => 'stu@2026',
+            'MaVaiTro' => 4, // MEMBER
+            'MaDonVi' => 1,
+            'TrangThai' => 'Hoạt động',
+        ];
+
+        $response = $this->post(route('users.store'), $postData);
+
+        $response->assertRedirect(route('users.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('nguoi_dung', [
+            'email' => $uniqueEmail,
+            'HoTen' => 'TS. Kiểm Thử Hệ Thống Mới',
+        ]);
+    }
+
+    /**
+     * 7. Quy tắc nghiệp vụ BR-01: Ngăn chặn tạo tài khoản trùng email.
+     */
+    public function test_user_creation_validates_unique_email(): void
+    {
+        $admin = User::whereHas('vaiTro', fn($q) => $q->where('TenVaiTro', 'ADMIN'))->first();
+        $this->actingAs($admin);
+
+        $existingUser = User::first();
+
+        $postData = [
+            'HoTen' => 'Người Dùng Trùng Email',
+            'email' => $existingUser->email,
+            'password' => 'stu@2026',
+            'MaVaiTro' => 4,
+            'MaDonVi' => 1,
+        ];
+
+        $response = $this->post(route('users.store'), $postData);
+
+        $response->assertSessionHasErrors(['email']);
+    }
 }

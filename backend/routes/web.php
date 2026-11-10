@@ -124,6 +124,7 @@ Route::prefix('members')->name('members.')->group(function () {
 
 Route::prefix('users')->name('users.')->group(function () {
     Route::get('/', [UserWebController::class, 'index'])->name('index');
+    Route::post('/', [UserWebController::class, 'store'])->name('store');
 });
 
 // --- PHÂN HỆ HỒ SƠ CÁ NHÂN (USER PROFILE) ---

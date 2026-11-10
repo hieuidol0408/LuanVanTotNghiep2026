@@ -109,7 +109,7 @@ class User extends Authenticatable
      */
     public function getIsActiveAttribute(): bool
     {
-        return $this->TrangThai === 'Hoạt động' || $this->TrangThai === 'ACTIVE';
+        return in_array($this->TrangThai, ['Hoạt động', 'ACTIVE', 'Cho phép']);
     }
 
     public function vaiTro(): BelongsTo
