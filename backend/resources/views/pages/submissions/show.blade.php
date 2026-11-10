@@ -26,7 +26,13 @@
                 <span><strong>Người tạo:</strong> {{ $dossier->nguoiDung?->HoTen ?? 'Hệ thống' }}</span>
             </div>
         </div>
-        <div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            @if(in_array($role, ['UNIT_REP', 'SECRETARY', 'CHAIR', 'ADMIN']))
+                <a href="{{ route('submissions.edit', $dossier->MaHoSo) }}" class="stu-btn stu-btn-primary stu-btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <span>Chỉnh sửa hồ sơ</span>
+                </a>
+            @endif
             <a href="{{ route('submissions.index') }}" class="stu-btn stu-btn-outline stu-btn-sm">
                 Quay lại danh sách
             </a>

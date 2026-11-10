@@ -11,12 +11,18 @@
     <div class="stu-page-header stu-flex stu-items-center stu-justify-between stu-mb-6">
         <div>
             <h1 class="stu-page-title" style="font-size: 24px; font-weight: 800; color: var(--color-primary); margin: 0;">
-                Biểu quyết & Bỏ phiếu Hội đồng trường
+                Biểu quyết &amp; Bỏ phiếu Hội đồng trường
             </h1>
             <p style="font-size: 13px; color: var(--color-text-muted); margin: 4px 0 0 0;">
                 Hệ thống kiểm phiếu điện tử bảo mật tuyệt đối (BR-09), hỗ trợ biểu quyết trực tiếp và ủy quyền hợp lệ (BR-04).
             </p>
         </div>
+        @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+            <button type="button" class="stu-btn stu-btn-primary" data-modal-open="createVoteModal" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; box-shadow: 0 2px 4px rgba(0, 58, 140, 0.2);">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <span>Tạo nội dung biểu quyết</span>
+            </button>
+        @endif
     </div>
 
     {{-- Alerts --}}
@@ -214,6 +220,75 @@
         <div class="stu-mt-6" style="width: 100%;">
             {{ $votings->links() }}
         </div>
+    @endif
+
+    {{-- Modal Tạo Nội dung Biểu quyết mới --}}
+    @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+        <x-modal id="createVoteModal" title="Khởi Tạo Nội Dung Biểu Quyết Mới" size="md">
+            <form method="POST" action="{{ route('votes.store') }}">
+                @csrf
+                <div class="stu-form-group" style="margin-bottom: 14px;">
+                    <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                        Mục chương trình họp &amp; Hồ sơ liên kết <span style="color: #dc2626;">*</span>
+                    </label>
+                    <select name="MaChuongTrinh" required class="stu-form-control">
+                        <option value="">-- Chọn mục chương trình họp --</option>
+                        @foreach($agendaItems ?? [] as $item)
+                            <option value="{{ $item->MaChuongTrinh }}">
+                                [{{ $item->phienHop?->TenPhienHop ?? 'Phiên họp #' . $item->MaPhienHop }}] - Mục {{ $item->ThuTu }}: {{ $item->hoSoTrinh?->TieuDe ?? 'Nội dung thảo luận' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px; display: block;">
+                        Mỗi câu hỏi biểu quyết gắn liền với một mục trong chương trình nghị sự của phiên họp.
+                    </small>
+                </div>
+
+                <div class="stu-form-group" style="margin-bottom: 14px;">
+                    <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                        Câu hỏi / Nội dung biểu quyết <span style="color: #dc2626;">*</span>
+                    </label>
+                    <input type="text" name="NoiDung" required minlength="5" class="stu-form-control" placeholder="Ví dụ: Thông qua Đề án thành lập Viện Nghiên cứu Ứng dụng AI STU">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                    <div class="stu-form-group" style="margin-bottom: 0;">
+                        <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                            Hình thức bỏ phiếu
+                        </label>
+                        <select name="voting_type" class="stu-form-control">
+                            <option value="SECRET" selected>Bỏ phiếu kín (Bảo mật BR-09)</option>
+                            <option value="OPEN">Biểu quyết công khai</option>
+                        </select>
+                    </div>
+
+                    <div class="stu-form-group" style="margin-bottom: 0;">
+                        <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                            Ngưỡng thông qua <span style="color: #dc2626;">*</span>
+                        </label>
+                        <select name="pass_threshold" class="stu-form-control">
+                            <option value="50" selected>Quá bán (&ge; 50% tán thành)</option>
+                            <option value="67">Đa số đặc biệt (&ge; 2/3 tán thành)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="stu-form-group" style="margin-bottom: 20px;">
+                    <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                        Ghi chú / Hướng dẫn biểu quyết
+                    </label>
+                    <textarea name="notes" rows="2" class="stu-form-control" placeholder="Ghi chú căn cứ pháp lý hoặc thời lượng mở cổng bỏ phiếu..."></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid var(--color-border);">
+                    <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>Hủy bỏ</button>
+                    <button type="submit" class="stu-btn stu-btn-primary" style="box-shadow: 0 1px 3px rgba(0, 58, 140, 0.2);">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <span>Khởi tạo biểu quyết</span>
+                    </button>
+                </div>
+            </form>
+        </x-modal>
     @endif
 </div>
 @endsection

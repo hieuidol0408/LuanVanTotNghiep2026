@@ -206,4 +206,37 @@ class VoteWebTest extends TestCase
 
         $response->assertSessionHasErrors(['MaThanhVienNhanUyQuyen']);
     }
+
+    /**
+     * 7. Tạo mới nội dung biểu quyết trực tiếp trên giao diện Web.
+     */
+    public function test_votes_store_creates_new_voting_item(): void
+    {
+        $secretary = User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        $agenda = \App\Models\ChuongTrinhHop::first();
+        if (! $agenda) {
+            $this->markTestSkipped('Chưa có mục chương trình họp.');
+        }
+
+        $topicTitle = 'Thông qua kế hoạch chiến lược chuyển đổi số STU ' . uniqid();
+
+        $response = $this->post(route('votes.store'), [
+            'MaChuongTrinh' => $agenda->MaChuongTrinh,
+            'NoiDung' => $topicTitle,
+            'voting_type' => 'SECRET',
+            'pass_threshold' => 50,
+            'notes' => 'Bỏ phiếu kín theo quy chế Hội đồng trường.',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('noi_dung_bieu_quyet', [
+            'MaChuongTrinh' => $agenda->MaChuongTrinh,
+            'NoiDung' => $topicTitle,
+            'TrangThai' => 'PENDING',
+        ]);
+    }
 }

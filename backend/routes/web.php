@@ -61,6 +61,8 @@ Route::prefix('submissions')->name('submissions.')->group(function () {
     Route::get('/create', [SubmissionWebController::class, 'create'])->name('create');
     Route::post('/', [SubmissionWebController::class, 'store'])->name('store');
     Route::get('/{id}', [SubmissionWebController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [SubmissionWebController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [SubmissionWebController::class, 'update'])->name('update');
     Route::post('/{id}/review', [SubmissionWebController::class, 'review'])->name('review');
 });
 
@@ -68,6 +70,7 @@ Route::prefix('submissions')->name('submissions.')->group(function () {
 Route::get('/voting', fn () => redirect()->route('votes.index'));
 Route::prefix('votes')->name('votes.')->group(function () {
     Route::get('/', [VoteWebController::class, 'index'])->name('index');
+    Route::post('/', [VoteWebController::class, 'store'])->name('store');
     Route::get('/{id}', [VoteWebController::class, 'show'])->name('show');
     Route::post('/{id}/open', [VoteWebController::class, 'open'])->name('open');
     Route::post('/{id}/close', [VoteWebController::class, 'close'])->name('close');

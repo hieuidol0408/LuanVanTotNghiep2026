@@ -62,6 +62,10 @@ class VoteWebController extends Controller
             ->withQueryString();
 
         $meetings = PhienHop::orderBy('ThoiGianBatDau', 'desc')->get();
+        $agendaItems = ChuongTrinhHop::with(['phienHop', 'hoSoTrinh'])
+            ->orderBy('MaPhienHop', 'desc')
+            ->orderBy('ThuTu')
+            ->get();
         $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
 
         // Thống kê nhanh
@@ -72,7 +76,51 @@ class VoteWebController extends Controller
             'passed' => NoiDungBieuQuyet::whereIn('KetQua', ['PASSED', 'Đã thông qua', 'THÔNG QUA'])->count(),
         ];
 
-        return view('pages.votes.index', compact('votings', 'meetings', 'role', 'stats'));
+        return view('pages.votes.index', compact('votings', 'meetings', 'agendaItems', 'role', 'stats'));
+    }
+
+    /**
+     * Khởi tạo nội dung biểu quyết mới (Dành cho Thư ký, Chủ tịch, Quản trị viên)
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Bạn không có thẩm quyền tạo nội dung biểu quyết.');
+        }
+
+        $validated = $request->validate([
+            'MaChuongTrinh' => ['required', 'integer', 'exists:chuong_trinh_hop,MaChuongTrinh'],
+            'NoiDung' => ['required', 'string', 'min:5', 'max:255'],
+            'voting_type' => ['nullable', 'string', 'in:SECRET,OPEN'],
+            'pass_threshold' => ['nullable', 'integer', 'min:50', 'max:100'],
+            'notes' => ['nullable', 'string'],
+        ], [
+            'MaChuongTrinh.required' => 'Vui lòng chọn mục chương trình họp liên kết.',
+            'MaChuongTrinh.exists' => 'Mục chương trình họp không hợp lệ.',
+            'NoiDung.required' => 'Vui lòng nhập câu hỏi / nội dung biểu quyết.',
+            'NoiDung.min' => 'Nội dung biểu quyết phải có ít nhất 5 ký tự.',
+        ]);
+
+        $votingType = $validated['voting_type'] ?? 'SECRET';
+        $passThreshold = (int) ($validated['pass_threshold'] ?? 50);
+
+        $vote = NoiDungBieuQuyet::create([
+            'NoiDung' => $validated['NoiDung'],
+            'ThoiGianMo' => null,
+            'ThoiGianDong' => now()->addMinutes(30),
+            'TrangThai' => 'PENDING',
+            'KetQua' => 'PENDING',
+            'GhiChu' => json_encode([
+                'voting_type' => $votingType,
+                'pass_threshold' => $passThreshold,
+                'user_notes' => $validated['notes'] ?? null,
+            ]),
+            'MaChuongTrinh' => $validated['MaChuongTrinh'],
+        ]);
+
+        return redirect()->route('votes.show', $vote->MaNoiDung)
+            ->with('success', 'Đã khởi tạo nội dung biểu quyết mới thành công!');
     }
 
     /**

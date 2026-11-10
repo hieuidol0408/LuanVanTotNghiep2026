@@ -172,6 +172,114 @@ class SubmissionWebController extends Controller
     }
 
     /**
+     * Biểu mẫu chỉnh sửa / cập nhật bổ sung hồ sơ trình
+     */
+    public function edit(int|string $id): View|RedirectResponse
+    {
+        $dossier = HoSoTrinh::with(['donVi', 'taiLieu'])->findOrFail($id);
+
+        $user = Auth::user();
+        $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
+        $userDeptId = $user?->department_id ?? session('department_id');
+
+        if ($role === 'UNIT_REP' && $userDeptId && $dossier->MaDonVi !== (int) $userDeptId) {
+            return redirect()->route('submissions.index')
+                ->with('error', 'Bạn không có quyền chỉnh sửa hồ sơ của đơn vị khác.');
+        }
+
+        if (! in_array($role, ['UNIT_REP', 'SECRETARY', 'CHAIR', 'ADMIN'])) {
+            return redirect()->route('submissions.show', $dossier->MaHoSo)
+                ->with('error', 'Bạn không có quyền chỉnh sửa hồ sơ trình.');
+        }
+
+        $departments = DonVi::all();
+
+        return view('pages.submissions.edit', compact('dossier', 'departments', 'role', 'userDeptId'));
+    }
+
+    /**
+     * Lưu thông tin cập nhật hồ sơ trình và đính kèm thêm tài liệu (nếu có)
+     */
+    public function update(Request $request, int|string $id): RedirectResponse
+    {
+        $dossier = HoSoTrinh::findOrFail($id);
+
+        $user = Auth::user();
+        $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
+        $userDeptId = $user?->department_id ?? session('department_id');
+
+        if ($role === 'UNIT_REP' && $userDeptId && $dossier->MaDonVi !== (int) $userDeptId) {
+            return redirect()->route('submissions.index')
+                ->with('error', 'Bạn không có quyền cập nhật hồ sơ của đơn vị khác.');
+        }
+
+        if (! in_array($role, ['UNIT_REP', 'SECRETARY', 'CHAIR', 'ADMIN'])) {
+            return redirect()->route('submissions.show', $dossier->MaHoSo)
+                ->with('error', 'Bạn không có quyền cập nhật hồ sơ trình.');
+        }
+
+        $validated = $request->validate([
+            'TieuDe' => ['required', 'string', 'min:5', 'max:255'],
+            'NoiDungTomTat' => ['required', 'string'],
+            'LinhVuc' => ['required', 'string', 'max:255'],
+            'MaDonVi' => ['required', 'integer', 'exists:don_vi,MaDonVi'],
+            'GhiChu' => ['nullable', 'string'],
+            'file' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx'],
+        ], [
+            'TieuDe.required' => 'Vui lòng nhập tiêu đề hồ sơ tờ trình.',
+            'NoiDungTomTat.required' => 'Vui lòng nhập tóm tắt nội dung đề xuất.',
+            'LinhVuc.required' => 'Vui lòng chọn lĩnh vực hồ sơ.',
+            'MaDonVi.required' => 'Vui lòng chọn đơn vị trình.',
+            'file.max' => 'Tập tin đính kèm không vượt quá 20MB.',
+        ]);
+
+        if ($role === 'UNIT_REP' && $user?->MaDonVi) {
+            $validated['MaDonVi'] = $user->MaDonVi;
+        }
+
+        DB::transaction(function () use ($dossier, $validated, $request, $user) {
+            $updateData = [
+                'TieuDe' => $validated['TieuDe'],
+                'NoiDungTomTat' => $validated['NoiDungTomTat'],
+                'LinhVuc' => $validated['LinhVuc'],
+                'MaDonVi' => $validated['MaDonVi'],
+                'GhiChu' => $validated['GhiChu'] ?? $dossier->GhiChu,
+            ];
+
+            // Nếu hồ sơ đang ở trạng thái Chờ bổ sung, sau khi đơn vị cập nhật sẽ chuyển sang Đầy đủ để chờ thẩm tra lại
+            if ($dossier->TrangThai === 'Chờ bổ sung') {
+                $updateData['TrangThai'] = 'Đầy đủ';
+            }
+
+            $dossier->update($updateData);
+
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
+                $path = $file->storeAs('documents/submissions', $fileName, 'public');
+
+                $taiLieu = TaiLieu::create([
+                    'TenTaiLieu' => $file->getClientOriginalName(),
+                    'LoaiTaiLieu' => 'Tài liệu bổ sung',
+                    'DuongDan' => '/storage/' . $path,
+                    'DinhDang' => $file->getClientOriginalExtension(),
+                    'DungLuong' => $file->getSize(),
+                    'NgayTaiLen' => now(),
+                    'MaNguoiDung' => $user?->MaNguoiDung ?? 1,
+                ]);
+
+                DB::table('tai_lieu_ho_so')->insertOrIgnore([
+                    'MaTaiLieu' => $taiLieu->MaTaiLieu,
+                    'MaHoSo' => $dossier->MaHoSo,
+                ]);
+            }
+        });
+
+        return redirect()->route('submissions.show', $dossier->MaHoSo)
+            ->with('success', 'Đã cập nhật thông tin hồ sơ trình thành công!');
+    }
+
+    /**
      * Thẩm tra hồ sơ trình (Chỉ Thư ký, Chủ tịch, Quản trị viên)
      */
     public function review(Request $request, int|string $id): RedirectResponse

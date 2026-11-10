@@ -149,4 +149,39 @@ class SubmissionWebTest extends TestCase
         $dossier->refresh();
         $this->assertEquals('Đủ điều kiện', $dossier->TrangThai);
     }
+
+    /**
+     * 6. Cập nhật / Chỉnh sửa hồ sơ trình thành công trên giao diện Web.
+     */
+    public function test_submission_edit_and_update_works(): void
+    {
+        $secretary = User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        $dossier = HoSoTrinh::first();
+        if (! $dossier) {
+            $this->markTestSkipped('Chưa có hồ sơ trình để cập nhật.');
+        }
+
+        // Kiểm tra hiển thị form edit
+        $editResponse = $this->get(route('submissions.edit', $dossier->MaHoSo));
+        $editResponse->assertStatus(200);
+        $editResponse->assertSee('Cập nhật Hồ sơ tờ trình Hội đồng trường');
+
+        // Kiểm tra lưu cập nhật
+        $newTitle = 'Tờ trình cập nhật hoàn thiện thuyết minh ' . uniqid();
+        $updateResponse = $this->put(route('submissions.update', $dossier->MaHoSo), [
+            'TieuDe' => $newTitle,
+            'NoiDungTomTat' => 'Nội dung đã được bổ sung và hoàn thiện theo ý kiến thẩm tra.',
+            'LinhVuc' => 'Đào tạo & Đảm bảo chất lượng',
+            'MaDonVi' => $dossier->MaDonVi,
+            'GhiChu' => 'Đã cập nhật thuyết minh bổ sung.',
+        ]);
+
+        $updateResponse->assertRedirect(route('submissions.show', $dossier->MaHoSo));
+        $updateResponse->assertSessionHas('success');
+
+        $dossier->refresh();
+        $this->assertEquals($newTitle, $dossier->TieuDe);
+    }
 }

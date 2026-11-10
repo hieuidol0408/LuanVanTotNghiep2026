@@ -347,13 +347,21 @@
 
     <!-- ==================== TAB 6: NỘI DUNG BIỂU QUYẾT (BR-09 BẢO MẬT BỎ PHIẾU KÍN) ==================== -->
     <div class="stu-tab-pane" id="pane-voting">
-        <div style="margin-bottom: var(--space-4);">
-            <h3 style="font-size: var(--font-size-base); font-weight: 700; color: var(--color-primary); margin-bottom: 2px;">
-                Nội dung Biểu quyết & Kiểm phiếu Bảo mật (BR-09)
-            </h3>
-            <p style="font-size: var(--font-size-xs); color: var(--color-text-muted);">
-                Bảo vệ tuyệt đối <strong>nguyên tắc bỏ phiếu kín</strong>: Chỉ hiển thị tổng kết quả kiểm phiếu, tỷ lệ % tán thành; không lưu hoặc hiển thị bất kỳ mối liên hệ nào giữa danh tính người bỏ phiếu và lựa chọn cụ thể.
-            </p>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4);">
+            <div>
+                <h3 style="font-size: var(--font-size-base); font-weight: 700; color: var(--color-primary); margin-bottom: 2px;">
+                    Nội dung Biểu quyết &amp; Kiểm phiếu Bảo mật (BR-09)
+                </h3>
+                <p style="font-size: var(--font-size-xs); color: var(--color-text-muted);">
+                    Bảo vệ tuyệt đối <strong>nguyên tắc bỏ phiếu kín</strong>: Chỉ hiển thị tổng kết quả kiểm phiếu, tỷ lệ % tán thành; không lưu hoặc hiển thị bất kỳ mối liên hệ nào giữa danh tính người bỏ phiếu và lựa chọn cụ thể.
+                </p>
+            </div>
+            @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']) && $meeting->chuongTrinhHop->isNotEmpty())
+                <x-button variant="primary" size="sm" data-modal-open="addVotingModal">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    <span>Tạo nội dung biểu quyết</span>
+                </x-button>
+            @endif
         </div>
 
         @if($meeting->noiDungBieuQuyet->isEmpty())
@@ -413,6 +421,12 @@
                                 <span style="color: var(--color-warning);">Không ý kiến:</span>
                                 <div><strong>{{ $summary['abstain'] }}</strong></div>
                             </div>
+                        </div>
+
+                        <div style="margin-top: var(--space-3); display: flex; justify-content: flex-end;">
+                            <a href="{{ route('votes.show', $vote->MaNoiDung) }}" class="stu-btn stu-btn-outline stu-btn-sm">
+                                <span>Mở phòng bỏ phiếu &amp; Chi tiết kiểm phiếu &rarr;</span>
+                            </a>
                         </div>
                     </div>
                 @endforeach
@@ -555,6 +569,42 @@
         <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: var(--space-4);">
             <x-button variant="secondary" data-modal-close>Đóng</x-button>
             <x-button type="submit" variant="primary">Tải lên</x-button>
+        </div>
+    </form>
+</x-modal>
+
+<!-- Modal 5: Khởi tạo nội dung biểu quyết cho phiên họp -->
+<x-modal id="addVotingModal" title="Khởi Tạo Nội Dung Biểu Quyết" size="md">
+    <form method="POST" action="{{ route('votes.store') }}">
+        @csrf
+        <x-form.select name="MaChuongTrinh" label="Mục chương trình họp liên kết" required>
+            <option value="">-- Chọn mục chương trình họp --</option>
+            @foreach($meeting->chuongTrinhHop->sortBy('ThuTu') as $agendaItem)
+                <option value="{{ $agendaItem->MaChuongTrinh }}">
+                    Mục {{ $agendaItem->ThuTu }}: {{ $agendaItem->hoSoTrinh?->TieuDe ?? 'Nội dung thảo luận' }}
+                </option>
+            @endforeach
+        </x-form.select>
+
+        <x-form.input name="NoiDung" label="Câu hỏi / Nội dung biểu quyết" placeholder="Ví dụ: Thông qua Đề án thành lập Viện Nghiên cứu Ứng dụng AI STU" required />
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+            <x-form.select name="voting_type" label="Hình thức bỏ phiếu">
+                <option value="SECRET" selected>Bỏ phiếu kín (BR-09)</option>
+                <option value="OPEN">Biểu quyết công khai</option>
+            </x-form.select>
+
+            <x-form.select name="pass_threshold" label="Ngưỡng thông qua">
+                <option value="50" selected>Quá bán (&ge; 50%)</option>
+                <option value="67">Đa số 2/3 (&ge; 67%)</option>
+            </x-form.select>
+        </div>
+
+        <x-form.textarea name="notes" label="Ghi chú hướng dẫn bỏ phiếu" placeholder="Nhập ghi chú hoặc căn cứ pháp lý (nếu có)..." rows="2" />
+
+        <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: var(--space-4);">
+            <x-button variant="secondary" data-modal-close>Đóng</x-button>
+            <x-button type="submit" variant="primary">Khởi tạo biểu quyết</x-button>
         </div>
     </form>
 </x-modal>
