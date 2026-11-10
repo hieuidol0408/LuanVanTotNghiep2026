@@ -281,9 +281,16 @@
                         {{ $agenda->GhiChu ?: '-' }}
                     </td>
                     <td class="col-actions">
-                        <x-button variant="outline" size="sm" href="{{ route('submissions.show', $dossier?->MaHoSo) }}">
-                            <span>Xem hồ sơ</span>
-                        </x-button>
+                        <div class="stu-table-actions-group">
+                            @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                                <x-button variant="secondary" size="sm" data-modal-open="editMeetingAgendaModal-{{ $agenda->MaChuongTrinh }}">
+                                    <span>Cập nhật</span>
+                                </x-button>
+                            @endif
+                            <x-button variant="outline" size="sm" href="{{ route('submissions.show', $dossier?->MaHoSo) }}">
+                                <span>Xem hồ sơ</span>
+                            </x-button>
+                        </div>
                     </td>
                 </tr>
             @endforeach
@@ -608,4 +615,37 @@
         </div>
     </form>
 </x-modal>
+
+<!-- Modal 6: Cập nhật từng mục chương trình họp (Thứ tự, Trạng thái, Ghi chú) -->
+@if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+    @foreach($meeting->chuongTrinhHop->sortBy('ThuTu') as $agenda)
+        <x-modal id="editMeetingAgendaModal-{{ $agenda->MaChuongTrinh }}" title="Cập Nhật Mục Chương Trình Họp #{{ $agenda->ThuTu }}" size="md">
+            <form method="POST" action="{{ route('agendas.update', $agenda->MaChuongTrinh) }}">
+                @csrf
+                @method('PUT')
+
+                <div style="background: var(--color-bg-subtle); padding: 12px 14px; border-radius: var(--radius-md); margin-bottom: var(--space-4); font-size: var(--font-size-xs);">
+                    <strong style="color: var(--color-primary);">Hồ sơ trình:</strong> {{ $agenda->hoSoTrinh?->TieuDe ?? ('Hồ sơ #' . $agenda->MaHoSo) }}
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+                    <x-form.input type="number" name="ThuTu" label="Thứ tự xem xét" :value="$agenda->ThuTu" required />
+
+                    <x-form.select name="TrangThai" label="Trạng thái xử lý" required>
+                        @foreach(['Chưa xem xét', 'Đang thảo luận', 'Đã thông qua', 'Tạm hoãn'] as $st)
+                            <option value="{{ $st }}" {{ $agenda->TrangThai === $st ? 'selected' : '' }}>{{ $st }}</option>
+                        @endforeach
+                    </x-form.select>
+                </div>
+
+                <x-form.textarea name="GhiChu" label="Ghi chú kịch bản / Kết luận thảo luận" :value="$agenda->GhiChu" rows="3" />
+
+                <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: var(--space-4);">
+                    <x-button variant="secondary" data-modal-close>Đóng</x-button>
+                    <x-button type="submit" variant="primary">Lưu cập nhật</x-button>
+                </div>
+            </form>
+        </x-modal>
+    @endforeach
+@endif
 @endsection

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChuongTrinhHop;
+use App\Models\HoSoTrinh;
 use App\Models\PhienHop;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -21,11 +23,17 @@ class ChuongTrinhHopWebController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        $role = $user?->role ?? 'GUEST';
+        $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
 
-        // 1. Danh sách phiên họp phục vụ bộ lọc
+        // 1. Danh sách phiên họp phục vụ bộ lọc và thêm mới
         $meetings = PhienHop::orderByDesc('NgayHop')
             ->orderByDesc('MaPhienHop')
+            ->get();
+
+        // Danh sách hồ sơ trình đủ điều kiện đưa vào chương trình họp (BR-08)
+        $availableDossiers = HoSoTrinh::with('donVi')
+            ->whereIn('TrangThai', ['Đủ điều kiện', 'Đầy đủ', 'ELIGIBLE'])
+            ->orderByDesc('MaHoSo')
             ->get();
 
         // 2. Query chương trình họp có eager load
@@ -88,6 +96,7 @@ class ChuongTrinhHopWebController extends Controller
         return view('pages.chuongtrinhhop.index', compact(
             'agendas',
             'meetings',
+            'availableDossiers',
             'selectedMeeting',
             'totalAgendas',
             'totalDossiers',
@@ -95,5 +104,92 @@ class ChuongTrinhHopWebController extends Controller
             'activeMeetingsCount',
             'role'
         ));
+    }
+
+    /**
+     * [BR-08] Đưa hồ sơ trình mới vào chương trình họp
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Chỉ Chủ tịch hoặc Thư ký Hội đồng trường mới có quyền cập nhật chương trình họp.');
+        }
+
+        $validated = $request->validate([
+            'MaPhienHop' => ['required', 'integer', 'exists:phien_hop,MaPhienHop'],
+            'MaHoSo' => ['required', 'integer', 'exists:ho_so_trinh,MaHoSo'],
+            'ThuTu' => ['nullable', 'integer', 'min:1'],
+            'TrangThai' => ['nullable', 'string'],
+            'GhiChu' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'MaPhienHop.required' => 'Vui lòng chọn phiên họp.',
+            'MaHoSo.required' => 'Vui lòng chọn hồ sơ trình đưa vào chương trình.',
+        ]);
+
+        $maxOrder = ChuongTrinhHop::where('MaPhienHop', $validated['MaPhienHop'])->max('ThuTu') ?? 0;
+        $thuTu = $validated['ThuTu'] ?? ($maxOrder + 1);
+
+        ChuongTrinhHop::create([
+            'MaPhienHop' => $validated['MaPhienHop'],
+            'MaHoSo' => $validated['MaHoSo'],
+            'ThuTu' => $thuTu,
+            'TrangThai' => $validated['TrangThai'] ?? 'Chưa xem xét',
+            'GhiChu' => $validated['GhiChu'] ?? null,
+        ]);
+
+        return back()->with('success', "Đã thêm mục mới vào chương trình họp (Thứ tự #{$thuTu}) thành công!");
+    }
+
+    /**
+     * Cập nhật mục chương trình họp (Thứ tự xem xét, Trạng thái xử lý, Ghi chú kịch bản)
+     */
+    public function update(Request $request, int|string $id): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Chỉ Chủ tịch hoặc Thư ký Hội đồng trường mới có quyền cập nhật chương trình họp.');
+        }
+
+        $agenda = ChuongTrinhHop::findOrFail($id);
+
+        $validated = $request->validate([
+            'ThuTu' => ['required', 'integer', 'min:1'],
+            'TrangThai' => ['required', 'string', 'in:Chưa xem xét,Đang thảo luận,Đã thông qua,Tạm hoãn'],
+            'GhiChu' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'ThuTu.required' => 'Vui lòng nhập thứ tự xem xét.',
+            'ThuTu.min' => 'Thứ tự xem xét phải lớn hơn hoặc bằng 1.',
+            'TrangThai.required' => 'Vui lòng chọn trạng thái xử lý.',
+        ]);
+
+        $agenda->update([
+            'ThuTu' => $validated['ThuTu'],
+            'TrangThai' => $validated['TrangThai'],
+            'GhiChu' => $validated['GhiChu'] ?? null,
+        ]);
+
+        return back()->with('success', "Đã cập nhật mục chương trình họp (Thứ tự #{$agenda->ThuTu} - {$agenda->TrangThai}) thành công!");
+    }
+
+    /**
+     * Xóa mục khỏi chương trình họp (nếu chưa phát sinh biểu quyết)
+     */
+    public function destroy(int|string $id): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Bạn không có quyền xóa mục chương trình họp.');
+        }
+
+        $agenda = ChuongTrinhHop::withCount('noiDungBieuQuyet')->findOrFail($id);
+
+        if ($agenda->noi_dung_bieu_quyet_count > 0) {
+            return back()->with('error', 'Không thể xóa mục chương trình đã có nội dung biểu quyết liên kết.');
+        }
+
+        $agenda->delete();
+
+        return back()->with('success', 'Đã xóa mục khỏi chương trình họp.');
     }
 }

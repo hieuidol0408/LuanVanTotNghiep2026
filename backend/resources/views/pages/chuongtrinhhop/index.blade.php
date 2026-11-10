@@ -16,6 +16,12 @@
         <p>Quản lý và điều hành thứ tự nghị sự, liên kết hồ sơ trình vào các phiên họp theo quy tắc <strong>BR-08</strong>.</p>
     </div>
     <div class="stu-page-actions" style="display: flex; gap: 10px;">
+        @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+            <button type="button" class="stu-btn stu-btn-primary" data-modal-open="createAgendaModal" style="height: 38px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <span>Thêm mục chương trình họp</span>
+            </button>
+        @endif
         <a href="{{ route('meetings.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px;">
             <i class="bi bi-calendar-event"></i>
             <span>Quản lý phiên họp</span>
@@ -198,6 +204,12 @@
             </td>
             <td class="col-actions">
                 <div class="stu-table-actions-group">
+                    @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                        <button type="button" class="stu-btn-action" data-modal-open="editAgendaModal-{{ $agenda->MaChuongTrinh }}" title="Cập nhật thứ tự, trạng thái và ghi chú chương trình họp" style="border: 1px solid var(--color-primary); color: var(--color-primary); background: rgba(0, 58, 140, 0.04); cursor: pointer;">
+                            <i class="bi bi-pencil-square"></i>
+                            <span>Cập nhật</span>
+                        </button>
+                    @endif
                     @if($meeting)
                         <a href="{{ route('meetings.show', $meeting->MaPhienHop) }}" class="stu-btn-action" title="Xem chi tiết phiên họp">
                             <i class="bi bi-eye"></i>
@@ -220,6 +232,126 @@
     <div style="margin-top: 20px; width: 100%;">
         {{ $agendas->links() }}
     </div>
+@endif
+
+@if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+    {{-- Modal Thêm Mục Chương trình Họp Mới --}}
+    <x-modal id="createAgendaModal" title="Đưa Hồ Sơ Trình Vào Chương Trình Họp (BR-08)" size="md">
+        <form method="POST" action="{{ route('agendas.store') }}">
+            @csrf
+            <div class="stu-form-group" style="margin-bottom: 14px;">
+                <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                    Phiên họp Hội đồng trường <span style="color: #dc2626;">*</span>
+                </label>
+                <select name="MaPhienHop" required class="stu-form-control">
+                    <option value="">-- Chọn phiên họp --</option>
+                    @foreach($meetings as $m)
+                        <option value="{{ $m->MaPhienHop }}" {{ ($selectedMeeting && $selectedMeeting->MaPhienHop == $m->MaPhienHop) ? 'selected' : '' }}>
+                            {{ $m->TenPhienHop }} ({{ $m->ThoiGianBatDau ? date('d/m/Y', strtotime($m->ThoiGianBatDau)) : '' }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="stu-form-group" style="margin-bottom: 14px;">
+                <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                    Hồ sơ trình đủ điều kiện <span style="color: #dc2626;">*</span>
+                </label>
+                <select name="MaHoSo" required class="stu-form-control">
+                    <option value="">-- Chọn hồ sơ trình --</option>
+                    @foreach($availableDossiers ?? [] as $d)
+                        <option value="{{ $d->MaHoSo }}">
+                            [HST-{{ $d->MaHoSo }}] {{ $d->TieuDe }} ({{ $d->donVi?->TenDonVi }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                        Thứ tự xem xét (Tự động nếu để trống)
+                    </label>
+                    <input type="number" name="ThuTu" min="1" class="stu-form-control" placeholder="Ví dụ: 1, 2, 3...">
+                </div>
+
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                        Trạng thái xử lý
+                    </label>
+                    <select name="TrangThai" class="stu-form-control">
+                        <option value="Chưa xem xét" selected>Chưa xem xét</option>
+                        <option value="Đang thảo luận">Đang thảo luận</option>
+                        <option value="Đã thông qua">Đã thông qua</option>
+                        <option value="Tạm hoãn">Tạm hoãn</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="stu-form-group" style="margin-bottom: 20px;">
+                <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                    Ghi chú kịch bản / Thời lượng dự kiến
+                </label>
+                <textarea name="GhiChu" rows="2" class="stu-form-control" placeholder="Ví dụ: Báo cáo 15 phút, thảo luận 20 phút..."></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid var(--color-border);">
+                <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>Hủy</button>
+                <button type="submit" class="stu-btn stu-btn-primary">Đưa vào chương trình</button>
+            </div>
+        </form>
+    </x-modal>
+
+    {{-- Danh sách Modal Cập nhật từng Mục Chương trình Họp --}}
+    @foreach($agendas as $agenda)
+        <x-modal id="editAgendaModal-{{ $agenda->MaChuongTrinh }}" title="Cập Nhật Mục Chương Trình Họp #{{ $agenda->ThuTu }}" size="md">
+            <form method="POST" action="{{ route('agendas.update', $agenda->MaChuongTrinh) }}">
+                @csrf
+                @method('PUT')
+
+                <div style="background: var(--color-bg-subtle); padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;">
+                    <div style="color: var(--color-text-muted); margin-bottom: 4px;">
+                        <strong>Phiên họp:</strong> {{ $agenda->phienHop?->TenPhienHop ?? ('#' . $agenda->MaPhienHop) }}
+                    </div>
+                    <div style="color: var(--color-primary); font-weight: 700;">
+                        <strong>Hồ sơ trình:</strong> {{ $agenda->hoSoTrinh?->TieuDe ?? ('Hồ sơ #' . $agenda->MaHoSo) }}
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                    <div class="stu-form-group" style="margin-bottom: 0;">
+                        <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                            Thứ tự xem xét <span style="color: #dc2626;">*</span>
+                        </label>
+                        <input type="number" name="ThuTu" min="1" required value="{{ $agenda->ThuTu }}" class="stu-form-control">
+                    </div>
+
+                    <div class="stu-form-group" style="margin-bottom: 0;">
+                        <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                            Trạng thái xử lý <span style="color: #dc2626;">*</span>
+                        </label>
+                        <select name="TrangThai" required class="stu-form-control">
+                            @foreach(['Chưa xem xét', 'Đang thảo luận', 'Đã thông qua', 'Tạm hoãn'] as $st)
+                                <option value="{{ $st }}" {{ $agenda->TrangThai === $st ? 'selected' : '' }}>{{ $st }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="stu-form-group" style="margin-bottom: 20px;">
+                    <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                        Ghi chú điều hành / Kết luận thảo luận
+                    </label>
+                    <textarea name="GhiChu" rows="3" class="stu-form-control" placeholder="Cập nhật ghi chú điều hành, thời lượng hoặc tóm tắt ý kiến thảo luận...">{{ $agenda->GhiChu }}</textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid var(--color-border);">
+                    <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>Đóng</button>
+                    <button type="submit" class="stu-btn stu-btn-primary">Lưu cập nhật</button>
+                </div>
+            </form>
+        </x-modal>
+    @endforeach
 @endif
 
 @endsection

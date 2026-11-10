@@ -114,6 +114,9 @@ Route::prefix('task-reports')->name('task-reports.')->group(function () {
 // --- PHÂN HỆ QUẢN LÝ CHƯƠNG TRÌNH HỌP (AGENDAS / BR-08) ---
 Route::prefix('agendas')->name('agendas.')->group(function () {
     Route::get('/', [ChuongTrinhHopWebController::class, 'index'])->name('index');
+    Route::post('/', [ChuongTrinhHopWebController::class, 'store'])->name('store');
+    Route::put('/{id}', [ChuongTrinhHopWebController::class, 'update'])->name('update');
+    Route::delete('/{id}', [ChuongTrinhHopWebController::class, 'destroy'])->name('destroy');
 });
 
 Route::prefix('documents')->name('documents.')->group(function () {

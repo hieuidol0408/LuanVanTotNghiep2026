@@ -222,4 +222,31 @@ class MeetingWebTest extends TestCase
         // Dọn dẹp dữ liệu test
         PhienHop::where('NgayHop', $testDate)->delete();
     }
+
+    /**
+     * 9. Cập nhật Chương trình họp (Thứ tự xem xét, Trạng thái xử lý, Ghi chú).
+     */
+    public function test_agenda_update_order_and_status_works(): void
+    {
+        $secretary = \App\Models\User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        $agenda = \App\Models\ChuongTrinhHop::first();
+        if (! $agenda) {
+            $this->markTestSkipped('Chưa có mục chương trình họp.');
+        }
+
+        $response = $this->put(route('agendas.update', $agenda->MaChuongTrinh), [
+            'ThuTu' => $agenda->ThuTu,
+            'TrangThai' => 'Đã thông qua',
+            'GhiChu' => 'Đã thảo luận và nhất trí thông qua tại phiên họp.',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $agenda->refresh();
+        $this->assertEquals('Đã thông qua', $agenda->TrangThai);
+        $this->assertEquals('Đã thảo luận và nhất trí thông qua tại phiên họp.', $agenda->GhiChu);
+    }
 }
