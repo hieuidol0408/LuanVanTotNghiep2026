@@ -757,8 +757,87 @@ a:hover {
 .stu-table-actions-group {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: 6px;
   justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+
+.stu-table-actions-group form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.stu-btn-action,
+.stu-table-actions-group .stu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background-color: #ffffff;
+  color: var(--color-text-main);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.stu-btn-action:hover,
+.stu-table-actions-group .stu-btn-secondary:hover {
+  background-color: #F8FAFC;
+  border-color: #CBD5E1;
+  color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.06);
+}
+
+.stu-table-actions-group .stu-btn-outline {
+  background-color: #F0F7FF;
+  border-color: #BFDBFE;
+  color: var(--color-primary);
+}
+
+.stu-table-actions-group .stu-btn-outline:hover {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 58, 140, 0.18);
+}
+
+.stu-table-actions-group .stu-btn-primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.stu-table-actions-group .stu-btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.stu-table-actions-group .stu-btn-danger {
+  background-color: #FEF2F2;
+  border-color: #FECACA;
+  color: #DC2626;
+}
+
+.stu-table-actions-group .stu-btn-danger:hover {
+  background-color: #DC2626;
+  border-color: #DC2626;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(220, 38, 38, 0.22);
 }
 
 /* Empty State */
