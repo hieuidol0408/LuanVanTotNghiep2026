@@ -100,6 +100,7 @@
                         <th>Vai trò RBAC</th>
                         <th>Đơn vị</th>
                         <th style="width: 130px;">Trạng thái</th>
+                        <th style="width: 110px;" class="text-end">Thao tác</th>
                     </tr>
                 </x-slot:thead>
 
@@ -132,6 +133,19 @@
                                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
                                     <i class="bi bi-lock-fill me-1"></i> Khóa
                                 </span>
+                            @endif
+                        </td>
+                        <td class="text-end">
+                            @if(auth()->user() && in_array(auth()->user()->role, ['ADMIN', 'CHAIR']) && auth()->user()->MaNguoiDung !== $u->MaNguoiDung)
+                                <form method="POST" action="{{ route('users.destroy', $u->MaNguoiDung) }}" style="display:inline-block; margin:0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản {{ $u->HoTen }} không?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa người dùng">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            @else
+                                <span class="text-muted small">--</span>
                             @endif
                         </td>
                     </tr>

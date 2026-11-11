@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VaiTro extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'vai_tro';
     protected $primaryKey = 'MaVaiTro';
     public $timestamps = false;

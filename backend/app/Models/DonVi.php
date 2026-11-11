@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DonVi extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'don_vi';
     protected $primaryKey = 'MaDonVi';
     public $timestamps = false;

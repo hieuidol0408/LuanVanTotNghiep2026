@@ -299,16 +299,8 @@ class HoSoTrinhController extends Controller
             ], 404);
         }
 
-        if ($dossier->TrangThai !== 'DRAFT') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Chỉ có thể xóa hồ sơ ở trạng thái Dự thảo (DRAFT).',
-                'data' => null,
-                'errors' => null,
-            ], 422);
-        }
-
         $dossier->update(['TrangThai' => 'Đã ẩn']);
+        $dossier->delete();
 
         return response()->json([
             'success' => true,

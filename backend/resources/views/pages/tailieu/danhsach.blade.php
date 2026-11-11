@@ -82,15 +82,24 @@
                             <div><i class="bi bi-hdd me-1"></i>{{ $doc->DungLuong ? round($doc->DungLuong / 1024, 1) . ' KB' : 'Tệp đính kèm' }}</div>
                         </div>
 
-                        <div class="pt-2 border-top d-flex justify-content-between align-items-center">
+                        <div class="pt-2 border-top d-flex justify-content-between align-items-center gap-2">
                             @if($canDownload)
-                                <a href="{{ route('documents.download', $doc->MaTaiLieu) }}" class="btn btn-sm btn-outline-primary w-100">
+                                <a href="{{ route('documents.download', $doc->MaTaiLieu) }}" class="btn btn-sm btn-outline-primary flex-grow-1">
                                     <i class="bi bi-download me-1"></i> Tải về tệp
                                 </a>
                             @else
-                                <button class="btn btn-sm btn-light text-muted w-100" disabled title="Tài liệu nội bộ chỉ dành cho thành viên HĐT">
+                                <button class="btn btn-sm btn-light text-muted flex-grow-1" disabled title="Tài liệu nội bộ chỉ dành cho thành viên HĐT">
                                     <i class="bi bi-shield-lock me-1"></i> Hạn chế quyền xem
                                 </button>
+                            @endif
+                            @if(auth()->user() && in_array(auth()->user()->role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                                <form method="POST" action="{{ route('documents.destroy', $doc->MaTaiLieu) }}" style="margin:0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài liệu này không?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa tài liệu">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </form>
                             @endif
                         </div>
                     </div>

@@ -316,6 +316,7 @@ class HoSoTrinhWebController extends Controller
 
         $code = $dossier->ma_ho_so_hien_thi;
         $dossier->update(['TrangThai' => 'Đã ẩn']);
+        $dossier->delete();
 
         return redirect()->route('submissions.index')
             ->with('success', 'Đã ẩn hồ sơ trình ' . $code . ' khỏi danh sách hiển thị (Soft Delete).');

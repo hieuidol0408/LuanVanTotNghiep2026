@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\ThanhVienHdt;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class ThanhVienHdtWebController extends Controller
@@ -32,5 +34,22 @@ class ThanhVienHdtWebController extends Controller
         ];
 
         return view('pages.thanhvienhdt.danhsach', compact('members', 'stats'));
+    }
+
+    /**
+     * Xóa thành viên HĐT khỏi danh sách hiển thị (Soft Delete)
+     */
+    public function destroy(int|string $id): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (!in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Bạn không có thẩm quyền thực hiện thao tác này.');
+        }
+
+        $member = ThanhVienHdt::findOrFail($id);
+        $member->delete();
+
+        return redirect()->route('members.index')
+            ->with('success', "Đã xóa thành viên #{$id} khỏi danh sách hiển thị.");
     }
 }

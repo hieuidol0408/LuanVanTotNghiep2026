@@ -145,10 +145,19 @@
                                 </span>
                             @endif
                         </td>
-                        <td class="text-end">
+                        <td class="text-end" style="white-space: nowrap;">
                             <a href="{{ route('task-reports.show', $rpt->MaBaoCao) }}" class="btn btn-sm btn-outline-primary" title="Xem chi tiết & Thẩm định">
                                 <i class="bi bi-eye"></i> Xem
                             </a>
+                            @if(Auth::user() && in_array(Auth::user()->role, ['SECRETARY', 'CHAIR', 'ADMIN']))
+                                <form method="POST" action="{{ route('task-reports.destroy', $rpt->MaBaoCao) }}" style="display:inline-block; margin-left:4px;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa báo cáo #BC-{{ $rpt->MaBaoCao }} không?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa báo cáo">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            @endif
                         </td>
                     </tr>
                 @empty

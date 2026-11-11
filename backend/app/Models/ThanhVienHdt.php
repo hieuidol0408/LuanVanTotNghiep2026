@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ThanhVienHdt extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'thanh_vien_hdt';
     protected $primaryKey = 'MaThanhVien';
     public $timestamps = false;

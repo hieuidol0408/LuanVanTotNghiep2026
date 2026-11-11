@@ -313,6 +313,7 @@ class BieuQuyetWebController extends Controller
 
         $vote = NoiDungBieuQuyet::findOrFail($id);
         $vote->update(['TrangThai' => 'Đã ẩn']);
+        $vote->delete();
 
         return redirect()->route('votes.index')
             ->with('success', 'Đã ẩn nội dung biểu quyết #' . $id . ' khỏi giao diện (Soft Delete).');

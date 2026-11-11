@@ -371,6 +371,7 @@ class PhienHopWebController extends Controller
 
         $meeting = PhienHop::findOrFail($id);
         $meeting->update(['TrangThai' => 'Đã ẩn']);
+        $meeting->delete();
 
         return redirect()->route('meetings.index')
             ->with('success', "Đã ẩn phiên họp #{$meeting->MaPhienHop} khỏi danh sách hiển thị (dữ liệu vẫn được bảo toàn trong CSDL).");

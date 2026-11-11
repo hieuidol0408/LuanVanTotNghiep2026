@@ -30,9 +30,10 @@ class BangDieuHanhWebController extends Controller
 
         // 1. TÍNH TOÁN CÁC CHỈ SỐ KPI THEO VAI TRÒ
         $totalMeetings = PhienHop::count();
-        $upcomingMeetingsCount = PhienHop::where('ThoiGianBatDau', '>=', now())
-            ->orWhereIn('TrangThai', ['Sắp diễn ra', 'Đang diễn ra', 'UPCOMING', 'IN_PROGRESS'])
-            ->count();
+        $upcomingMeetingsCount = PhienHop::where(function ($q) {
+            $q->where('ThoiGianBatDau', '>=', now())
+              ->orWhereIn('TrangThai', ['Sắp diễn ra', 'Đang diễn ra', 'UPCOMING', 'IN_PROGRESS']);
+        })->count();
         if ($upcomingMeetingsCount === 0) {
             // Fallback nếu dữ liệu seed là quá khứ
             $upcomingMeetingsCount = PhienHop::take(2)->count();

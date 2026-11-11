@@ -210,7 +210,7 @@
                         @endif
 
                         @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                            <form method="POST" action="{{ route('resolutions.destroy', $res->MaNghiQuyet) }}" onsubmit="return confirm('Xác nhận ẩn Nghị quyết {{ $res->SoNghiQuyet }} khỏi giao diện?');">
+                            <form method="POST" action="{{ route('resolutions.destroy', $res->MaNghiQuyet) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa Nghị quyết {{ $res->SoNghiQuyet }} khỏi giao diện?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="stu-btn stu-btn-danger stu-btn-sm" title="Ẩn Nghị quyết (Soft Delete)">

@@ -377,8 +377,9 @@ class NguoiDungController extends Controller
         }
 
         // Chuyển sang trạng thái Khóa thay vì xóa vật lý nếu có dữ liệu liên quan
-        $user->TrangThai = 'Khóa';
+        $user->TrangThai = 'Đã ẩn';
         $user->save();
+        $user->delete();
 
         return response()->json([
             'success' => true,

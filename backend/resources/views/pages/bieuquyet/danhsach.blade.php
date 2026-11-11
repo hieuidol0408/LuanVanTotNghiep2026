@@ -202,7 +202,7 @@
                             <span>{{ $isOpening ? 'Vào phòng bỏ phiếu' : 'Xem kết quả' }}</span>
                         </a>
                         @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                            <form method="POST" action="{{ route('votes.destroy', $v->MaNoiDung) }}" onsubmit="return confirm('Xác nhận ẩn nội dung biểu quyết này khỏi giao diện?');">
+                            <form method="POST" action="{{ route('votes.destroy', $v->MaNoiDung) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa nội dung biểu quyết này khỏi giao diện?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="stu-btn stu-btn-danger stu-btn-sm" title="Ẩn nội dung biểu quyết (Soft Delete)">

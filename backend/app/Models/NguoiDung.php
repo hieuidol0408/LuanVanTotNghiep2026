@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,6 +14,8 @@ use Laravel\Sanctum\HasApiTokens;
 
 class NguoiDung extends Authenticatable
 {
+    use SoftDeletes;
+
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $table = 'nguoi_dung';

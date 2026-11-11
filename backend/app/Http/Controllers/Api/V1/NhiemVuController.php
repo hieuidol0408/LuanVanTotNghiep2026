@@ -304,6 +304,7 @@ class NhiemVuController extends Controller
         }
 
         $task->update(['TrangThai' => 'Đã ẩn']);
+        $task->delete();
 
         return response()->json([
             'success' => true,

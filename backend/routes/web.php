@@ -113,6 +113,7 @@ Route::prefix('task-reports')->name('task-reports.')->group(function () {
     Route::post('/', [BaoCaoWebController::class, 'store'])->name('store');
     Route::get('/{id}', [BaoCaoWebController::class, 'show'])->name('show');
     Route::post('/{id}/review', [BaoCaoWebController::class, 'review'])->name('review');
+    Route::delete('/{id}', [BaoCaoWebController::class, 'destroy'])->name('destroy');
 });
 
 // --- PHÂN HỆ QUẢN LÝ CHƯƠNG TRÌNH HỌP (AGENDAS / BR-08) ---
@@ -126,15 +127,18 @@ Route::prefix('agendas')->name('agendas.')->group(function () {
 Route::prefix('documents')->name('documents.')->group(function () {
     Route::get('/', [TaiLieuWebController::class, 'index'])->name('index');
     Route::get('/{id}/download', [TaiLieuWebController::class, 'download'])->name('download');
+    Route::delete('/{id}', [TaiLieuWebController::class, 'destroy'])->name('destroy');
 });
 
 Route::prefix('members')->name('members.')->group(function () {
     Route::get('/', [ThanhVienHdtWebController::class, 'index'])->name('index');
+    Route::delete('/{id}', [ThanhVienHdtWebController::class, 'destroy'])->name('destroy');
 });
 
 Route::prefix('users')->name('users.')->group(function () {
     Route::get('/', [NguoiDungWebController::class, 'index'])->name('index');
     Route::post('/', [NguoiDungWebController::class, 'store'])->name('store');
+    Route::delete('/{id}', [NguoiDungWebController::class, 'destroy'])->name('destroy');
 });
 
 // --- PHÂN HỆ HỒ SƠ CÁ NHÂN (USER PROFILE) ---

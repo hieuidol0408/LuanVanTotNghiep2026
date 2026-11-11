@@ -223,7 +223,7 @@
                         </a>
                     @endif
                     @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                        <form method="POST" action="{{ route('agendas.destroy', $agenda->MaChuongTrinh) }}" onsubmit="return confirm('Xác nhận ẩn mục chương trình họp này khỏi giao diện?');">
+                        <form method="POST" action="{{ route('agendas.destroy', $agenda->MaChuongTrinh) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mục chương trình họp này khỏi giao diện?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="stu-btn stu-btn-danger stu-btn-sm" title="Ẩn mục chương trình họp (Soft Delete)">

@@ -181,6 +181,7 @@ class ChuongTrinhHopWebController extends Controller
 
         $agenda = ChuongTrinhHop::findOrFail($id);
         $agenda->update(['TrangThai' => 'Đã ẩn']);
+        $agenda->delete();
 
         return back()->with('success', 'Đã ẩn mục khỏi chương trình họp (Soft Delete).');
     }

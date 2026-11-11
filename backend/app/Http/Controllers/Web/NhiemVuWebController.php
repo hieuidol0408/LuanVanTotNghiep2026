@@ -300,8 +300,10 @@ class NhiemVuWebController extends Controller
         try {
             foreach ($task->phanCongNhiemVu as $pc) {
                 $pc->update(['TrangThaiThucHien' => 'Đã ẩn']);
+                $pc->delete();
             }
             $task->update(['TrangThai' => 'Đã ẩn']);
+            $task->delete();
             DB::commit();
 
             return redirect()->route('tasks.index')->with('success', 'Đã ẩn nhiệm vụ #' . $id . ' khỏi giao diện (Soft Delete).');

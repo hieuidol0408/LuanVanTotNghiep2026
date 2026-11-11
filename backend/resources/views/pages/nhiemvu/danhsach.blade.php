@@ -204,6 +204,15 @@
                                     </a>
                                 @endif
                             </div>
+                            @if(Auth::user() && in_array(Auth::user()->role, ['SECRETARY', 'CHAIR', 'ADMIN']))
+                                <form method="POST" action="{{ route('tasks.destroy', $t->MaNhiemVu) }}" style="display:inline-block; margin-left:4px;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa nhiệm vụ #{{ $t->MaNhiemVu }} không?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa nhiệm vụ">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            @endif
                         </td>
                     </tr>
                 @empty

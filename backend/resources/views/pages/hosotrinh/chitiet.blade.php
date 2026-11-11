@@ -27,7 +27,7 @@
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     <span>Chỉnh sửa hồ sơ</span>
                 </a>
-                <form method="POST" action="{{ route('submissions.destroy', $dossier->MaHoSo) }}" style="display: inline-flex; margin: 0;" onsubmit="return confirm('Xác nhận ẩn hồ sơ trình {{ $dossier->ma_ho_so_hien_thi }} khỏi danh sách hiển thị?');">
+                <form method="POST" action="{{ route('submissions.destroy', $dossier->MaHoSo) }}" style="display: inline-flex; margin: 0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa hồ sơ trình {{ $dossier->ma_ho_so_hien_thi }} khỏi danh sách hiển thị?');">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="stu-btn stu-btn-danger stu-btn-sm">

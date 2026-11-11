@@ -648,4 +648,41 @@ class BieuQuyetController extends Controller
             'ballots' => $ballots,
         ];
     }
+
+    /**
+     * Xóa (Ẩn) nội dung biểu quyết (Soft Delete)
+     * DELETE /api/v1/voting/{id}
+     */
+    public function destroy(Request $request, int|string $id): JsonResponse
+    {
+        $user = $request->user();
+        if ($user && !in_array($user->role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không có quyền xóa nội dung biểu quyết.',
+                'data' => null,
+                'errors' => null,
+            ], 403);
+        }
+
+        $vote = NoiDungBieuQuyet::find($id);
+        if (!$vote) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy nội dung biểu quyết.',
+                'data' => null,
+                'errors' => null,
+            ], 404);
+        }
+
+        $vote->update(['TrangThai' => 'Đã ẩn']);
+        $vote->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã xóa nội dung biểu quyết thành công.',
+            'data' => null,
+            'errors' => null,
+        ]);
+    }
 }

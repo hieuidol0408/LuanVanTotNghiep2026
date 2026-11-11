@@ -258,4 +258,22 @@ class BaoCaoWebController extends Controller
             return back()->with('error', 'Lỗi khi phê duyệt báo cáo: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Xóa báo cáo tiến độ (Soft Delete - ẩn dữ liệu trong CSDL)
+     */
+    public function destroy(int|string $id): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (!in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN', 'EXECUTING_UNIT'])) {
+            return back()->with('error', 'Bạn không có thẩm quyền thực hiện thao tác này.');
+        }
+
+        $report = BaoCao::findOrFail($id);
+        $report->update(['TrangThaiXacNhan' => 'Đã ẩn']);
+        $report->delete();
+
+        return redirect()->route('task-reports.index')
+            ->with('success', "Đã xóa báo cáo tiến độ #BC-{$id} khỏi danh sách hiển thị.");
+    }
 }

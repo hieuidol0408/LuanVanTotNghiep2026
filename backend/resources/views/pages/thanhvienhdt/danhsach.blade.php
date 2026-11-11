@@ -81,6 +81,19 @@
                                 <i class="bi bi-envelope me-1"></i>{{ $m->nguoiDung?->email ?? '--' }}
                             </div>
                         </td>
+                        <td class="text-end">
+                            @if(auth()->user() && in_array(auth()->user()->role, ['ADMIN', 'CHAIR', 'SECRETARY']))
+                                <form method="POST" action="{{ route('members.destroy', $m->MaThanhVien) }}" style="display:inline-block; margin:0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thành viên này khỏi danh sách không?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa thành viên">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            @else
+                                <span class="text-muted small">--</span>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr>

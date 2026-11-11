@@ -370,16 +370,8 @@ class NghiQuyetController extends Controller
             ], 404);
         }
 
-        if ($resolution->TrangThai !== 'DRAFT') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Chỉ được xóa Nghị quyết đang ở trạng thái Dự thảo (DRAFT).',
-                'data' => null,
-                'errors' => null,
-            ], 422);
-        }
-
         $resolution->update(['TrangThai' => 'Đã ẩn']);
+        $resolution->delete();
 
         return response()->json([
             'success' => true,

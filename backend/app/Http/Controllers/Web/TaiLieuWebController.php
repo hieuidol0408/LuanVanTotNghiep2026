@@ -73,4 +73,20 @@ class TaiLieuWebController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $doc->TenTaiLieu . '.pdf"',
         ]);
     }
+
+    /**
+     * Xóa tài liệu (Soft Delete - ẩn dữ liệu trong CSDL)
+     */
+    public function destroy(int|string $id): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (!in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Bạn không có thẩm quyền xóa tài liệu.');
+        }
+
+        $doc = TaiLieu::findOrFail($id);
+        $doc->delete();
+
+        return back()->with('success', "Đã xóa tài liệu \"{$doc->TenTaiLieu}\" khỏi danh sách hiển thị.");
+    }
 }

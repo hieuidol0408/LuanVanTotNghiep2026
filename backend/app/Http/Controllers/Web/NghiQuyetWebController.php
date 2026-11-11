@@ -323,6 +323,7 @@ class NghiQuyetWebController extends Controller
         $resolution = NghiQuyet::findOrFail($id);
         $soNghiQuyet = $resolution->SoNghiQuyet;
         $resolution->update(['TrangThai' => 'Đã ẩn']);
+        $resolution->delete();
 
         return redirect()->route('resolutions.index')
             ->with('success', "Đã ẩn Nghị quyết {$soNghiQuyet} khỏi giao diện (Soft Delete).");

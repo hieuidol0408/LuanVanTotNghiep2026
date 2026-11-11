@@ -294,16 +294,8 @@ class PhienHopController extends Controller
             ], 404);
         }
 
-        if ($meeting->TrangThai === 'COMPLETED') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không thể xóa phiên họp đã bế mạc.',
-                'data' => null,
-                'errors' => null,
-            ], 422);
-        }
-
         $meeting->update(['TrangThai' => 'Đã ẩn']);
+        $meeting->delete();
 
         return response()->json([
             'success' => true,
@@ -398,6 +390,7 @@ class PhienHopController extends Controller
         }
 
         $agenda->update(['TrangThai' => 'Đã ẩn']);
+        $agenda->delete();
 
         // Tái đánh số thứ tự
         $remaining = ChuongTrinhHop::where('MaPhienHop', $id)->orderBy('ThuTu')->get();

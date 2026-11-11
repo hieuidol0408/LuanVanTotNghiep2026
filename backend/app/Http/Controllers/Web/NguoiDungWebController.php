@@ -131,4 +131,27 @@ class NguoiDungWebController extends Controller
 
         return redirect()->route('users.index')->with('success', "Đã tạo tài khoản '{$user->HoTen}' ({$user->email}) thành công.");
     }
+
+    /**
+     * Xóa tài khoản người dùng khỏi danh sách hiển thị (Soft Delete)
+     */
+    public function destroy(int|string $id): RedirectResponse
+    {
+        $currentUser = Auth::user();
+        $role = $currentUser?->role ?? (session('user_role') ?? 'CHAIR');
+        if (!in_array($role, ['ADMIN', 'CHAIR'])) {
+            return back()->with('error', 'Chỉ Quản trị viên hệ thống (ADMIN) hoặc Chủ tịch HĐT mới có quyền này.');
+        }
+
+        $user = NguoiDung::findOrFail($id);
+        if ($currentUser && $currentUser->MaNguoiDung == $user->MaNguoiDung) {
+            return back()->with('error', 'Không thể tự xóa tài khoản đang đăng nhập.');
+        }
+
+        $user->update(['TrangThai' => 'Đã ẩn']);
+        $user->delete();
+
+        return redirect()->route('users.index')
+            ->with('success', "Đã xóa tài khoản \"{$user->HoTen}\" khỏi danh sách hiển thị.");
+    }
 }
