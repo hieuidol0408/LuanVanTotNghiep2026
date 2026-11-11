@@ -45,12 +45,16 @@
                         @endif
                     </tr>
                 </thead>
+            @elseif(isset($thead))
+                <thead>
+                    {{ $thead }}
+                </thead>
             @endif
 
             <tbody>
                 @if($empty)
                     <tr>
-                        <td colspan="{{ count($headers) + ($hasActions ? 1 : 0) }}" style="padding: 0;">
+                        <td colspan="{{ count($normalizedHeaders ?? $headers) + ($hasActions ? 1 : 0) }}" style="padding: 0;">
                             <div class="stu-empty-state">
                                 <div class="stu-empty-icon">
                                     <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
