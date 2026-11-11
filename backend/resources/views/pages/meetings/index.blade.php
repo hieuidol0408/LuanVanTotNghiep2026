@@ -92,7 +92,7 @@
 
 <!-- BẢNG DỮ LIỆU PHIÊN HỌP (KHÔNG TRÀN & STICKY ACTION COLUMN) -->
 <x-table 
-    :headers="['Mã', 'Tên phiên họp', 'Thời gian', 'Địa điểm & Hình thức', 'Trạng thái', 'Hồ sơ / TV', 'Thao tác']"
+    :headers="['Mã', 'Tên phiên họp', 'Thời gian', 'Địa điểm & Hình thức', 'Trạng thái', 'Hồ sơ / TV']"
     :hasActions="true"
     actionTitle="Thao tác"
     :empty="$meetings->isEmpty()"

@@ -141,7 +141,7 @@
 
 <!-- BẢNG DỮ LIỆU CHƯƠNG TRÌNH HỌP -->
 <x-table 
-    :headers="['Thứ tự', 'Phiên họp', 'Hồ sơ trình xem xét', 'Đơn vị trình', 'Trạng thái', 'Ghi chú', 'Thao tác']"
+    :headers="['Thứ tự', 'Phiên họp', 'Hồ sơ trình xem xét', 'Đơn vị trình', 'Trạng thái', 'Ghi chú']"
     :hasActions="true"
     actionTitle="Thao tác"
     :empty="$agendas->isEmpty()"

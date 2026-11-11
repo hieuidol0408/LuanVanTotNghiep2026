@@ -26,9 +26,18 @@
     <div class="stu-table-wrapper">
         <table class="stu-table">
             @if(!empty($headers))
+                @php
+                    $normalizedHeaders = $headers;
+                    if ($hasActions && count($normalizedHeaders) > 0) {
+                        $lastHeader = end($normalizedHeaders);
+                        if (in_array(mb_strtolower(trim($lastHeader)), [mb_strtolower(trim($actionTitle)), 'thao tác', 'hành động'])) {
+                            array_pop($normalizedHeaders);
+                        }
+                    }
+                @endphp
                 <thead>
                     <tr>
-                        @foreach($headers as $header)
+                        @foreach($normalizedHeaders as $header)
                             <th>{{ $header }}</th>
                         @endforeach
                         @if($hasActions)
