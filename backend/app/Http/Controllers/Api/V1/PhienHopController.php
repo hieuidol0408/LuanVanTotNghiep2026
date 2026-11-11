@@ -92,7 +92,40 @@ class PhienHopController extends Controller
         ]);
 
         $startDateTime = "{$validated['meeting_date']} {$validated['start_time']}:00";
-        $endDateTime = ! empty($validated['end_time']) ? "{$validated['meeting_date']} {$validated['end_time']}:00" : null;
+        $endDateTime = ! empty($validated['end_time'])
+            ? "{$validated['meeting_date']} {$validated['end_time']}:00"
+            : date('Y-m-d H:i:s', strtotime($startDateTime) + 7200);
+
+        if (strtotime($endDateTime) <= strtotime($startDateTime)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.',
+                'data' => null,
+                'errors' => ['end_time' => ['Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.']],
+            ], 422);
+        }
+
+        // [BR-08] Kiểm tra chống xung đột thời gian phiên họp (Thư ký & HĐT không thể họp trùng lịch)
+        $conflictingMeeting = PhienHop::whereNotIn('TrangThai', ['Hủy', 'Đã hủy', 'CANCELLED'])
+            ->where(function ($query) use ($startDateTime, $endDateTime) {
+                $query->where('ThoiGianBatDau', '<', $endDateTime)
+                      ->where('ThoiGianKetThuc', '>', $startDateTime);
+            })
+            ->first();
+
+        if ($conflictingMeeting) {
+            $conflictStart = date('H:i', strtotime($conflictingMeeting->ThoiGianBatDau));
+            $conflictEnd = date('H:i', strtotime($conflictingMeeting->ThoiGianKetThuc));
+            $conflictDate = date('d/m/Y', strtotime($conflictingMeeting->NgayHop));
+            $conflictMsg = "Xung đột lịch họp: Đã có phiên họp \"{$conflictingMeeting->TenPhienHop}\" diễn ra từ {$conflictStart} đến {$conflictEnd} ngày {$conflictDate}.";
+
+            return response()->json([
+                'success' => false,
+                'message' => $conflictMsg,
+                'data' => null,
+                'errors' => ['start_time' => [$conflictMsg]],
+            ], 422);
+        }
 
         $meeting = DB::transaction(function () use ($validated, $startDateTime, $endDateTime) {
             $phienHop = PhienHop::create([
@@ -189,7 +222,41 @@ class PhienHopController extends Controller
         ]);
 
         $startDateTime = "{$validated['meeting_date']} {$validated['start_time']}:00";
-        $endDateTime = ! empty($validated['end_time']) ? "{$validated['meeting_date']} {$validated['end_time']}:00" : null;
+        $endDateTime = ! empty($validated['end_time'])
+            ? "{$validated['meeting_date']} {$validated['end_time']}:00"
+            : date('Y-m-d H:i:s', strtotime($startDateTime) + 7200);
+
+        if (strtotime($endDateTime) <= strtotime($startDateTime)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.',
+                'data' => null,
+                'errors' => ['end_time' => ['Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.']],
+            ], 422);
+        }
+
+        // [BR-08] Kiểm tra chống xung đột thời gian phiên họp khi cập nhật
+        $conflictingMeeting = PhienHop::where('MaPhienHop', '!=', $id)
+            ->whereNotIn('TrangThai', ['Hủy', 'Đã hủy', 'CANCELLED'])
+            ->where(function ($query) use ($startDateTime, $endDateTime) {
+                $query->where('ThoiGianBatDau', '<', $endDateTime)
+                      ->where('ThoiGianKetThuc', '>', $startDateTime);
+            })
+            ->first();
+
+        if ($conflictingMeeting) {
+            $conflictStart = date('H:i', strtotime($conflictingMeeting->ThoiGianBatDau));
+            $conflictEnd = date('H:i', strtotime($conflictingMeeting->ThoiGianKetThuc));
+            $conflictDate = date('d/m/Y', strtotime($conflictingMeeting->NgayHop));
+            $conflictMsg = "Xung đột lịch họp: Đã có phiên họp \"{$conflictingMeeting->TenPhienHop}\" diễn ra từ {$conflictStart} đến {$conflictEnd} ngày {$conflictDate}.";
+
+            return response()->json([
+                'success' => false,
+                'message' => $conflictMsg,
+                'data' => null,
+                'errors' => ['start_time' => [$conflictMsg]],
+            ], 422);
+        }
 
         $meeting->update([
             'TenPhienHop' => $validated['title'],

@@ -109,18 +109,22 @@ class MeetingWebController extends Controller
             'HinhThuc.required' => 'Vui lòng chọn hình thức họp.',
         ]);
 
-        $startDateTime = "{$validated['NgayHop']} {$validated['GioBatDau']}:00";
-        $endDateTime = "{$validated['NgayHop']} {$validated['GioKetThuc']}:00";
+        $startTimeStr = strlen($validated['GioBatDau']) === 5 ? "{$validated['GioBatDau']}:00" : $validated['GioBatDau'];
+        $endTimeStr = strlen($validated['GioKetThuc']) === 5 ? "{$validated['GioKetThuc']}:00" : $validated['GioKetThuc'];
+        $startDateTime = "{$validated['NgayHop']} {$startTimeStr}";
+        $endDateTime = "{$validated['NgayHop']} {$endTimeStr}";
 
         // Kiểm tra ràng buộc thời gian kết thúc phải lớn hơn thời gian bắt đầu
         if (strtotime($endDateTime) <= strtotime($startDateTime)) {
+            $errMsg = 'Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.';
             return back()
                 ->withInput()
-                ->withErrors(['GioKetThuc' => 'Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.']);
+                ->with('error', $errMsg)
+                ->withErrors(['GioKetThuc' => $errMsg]);
         }
 
         // [BR-08] Kiểm tra chống xung đột thời gian phiên họp (Thư ký & HĐT không thể họp trùng lịch)
-        $conflictingMeeting = PhienHop::whereNotIn('TrangThai', ['Đã hủy', 'CANCELLED'])
+        $conflictingMeeting = PhienHop::whereNotIn('TrangThai', ['Hủy', 'Đã hủy', 'CANCELLED'])
             ->where(function ($query) use ($startDateTime, $endDateTime) {
                 $query->where('ThoiGianBatDau', '<', $endDateTime)
                       ->where('ThoiGianKetThuc', '>', $startDateTime);
@@ -131,10 +135,12 @@ class MeetingWebController extends Controller
             $conflictStart = date('H:i', strtotime($conflictingMeeting->ThoiGianBatDau));
             $conflictEnd = date('H:i', strtotime($conflictingMeeting->ThoiGianKetThuc));
             $conflictDate = date('d/m/Y', strtotime($conflictingMeeting->NgayHop));
+            $conflictMsg = "Xung đột lịch họp: Đã có phiên họp \"{$conflictingMeeting->TenPhienHop}\" diễn ra từ {$conflictStart} đến {$conflictEnd} ngày {$conflictDate}. Thư ký và Hội đồng trường không thể tham gia 2 cuộc họp trùng thời gian.";
             return back()
                 ->withInput()
+                ->with('error', $conflictMsg)
                 ->withErrors([
-                    'GioBatDau' => "Xung đột lịch họp: Đã có phiên họp \"{$conflictingMeeting->TenPhienHop}\" diễn ra từ {$conflictStart} đến {$conflictEnd} ngày {$conflictDate}. Thư ký và Hội đồng trường không thể tham gia 2 cuộc họp trùng thời gian."
+                    'GioBatDau' => $conflictMsg,
                 ]);
         }
 
@@ -268,33 +274,41 @@ class MeetingWebController extends Controller
             'GhiChu' => ['nullable', 'string'],
         ]);
 
-        $startDateTime = "{$validated['NgayHop']} {$validated['GioBatDau']}:00";
-        $endDateTime = "{$validated['NgayHop']} {$validated['GioKetThuc']}:00";
+        $startTimeStr = strlen($validated['GioBatDau']) === 5 ? "{$validated['GioBatDau']}:00" : $validated['GioBatDau'];
+        $endTimeStr = strlen($validated['GioKetThuc']) === 5 ? "{$validated['GioKetThuc']}:00" : $validated['GioKetThuc'];
+        $startDateTime = "{$validated['NgayHop']} {$startTimeStr}";
+        $endDateTime = "{$validated['NgayHop']} {$endTimeStr}";
 
         if (strtotime($endDateTime) <= strtotime($startDateTime)) {
+            $errMsg = 'Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.';
             return back()
                 ->withInput()
-                ->withErrors(['GioKetThuc' => 'Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.']);
+                ->with('error', $errMsg)
+                ->withErrors(['GioKetThuc' => $errMsg]);
         }
 
         // [BR-08] Kiểm tra chống xung đột thời gian phiên họp khi cập nhật
-        $conflictingMeeting = PhienHop::where('MaPhienHop', '!=', $id)
-            ->whereNotIn('TrangThai', ['Đã hủy', 'CANCELLED'])
-            ->where(function ($query) use ($startDateTime, $endDateTime) {
-                $query->where('ThoiGianBatDau', '<', $endDateTime)
-                      ->where('ThoiGianKetThuc', '>', $startDateTime);
-            })
-            ->first();
+        if (! in_array($validated['TrangThai'], ['Hủy', 'Đã hủy', 'CANCELLED'])) {
+            $conflictingMeeting = PhienHop::where('MaPhienHop', '!=', $id)
+                ->whereNotIn('TrangThai', ['Hủy', 'Đã hủy', 'CANCELLED'])
+                ->where(function ($query) use ($startDateTime, $endDateTime) {
+                    $query->where('ThoiGianBatDau', '<', $endDateTime)
+                          ->where('ThoiGianKetThuc', '>', $startDateTime);
+                })
+                ->first();
 
-        if ($conflictingMeeting) {
-            $conflictStart = date('H:i', strtotime($conflictingMeeting->ThoiGianBatDau));
-            $conflictEnd = date('H:i', strtotime($conflictingMeeting->ThoiGianKetThuc));
-            $conflictDate = date('d/m/Y', strtotime($conflictingMeeting->NgayHop));
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'GioBatDau' => "Xung đột lịch họp: Đã có phiên họp \"{$conflictingMeeting->TenPhienHop}\" diễn ra từ {$conflictStart} đến {$conflictEnd} ngày {$conflictDate}."
-                ]);
+            if ($conflictingMeeting) {
+                $conflictStart = date('H:i', strtotime($conflictingMeeting->ThoiGianBatDau));
+                $conflictEnd = date('H:i', strtotime($conflictingMeeting->ThoiGianKetThuc));
+                $conflictDate = date('d/m/Y', strtotime($conflictingMeeting->NgayHop));
+                $conflictMsg = "Xung đột lịch họp: Đã có phiên họp \"{$conflictingMeeting->TenPhienHop}\" diễn ra từ {$conflictStart} đến {$conflictEnd} ngày {$conflictDate}.";
+                return back()
+                    ->withInput()
+                    ->with('error', $conflictMsg)
+                    ->withErrors([
+                        'GioBatDau' => $conflictMsg,
+                    ]);
+            }
         }
 
         $meeting->update([
