@@ -18,10 +18,11 @@
             <x-status-badge :status="$meeting->TrangThai" />
         </div>
         <h1>{{ $meeting->TenPhienHop }}</h1>
-        <p style="display: flex; align-items: center; gap: var(--space-4); margin-top: 6px;">
+        <p style="display: flex; align-items: center; gap: var(--space-4); margin-top: 6px; flex-wrap: wrap;">
             <span>📅 Ngày: <strong>{{ $meeting->NgayHop ? date('d/m/Y', strtotime($meeting->NgayHop)) : '' }}</strong></span>
             <span>⏰ Giờ: <strong>{{ $meeting->ThoiGianBatDau ? date('H:i', strtotime($meeting->ThoiGianBatDau)) : '' }} - {{ $meeting->ThoiGianKetThuc ? date('H:i', strtotime($meeting->ThoiGianKetThuc)) : '' }}</strong></span>
             <span>📍 Địa điểm: <strong>{{ $meeting->DiaDiem }}</strong> ({{ $meeting->HinhThuc }})</span>
+            <span>👤 Người tạo: <strong>{{ $meeting->nguoiDung?->HoTen ?? 'ThS. Nguyễn Thị Thư Ký' }}</strong> (ID: #{{ $meeting->MaNguoiDung ?? 3 }})</span>
         </p>
     </div>
     <div class="stu-page-actions">
@@ -77,6 +78,13 @@
                     <tr>
                         <td style="color: var(--color-text-muted); font-weight: 500;">Hình thức họp:</td>
                         <td><span class="stu-badge stu-badge-info">{{ $meeting->HinhThuc }}</span></td>
+                    </tr>
+                    <tr>
+                        <td style="color: var(--color-text-muted); font-weight: 500;">Người tạo:</td>
+                        <td>
+                            <strong>{{ $meeting->nguoiDung?->HoTen ?? 'ThS. Nguyễn Thị Thư Ký' }}</strong>
+                            <span style="font-size: 11px; color: var(--color-text-muted);">(ID: #{{ $meeting->MaNguoiDung ?? 3 }})</span>
+                        </td>
                     </tr>
                     <tr>
                         <td style="color: var(--color-text-muted); font-weight: 500;">Trạng thái:</td>
@@ -268,7 +276,7 @@
                         <a href="{{ route('submissions.show', $dossier?->MaHoSo) }}" style="font-weight: 600; color: var(--color-primary);" title="{{ $dossier?->TieuDe }}">
                             {{ $dossier?->TieuDe ?: 'Hồ sơ #' . $agenda->MaHoSo }}
                         </a>
-                        <div style="font-size: 11px; color: var(--color-text-muted);">Mã: HST-{{ $agenda->MaHoSo }}</div>
+                        <div style="font-size: 11px; color: var(--color-text-muted);">Mã: {{ $dossier?->ma_ho_so_hien_thi ?? ('#HS-' . $agenda->MaHoSo) }}</div>
                     </td>
                     <td style="font-size: var(--font-size-xs);">{{ $dossier?->donVi?->TenDonVi ?: '-' }}</td>
                     <td style="font-size: var(--font-size-xs);">
@@ -286,6 +294,13 @@
                                 <x-button variant="secondary" size="sm" data-modal-open="editMeetingAgendaModal-{{ $agenda->MaChuongTrinh }}">
                                     <span>Cập nhật</span>
                                 </x-button>
+                                <form method="POST" action="{{ route('agendas.destroy', $agenda->MaChuongTrinh) }}" style="display: inline;" onsubmit="return confirm('Xác nhận ẩn mục chương trình họp này khỏi giao diện?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <x-button type="submit" variant="danger" size="sm">
+                                        <span>Xóa</span>
+                                    </x-button>
+                                </form>
                             @endif
                             <x-button variant="outline" size="sm" href="{{ route('submissions.show', $dossier?->MaHoSo) }}">
                                 <span>Xem hồ sơ</span>
@@ -539,10 +554,10 @@
 <x-modal id="addAgendaModal" title="Đưa Hồ Sơ Trình vào Chương Trình Họp" size="md">
     <form method="POST" action="{{ route('meetings.agenda.add', $meeting->MaPhienHop) }}">
         @csrf
-        <x-form.select name="MaHoSo" label="Chọn hồ sơ trình đủ điều kiện" required hint="Chỉ hiển thị các hồ sơ đã qua thẩm tra đạt điều kiện (BR-08)">
+        <x-form.select name="MaHoSo" label="Chọn hồ sơ trình" required hint="Danh sách hiển thị các hồ sơ trình chưa được đưa vào chương trình họp này (BR-08)">
             @foreach($availableDossiers as $d)
                 <option value="{{ $d->MaHoSo }}">
-                    HST-{{ $d->MaHoSo }}: {{ $d->TieuDe }} ({{ $d->donVi?->TenDonVi }})
+                    {{ $d->ma_ho_so_hien_thi }}: {{ $d->TieuDe }} ({{ $d->donVi?->TenDonVi }})
                 </option>
             @endforeach
         </x-form.select>
@@ -588,26 +603,12 @@
             <option value="">-- Chọn mục chương trình họp --</option>
             @foreach($meeting->chuongTrinhHop->sortBy('ThuTu') as $agendaItem)
                 <option value="{{ $agendaItem->MaChuongTrinh }}">
-                    Mục {{ $agendaItem->ThuTu }}: {{ $agendaItem->hoSoTrinh?->TieuDe ?? 'Nội dung thảo luận' }}
+                    Mục {{ $agendaItem->ThuTu }} ({{ $agendaItem->hoSoTrinh?->ma_ho_so_hien_thi ?? ('#HS-' . $agendaItem->MaHoSo) }}): {{ $agendaItem->hoSoTrinh?->TieuDe ?? 'Nội dung thảo luận' }}
                 </option>
             @endforeach
         </x-form.select>
 
         <x-form.input name="NoiDung" label="Câu hỏi / Nội dung biểu quyết" placeholder="Ví dụ: Thông qua Đề án thành lập Viện Nghiên cứu Ứng dụng AI STU" required />
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
-            <x-form.select name="voting_type" label="Hình thức bỏ phiếu">
-                <option value="SECRET" selected>Bỏ phiếu kín (BR-09)</option>
-                <option value="OPEN">Biểu quyết công khai</option>
-            </x-form.select>
-
-            <x-form.select name="pass_threshold" label="Ngưỡng thông qua">
-                <option value="50" selected>Quá bán (&ge; 50%)</option>
-                <option value="67">Đa số 2/3 (&ge; 67%)</option>
-            </x-form.select>
-        </div>
-
-        <x-form.textarea name="notes" label="Ghi chú hướng dẫn bỏ phiếu" placeholder="Nhập ghi chú hoặc căn cứ pháp lý (nếu có)..." rows="2" />
 
         <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: var(--space-4);">
             <x-button variant="secondary" data-modal-close>Đóng</x-button>

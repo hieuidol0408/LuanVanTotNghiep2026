@@ -56,12 +56,11 @@ class SubmissionWebController extends Controller
             $query->where('LinhVuc', $field);
         }
 
-        $submissions = $query->orderBy('NgayTrinh', 'desc')
-            ->orderBy('MaHoSo', 'desc')
+        $submissions = $query->orderBy('MaHoSo', 'asc')
             ->paginate(10)
             ->withQueryString();
 
-        $departments = DonVi::where('TrangThai', 'ACTIVE')->orWhere('TrangThai', 'Hoạt động')->get();
+        $departments = DonVi::whereIn('TrangThai', ['ACTIVE', 'Hoạt động'])->get();
         $fields = HoSoTrinh::select('LinhVuc')->distinct()->pluck('LinhVuc');
 
         return view('pages.submissions.index', compact('submissions', 'departments', 'fields', 'role', 'userDeptId'));
@@ -77,8 +76,9 @@ class SubmissionWebController extends Controller
 
         $departments = DonVi::all();
         $userDeptId = $user?->department_id ?? session('department_id');
+        $nextCode = HoSoTrinh::generateNextCode();
 
-        return view('pages.submissions.create', compact('departments', 'role', 'userDeptId'));
+        return view('pages.submissions.create', compact('departments', 'role', 'userDeptId', 'nextCode'));
     }
 
     /**
@@ -91,17 +91,23 @@ class SubmissionWebController extends Controller
 
         $validated = $request->validate([
             'TieuDe' => ['required', 'string', 'min:5', 'max:255'],
-            'NoiDungTomTat' => ['required', 'string'],
+            'NoiDungTomTat' => ['required', 'string', 'min:5'],
             'LinhVuc' => ['required', 'string', 'max:255'],
             'MaDonVi' => ['required', 'integer', 'exists:don_vi,MaDonVi'],
-            'GhiChu' => ['nullable', 'string'],
+            'GhiChu' => ['nullable', 'string', 'max:2000'],
             'file' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx'],
         ], [
-            'TieuDe.required' => 'Vui lòng nhập tiêu đề hồ sơ tờ trình.',
-            'NoiDungTomTat.required' => 'Vui lòng nhập tóm tắt nội dung đề xuất.',
+            'TieuDe.required' => 'Vui lòng nhập tiêu đề hồ sơ trình.',
+            'TieuDe.min' => 'Tiêu đề hồ sơ trình phải có ít nhất 5 ký tự.',
+            'TieuDe.max' => 'Tiêu đề hồ sơ trình không được vượt quá 255 ký tự.',
+            'NoiDungTomTat.required' => 'Vui lòng nhập nội dung tóm tắt.',
+            'NoiDungTomTat.min' => 'Nội dung tóm tắt phải có ít nhất 5 ký tự.',
             'LinhVuc.required' => 'Vui lòng chọn lĩnh vực hồ sơ.',
             'MaDonVi.required' => 'Vui lòng chọn đơn vị trình.',
+            'MaDonVi.exists' => 'Đơn vị trình không hợp lệ.',
+            'GhiChu.max' => 'Ghi chú không được vượt quá 2000 ký tự.',
             'file.max' => 'Tập tin đính kèm không vượt quá 20MB.',
+            'file.mimes' => 'Tập tin đính kèm phải có định dạng: PDF, DOC, DOCX, XLS, XLSX.',
         ]);
 
         // Nếu là UNIT_REP, bắt buộc lưu theo đơn vị của người dùng
@@ -111,8 +117,8 @@ class SubmissionWebController extends Controller
 
         $dossier = DB::transaction(function () use ($validated, $request, $user) {
             $record = HoSoTrinh::create([
-                'TieuDe' => $validated['TieuDe'],
-                'NoiDungTomTat' => $validated['NoiDungTomTat'],
+                'TieuDe' => trim($validated['TieuDe']),
+                'NoiDungTomTat' => trim($validated['NoiDungTomTat']),
                 'NgayTrinh' => now()->toDateString(),
                 'LinhVuc' => $validated['LinhVuc'],
                 'TrangThai' => 'Mới tạo',
@@ -147,15 +153,15 @@ class SubmissionWebController extends Controller
         });
 
         return redirect()->route('submissions.show', $dossier->MaHoSo)
-            ->with('success', 'Tạo hồ sơ trình thành công (Trạng thái: Mới tạo)!');
+            ->with('success', 'Tạo hồ sơ trình ' . $dossier->ma_ho_so_hien_thi . ' thành công!');
     }
 
     /**
-     * Chi tiết và quy trình thẩm tra hồ sơ trình
+     * Chi tiết hồ sơ trình
      */
     public function show(int|string $id): View|RedirectResponse
     {
-        $dossier = HoSoTrinh::with(['donVi', 'nguoiDung', 'taiLieu', 'chuongTrinhHop.phienHop'])
+        $dossier = HoSoTrinh::with(['donVi', 'nguoiDung', 'taiLieu'])
             ->findOrFail($id);
 
         $user = Auth::user();
@@ -172,7 +178,7 @@ class SubmissionWebController extends Controller
     }
 
     /**
-     * Biểu mẫu chỉnh sửa / cập nhật bổ sung hồ sơ trình
+     * Biểu mẫu chỉnh sửa / cập nhật hồ sơ trình
      */
     public function edit(int|string $id): View|RedirectResponse
     {
@@ -220,34 +226,42 @@ class SubmissionWebController extends Controller
 
         $validated = $request->validate([
             'TieuDe' => ['required', 'string', 'min:5', 'max:255'],
-            'NoiDungTomTat' => ['required', 'string'],
+            'NoiDungTomTat' => ['required', 'string', 'min:5'],
             'LinhVuc' => ['required', 'string', 'max:255'],
             'MaDonVi' => ['required', 'integer', 'exists:don_vi,MaDonVi'],
-            'GhiChu' => ['nullable', 'string'],
+            'TrangThai' => ['nullable', 'string', 'max:100'],
+            'GhiChu' => ['nullable', 'string', 'max:2000'],
             'file' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx'],
         ], [
-            'TieuDe.required' => 'Vui lòng nhập tiêu đề hồ sơ tờ trình.',
-            'NoiDungTomTat.required' => 'Vui lòng nhập tóm tắt nội dung đề xuất.',
+            'TieuDe.required' => 'Vui lòng nhập tiêu đề hồ sơ trình.',
+            'TieuDe.min' => 'Tiêu đề hồ sơ trình phải có ít nhất 5 ký tự.',
+            'TieuDe.max' => 'Tiêu đề hồ sơ trình không được vượt quá 255 ký tự.',
+            'NoiDungTomTat.required' => 'Vui lòng nhập nội dung tóm tắt.',
+            'NoiDungTomTat.min' => 'Nội dung tóm tắt phải có ít nhất 5 ký tự.',
             'LinhVuc.required' => 'Vui lòng chọn lĩnh vực hồ sơ.',
             'MaDonVi.required' => 'Vui lòng chọn đơn vị trình.',
+            'MaDonVi.exists' => 'Đơn vị trình không hợp lệ.',
+            'GhiChu.max' => 'Ghi chú không được vượt quá 2000 ký tự.',
             'file.max' => 'Tập tin đính kèm không vượt quá 20MB.',
+            'file.mimes' => 'Tập tin đính kèm phải có định dạng: PDF, DOC, DOCX, XLS, XLSX.',
         ]);
 
         if ($role === 'UNIT_REP' && $user?->MaDonVi) {
             $validated['MaDonVi'] = $user->MaDonVi;
         }
 
-        DB::transaction(function () use ($dossier, $validated, $request, $user) {
+        DB::transaction(function () use ($dossier, $validated, $request, $user, $role) {
             $updateData = [
-                'TieuDe' => $validated['TieuDe'],
-                'NoiDungTomTat' => $validated['NoiDungTomTat'],
+                'TieuDe' => trim($validated['TieuDe']),
+                'NoiDungTomTat' => trim($validated['NoiDungTomTat']),
                 'LinhVuc' => $validated['LinhVuc'],
                 'MaDonVi' => $validated['MaDonVi'],
                 'GhiChu' => $validated['GhiChu'] ?? $dossier->GhiChu,
             ];
 
-            // Nếu hồ sơ đang ở trạng thái Chờ bổ sung, sau khi đơn vị cập nhật sẽ chuyển sang Đầy đủ để chờ thẩm tra lại
-            if ($dossier->TrangThai === 'Chờ bổ sung') {
+            if (! empty($validated['TrangThai']) && in_array($role, ['SECRETARY', 'CHAIR', 'ADMIN'])) {
+                $updateData['TrangThai'] = $validated['TrangThai'];
+            } elseif ($dossier->TrangThai === 'Chờ bổ sung') {
                 $updateData['TrangThai'] = 'Đầy đủ';
             }
 
@@ -280,13 +294,41 @@ class SubmissionWebController extends Controller
     }
 
     /**
-     * Thẩm tra hồ sơ trình (Chỉ Thư ký, Chủ tịch, Quản trị viên)
+     * Ẩn hồ sơ trình (Soft Delete) - Không xóa cứng khỏi CSDL
+     */
+    public function destroy(int|string $id): RedirectResponse
+    {
+        $user = Auth::user();
+        $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
+        $userDeptId = $user?->department_id ?? session('department_id');
+
+        $dossier = HoSoTrinh::findOrFail($id);
+
+        if ($role === 'UNIT_REP' && $userDeptId && $dossier->MaDonVi !== (int) $userDeptId) {
+            return redirect()->route('submissions.index')
+                ->with('error', 'Bạn không có quyền ẩn hồ sơ của đơn vị khác.');
+        }
+
+        if (! in_array($role, ['UNIT_REP', 'SECRETARY', 'CHAIR', 'ADMIN'])) {
+            return redirect()->route('submissions.index')
+                ->with('error', 'Bạn không có quyền thực hiện thao tác này.');
+        }
+
+        $code = $dossier->ma_ho_so_hien_thi;
+        $dossier->update(['TrangThai' => 'Đã ẩn']);
+
+        return redirect()->route('submissions.index')
+            ->with('success', 'Đã ẩn hồ sơ trình ' . $code . ' khỏi danh sách hiển thị (Soft Delete).');
+    }
+
+    /**
+     * Cập nhật trạng thái hồ sơ trình
      */
     public function review(Request $request, int|string $id): RedirectResponse
     {
         $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
         if (! in_array($role, ['SECRETARY', 'CHAIR', 'ADMIN'])) {
-            return back()->with('error', 'Bạn không có thẩm quyền thẩm tra hồ sơ trình.');
+            return back()->with('error', 'Bạn không có thẩm quyền cập nhật trạng thái hồ sơ trình.');
         }
 
         $dossier = HoSoTrinh::findOrFail($id);
@@ -304,9 +346,9 @@ class SubmissionWebController extends Controller
 
         $dossier->update([
             'TrangThai' => $newStatus,
-            'GhiChu' => $validated['GhiChu'] ? ($dossier->GhiChu . "\n[Ý kiến thẩm định " . date('d/m/Y') . "]: " . $validated['GhiChu']) : $dossier->GhiChu,
+            'GhiChu' => $validated['GhiChu'] ?: $dossier->GhiChu,
         ]);
 
-        return back()->with('success', 'Đã cập nhật trạng thái thẩm định hồ sơ: ' . $newStatus);
+        return back()->with('success', 'Đã cập nhật trạng thái hồ sơ: ' . $newStatus);
     }
 }

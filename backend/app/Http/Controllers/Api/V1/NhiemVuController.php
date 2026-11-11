@@ -303,11 +303,11 @@ class NhiemVuController extends Controller
             ], 404);
         }
 
-        $task->delete();
+        $task->update(['TrangThai' => 'Đã ẩn']);
 
         return response()->json([
             'success' => true,
-            'message' => 'Đã xóa nhiệm vụ thành công.',
+            'message' => 'Đã ẩn nhiệm vụ thành công (Soft Delete).',
             'data' => null,
             'errors' => null,
         ]);

@@ -9,10 +9,10 @@
 
     <div class="stu-page-header stu-mb-6">
         <h1 class="stu-page-title" style="font-size: 24px; font-weight: 800; color: var(--color-primary); margin: 0;">
-            Lập Hồ sơ tờ trình Hội đồng trường STU
+            Tạo mới Hồ sơ trình Hội đồng trường STU
         </h1>
         <p style="font-size: 13px; color: var(--color-text-muted); margin: 4px 0 0 0;">
-            Đăng ký tờ trình, đề án mới và đính kèm tài liệu thuyết minh để Thư ký Hội đồng trường thẩm tra đưa vào chương trình họp.
+            Đăng ký hồ sơ trình mới và đính kèm tài liệu phục vụ phiên họp Hội đồng trường STU.
         </p>
     </div>
 
@@ -28,13 +28,32 @@
     @endif
 
     <div class="stu-card" style="max-width: 900px; padding: 28px;">
-        <form method="POST" action="{{ route('submissions.store') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('submissions.store') }}" enctype="multipart/form-data" id="createSubmissionForm" novalidate>
             @csrf
 
-            {{-- 1. Tiêu đề tờ trình --}}
+            <div id="clientValidationErrors" class="stu-alert stu-alert-danger stu-mb-4" style="display: none;"></div>
+
+            {{-- 0. Mã số hồ sơ tự động sinh --}}
             <div class="stu-form-group stu-mb-5">
                 <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
-                    Tiêu đề tờ trình / Đề án <span style="color: var(--color-danger);">*</span>
+                    Mã số hồ sơ (Tự động sinh)
+                </label>
+                <input 
+                    type="text" 
+                    value="{{ $nextCode ?? ('#HS-' . now()->format('my') . '01') }}" 
+                    class="stu-form-control" 
+                    style="background-color: var(--color-bg-subtle); font-weight: 700; color: var(--color-primary); max-width: 260px;"
+                    readonly
+                >
+                <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px;">
+                    Quy tắc tự động: <strong>#HS-[2 số tháng][2 số cuối năm][Số thứ tự tăng dần từ 01 trong tháng]</strong> (Tự động reset về 01 khi sang tháng mới).
+                </div>
+            </div>
+
+            {{-- 1. Tiêu đề hồ sơ trình --}}
+            <div class="stu-form-group stu-mb-5">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
+                    Tiêu đề hồ sơ trình <span style="color: var(--color-danger);">*</span>
                 </label>
                 <input 
                     type="text" 
@@ -43,6 +62,8 @@
                     class="stu-form-control @error('TieuDe') is-invalid @enderror" 
                     placeholder="Ví dụ: Tờ trình về việc phê duyệt chủ trương đầu tư phòng thí nghiệm thông minh năm học 2026-2027" 
                     required
+                    minlength="5"
+                    maxlength="255"
                 >
                 @error('TieuDe')
                     <div style="color: var(--color-danger); font-size: 12px; margin-top: 4px;">{{ $message }}</div>
@@ -50,10 +71,10 @@
             </div>
 
             {{-- 2. Đơn vị trình & Lĩnh vực (2 cột) --}}
-            <div class="stu-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;" class="stu-mb-5">
+            <div class="stu-grid stu-mb-5" style="grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div class="stu-form-group">
                     <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
-                        Đơn vị trình đề xuất <span style="color: var(--color-danger);">*</span>
+                        Đơn vị trình <span style="color: var(--color-danger);">*</span>
                     </label>
                     <select name="MaDonVi" class="stu-form-control @error('MaDonVi') is-invalid @enderror" required {{ $role === 'UNIT_REP' ? 'readonly' : '' }}>
                         <option value="">-- Chọn đơn vị --</option>
@@ -75,7 +96,7 @@
 
                 <div class="stu-form-group">
                     <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
-                        Lĩnh vực tờ trình <span style="color: var(--color-danger);">*</span>
+                        Lĩnh vực <span style="color: var(--color-danger);">*</span>
                     </label>
                     <select name="LinhVuc" class="stu-form-control @error('LinhVuc') is-invalid @enderror" required>
                         <option value="">-- Chọn lĩnh vực --</option>
@@ -93,17 +114,18 @@
                 </div>
             </div>
 
-            {{-- 3. Tóm tắt nội dung đề xuất --}}
+            {{-- 3. Nội dung tóm tắt --}}
             <div class="stu-form-group stu-mb-5" style="margin-top: 16px;">
                 <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
-                    Tóm tắt nội dung đề xuất / Căn cứ tờ trình <span style="color: var(--color-danger);">*</span>
+                    Nội dung tóm tắt <span style="color: var(--color-danger);">*</span>
                 </label>
                 <textarea 
                     name="NoiDungTomTat" 
                     rows="4" 
                     class="stu-form-control @error('NoiDungTomTat') is-invalid @enderror" 
-                    placeholder="Trình bày vắn tắt mục đích, căn cứ pháp lý, sự cần thiết và kiến nghị Hội đồng trường xem xét thông qua..."
+                    placeholder="Nhập nội dung tóm tắt của hồ sơ trình..."
                     required
+                    minlength="5"
                 >{{ old('NoiDungTomTat') }}</textarea>
                 @error('NoiDungTomTat')
                     <div style="color: var(--color-danger); font-size: 12px; margin-top: 4px;">{{ $message }}</div>
@@ -114,10 +136,10 @@
             <div class="stu-form-group stu-mb-5" style="background: var(--color-bg-muted); padding: 18px; border-radius: var(--radius-md); border: 1px dashed var(--color-border);">
                 <label class="stu-form-label" style="font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                    <span>Tài liệu / Bản thuyết minh đính kèm</span>
+                    <span>Tài liệu đính kèm</span>
                 </label>
                 <p style="font-size: 12px; color: var(--color-text-muted); margin: 4px 0 10px 0;">
-                    Hỗ trợ các định dạng văn bản chuẩn: <strong>PDF, DOC, DOCX, XLS, XLSX</strong> (Dung lượng tối đa 20MB). File được lưu trữ an toàn trong hệ thống tài liệu STU.
+                    Hỗ trợ các định dạng văn bản chuẩn: <strong>PDF, DOC, DOCX, XLS, XLSX</strong> (Dung lượng tối đa 20MB).
                 </p>
                 <input 
                     type="file" 
@@ -130,14 +152,14 @@
                 @enderror
             </div>
 
-            {{-- 5. Ghi chú bổ sung --}}
+            {{-- 5. Ghi chú --}}
             <div class="stu-form-group stu-mb-6">
-                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Ghi chú / Kiến nghị riêng (nếu có)</label>
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Ghi chú (nếu có)</label>
                 <textarea 
                     name="GhiChu" 
                     rows="2" 
                     class="stu-form-control" 
-                    placeholder="Ghi chú thêm về tính cấp thiết, đề xuất thời điểm xem xét..."
+                    placeholder="Nhập ghi chú..."
                 >{{ old('GhiChu') }}</textarea>
             </div>
 
@@ -148,10 +170,51 @@
                 </a>
                 <button type="submit" class="stu-btn stu-btn-primary" style="padding: 10px 24px;">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                    <span>Lập hồ sơ & Trình thẩm tra</span>
+                    <span>Lưu hồ sơ trình</span>
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('createSubmissionForm');
+    const errorBox = document.getElementById('clientValidationErrors');
+    if (!form) return;
+
+    form.addEventListener('submit', function (e) {
+        const errors = [];
+        const tieuDe = (form.querySelector('[name="TieuDe"]').value || '').trim();
+        const maDonVi = form.querySelector('[name="MaDonVi"]').value;
+        const linhVuc = form.querySelector('[name="LinhVuc"]').value;
+        const noiDung = (form.querySelector('[name="NoiDungTomTat"]').value || '').trim();
+
+        if (!tieuDe || tieuDe.length < 5) {
+            errors.push('Vui lòng nhập tiêu đề hồ sơ trình (tối thiểu 5 ký tự).');
+        }
+        if (!maDonVi) {
+            errors.push('Vui lòng chọn đơn vị trình.');
+        }
+        if (!linhVuc) {
+            errors.push('Vui lòng chọn lĩnh vực hồ sơ.');
+        }
+        if (!noiDung || noiDung.length < 5) {
+            errors.push('Vui lòng nhập nội dung tóm tắt (tối thiểu 5 ký tự).');
+        }
+
+        if (errors.length > 0) {
+            e.preventDefault();
+            errorBox.style.display = 'block';
+            errorBox.innerHTML = '<strong>Vui lòng kiểm tra lại:</strong><ul style="margin: 6px 0 0 18px;">' +
+                errors.map(err => '<li>' + err + '</li>').join('') + '</ul>';
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            errorBox.style.display = 'none';
+        }
+    });
+});
+</script>
+@endpush
 @endsection

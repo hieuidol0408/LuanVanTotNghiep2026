@@ -14,7 +14,7 @@
                 Hồ sơ trình Hội đồng trường
             </h1>
             <p style="font-size: 13px; color: var(--color-text-muted); margin: 4px 0 0 0;">
-                Theo dõi, thẩm định và chuẩn bị tờ trình, đề án phục vụ các kỳ họp Hội đồng trường STU.
+                Theo dõi và chuẩn bị hồ sơ trình phục vụ các phiên họp Hội đồng trường STU.
             </p>
         </div>
         <div>
@@ -97,7 +97,7 @@
             <div class="stu-form-group" style="margin-bottom: 0;">
                 <label class="stu-form-label">
                     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>Trạng thái thẩm định</span>
+                    <span>Trạng thái</span>
                 </label>
                 <select name="status" class="stu-form-control">
                     <option value="">Tất cả trạng thái</option>
@@ -118,7 +118,7 @@
             <div>
                 <a href="{{ route('submissions.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px; padding: 0 14px;" title="Xóa bộ lọc về mặc định">
                     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    <span>Xóa</span>
+                    <span>Đặt lại</span>
                 </a>
             </div>
         </form>
@@ -126,15 +126,15 @@
 
     {{-- Bảng dữ liệu Hồ sơ trình --}}
     <x-table 
-        cardTitle="Danh sách Hồ sơ tờ trình (Tổng: {{ $submissions->total() }} hồ sơ)"
-        :headers="['Mã hồ sơ', 'Tiêu đề tờ trình', 'Đơn vị trình', 'Lĩnh vực', 'Trạng thái', 'Ngày trình']" 
+        cardTitle="Danh sách Hồ sơ trình (Tổng: {{ $submissions->total() }} hồ sơ)"
+        :headers="['Mã hồ sơ', 'Tiêu đề hồ sơ', 'Đơn vị trình', 'Lĩnh vực', 'Trạng thái', 'Ngày trình']" 
         :hasActions="true"
         actionTitle="Thao tác"
     >
         @forelse($submissions as $item)
             <tr>
-                <td style="font-weight: 700; color: var(--color-primary); white-space: nowrap; width: 95px;">
-                    #HS-{{ str_pad($item->MaHoSo, 4, '0', STR_PAD_LEFT) }}
+                <td style="font-weight: 700; color: var(--color-primary); white-space: nowrap; width: 105px;">
+                    {{ $item->ma_ho_so_hien_thi }}
                 </td>
                 <td style="max-width: 340px;">
                     <a href="{{ route('submissions.show', $item->MaHoSo) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none; line-height: 1.5; display: block;" class="hover:text-primary">
@@ -166,15 +166,22 @@
                 </td>
                 <td class="col-actions">
                     <div class="stu-table-actions-group">
-                        <a href="{{ route('submissions.show', $item->MaHoSo) }}" class="stu-btn stu-btn-outline stu-btn-sm" title="Xem chi tiết và quy trình thẩm tra">
+                        <a href="{{ route('submissions.show', $item->MaHoSo) }}" class="stu-btn stu-btn-outline stu-btn-sm" title="Xem chi tiết hồ sơ trình">
                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             <span>Xem</span>
                         </a>
                         @if(in_array($role, ['UNIT_REP', 'SECRETARY', 'CHAIR', 'ADMIN']))
-                            <a href="{{ route('submissions.edit', $item->MaHoSo) }}" class="stu-btn stu-btn-secondary stu-btn-sm" title="Cập nhật / Chỉnh sửa hồ sơ trình">
+                            <a href="{{ route('submissions.edit', $item->MaHoSo) }}" class="stu-btn stu-btn-secondary stu-btn-sm" title="Chỉnh sửa hồ sơ trình">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 <span>Sửa</span>
                             </a>
+                            <form method="POST" action="{{ route('submissions.destroy', $item->MaHoSo) }}" style="display: inline;" onsubmit="return confirm('Xác nhận ẩn hồ sơ trình {{ $item->ma_ho_so_hien_thi }} khỏi danh sách hiển thị?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="stu-btn stu-btn-danger stu-btn-sm" title="Ẩn hồ sơ trình (Soft Delete)">
+                                    <span>Xóa</span>
+                                </button>
+                            </form>
                         @endif
                     </div>
                 </td>

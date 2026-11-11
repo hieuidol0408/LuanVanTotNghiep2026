@@ -201,6 +201,15 @@
                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span>{{ $isOpening ? 'Vào phòng bỏ phiếu' : 'Xem kết quả' }}</span>
                         </a>
+                        @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                            <form method="POST" action="{{ route('votes.destroy', $v->MaNoiDung) }}" style="display: inline;" onsubmit="return confirm('Xác nhận ẩn nội dung biểu quyết này khỏi giao diện?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="stu-btn stu-btn-danger stu-btn-sm" title="Ẩn nội dung biểu quyết (Soft Delete)">
+                                    <span>Xóa</span>
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </td>
             </tr>
@@ -244,40 +253,11 @@
                     </small>
                 </div>
 
-                <div class="stu-form-group" style="margin-bottom: 14px;">
+                <div class="stu-form-group" style="margin-bottom: 20px;">
                     <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
                         Câu hỏi / Nội dung biểu quyết <span style="color: #dc2626;">*</span>
                     </label>
-                    <input type="text" name="NoiDung" required minlength="5" class="stu-form-control" placeholder="Ví dụ: Thông qua Đề án thành lập Viện Nghiên cứu Ứng dụng AI STU">
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-                    <div class="stu-form-group" style="margin-bottom: 0;">
-                        <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
-                            Hình thức bỏ phiếu
-                        </label>
-                        <select name="voting_type" class="stu-form-control">
-                            <option value="SECRET" selected>Bỏ phiếu kín (Bảo mật BR-09)</option>
-                            <option value="OPEN">Biểu quyết công khai</option>
-                        </select>
-                    </div>
-
-                    <div class="stu-form-group" style="margin-bottom: 0;">
-                        <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
-                            Ngưỡng thông qua <span style="color: #dc2626;">*</span>
-                        </label>
-                        <select name="pass_threshold" class="stu-form-control">
-                            <option value="50" selected>Quá bán (&ge; 50% tán thành)</option>
-                            <option value="67">Đa số đặc biệt (&ge; 2/3 tán thành)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="stu-form-group" style="margin-bottom: 20px;">
-                    <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
-                        Ghi chú / Hướng dẫn biểu quyết
-                    </label>
-                    <textarea name="notes" rows="2" class="stu-form-control" placeholder="Ghi chú căn cứ pháp lý hoặc thời lượng mở cổng bỏ phiếu..."></textarea>
+                    <input type="text" name="NoiDung" required minlength="5" maxlength="255" class="stu-form-control" placeholder="Ví dụ: Thông qua Đề án thành lập Viện Nghiên cứu Ứng dụng AI STU">
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid var(--color-border);">

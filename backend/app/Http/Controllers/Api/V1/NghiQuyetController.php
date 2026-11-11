@@ -379,7 +379,7 @@ class NghiQuyetController extends Controller
             ], 422);
         }
 
-        $resolution->delete();
+        $resolution->update(['TrangThai' => 'Đã ẩn']);
 
         return response()->json([
             'success' => true,

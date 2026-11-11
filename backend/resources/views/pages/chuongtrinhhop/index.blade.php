@@ -178,7 +178,7 @@
                         {{ $dossier->TieuDe }}
                     </a>
                     <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
-                        <span style="font-size: 11px; color: var(--color-text-muted);">Mã: HST-{{ $dossier->MaHoSo }}</span>
+                        <span style="font-size: 11px; color: var(--color-text-muted);">Mã: {{ $dossier->ma_ho_so_hien_thi }}</span>
                         @if($dossier->LinhVuc)
                             <span class="stu-badge stu-badge-info" style="font-size: 10px; padding: 1px 6px;">{{ $dossier->LinhVuc }}</span>
                         @endif
@@ -194,7 +194,7 @@
             </td>
             <td style="font-size: var(--font-size-xs); white-space: nowrap;">
                 <div style="font-weight: 500;">{{ $dossier?->donVi?->TenDonVi ?: '-' }}</div>
-                <div style="font-size: 11px; color: var(--color-text-muted);">{{ $dossier?->nguoiDung?->name ?: '' }}</div>
+                <div style="font-size: 11px; color: var(--color-text-muted);">{{ $dossier?->nguoiDung?->HoTen ?: '' }}</div>
             </td>
             <td style="white-space: nowrap;">
                 <x-status-badge :status="$agenda->TrangThai" />
@@ -221,6 +221,15 @@
                             <i class="bi bi-file-earmark-text"></i>
                             <span>Hồ sơ</span>
                         </a>
+                    @endif
+                    @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                        <form method="POST" action="{{ route('agendas.destroy', $agenda->MaChuongTrinh) }}" style="display: inline;" onsubmit="return confirm('Xác nhận ẩn mục chương trình họp này khỏi giao diện?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="stu-btn stu-btn-danger stu-btn-sm" title="Ẩn mục chương trình họp (Soft Delete)">
+                                <span>Xóa</span>
+                            </button>
+                        </form>
                     @endif
                 </div>
             </td>
@@ -255,13 +264,13 @@
 
             <div class="stu-form-group" style="margin-bottom: 14px;">
                 <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
-                    Hồ sơ trình đủ điều kiện <span style="color: #dc2626;">*</span>
+                    Hồ sơ trình <span style="color: #dc2626;">*</span>
                 </label>
                 <select name="MaHoSo" required class="stu-form-control">
                     <option value="">-- Chọn hồ sơ trình --</option>
                     @foreach($availableDossiers ?? [] as $d)
                         <option value="{{ $d->MaHoSo }}">
-                            [HST-{{ $d->MaHoSo }}] {{ $d->TieuDe }} ({{ $d->donVi?->TenDonVi }})
+                            [{{ $d->ma_ho_so_hien_thi }}] {{ $d->TieuDe }} ({{ $d->donVi?->TenDonVi }})
                         </option>
                     @endforeach
                 </select>

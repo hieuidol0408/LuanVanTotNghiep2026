@@ -308,11 +308,11 @@ class HoSoTrinhController extends Controller
             ], 422);
         }
 
-        $dossier->delete();
+        $dossier->update(['TrangThai' => 'Đã ẩn']);
 
         return response()->json([
             'success' => true,
-            'message' => 'Đã xóa hồ sơ dự thảo thành công.',
+            'message' => 'Đã ẩn hồ sơ thành công (Soft Delete).',
             'data' => null,
             'errors' => null,
         ]);
@@ -335,7 +335,7 @@ class HoSoTrinhController extends Controller
 
         return [
             'id' => (string) $dossier->MaHoSo,
-            'code' => sprintf('HST-2026-%03d', $dossier->MaHoSo),
+            'code' => $dossier->ma_ho_so_hien_thi,
             'title' => $dossier->TieuDe,
             'summary' => $dossier->NoiDungTomTat,
             'submitted_date' => $dossier->NgayTrinh ? date('Y-m-d', strtotime($dossier->NgayTrinh)) : '',

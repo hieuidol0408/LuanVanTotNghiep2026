@@ -29,6 +29,23 @@ class NoiDungBieuQuyet extends Model
         'ThoiGianDong' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::addGlobalScope('not_hidden', function ($builder) {
+            $builder->where('noi_dung_bieu_quyet.TrangThai', '!=', 'Đã ẩn');
+        });
+    }
+
+    public function getTrangThaiAttribute($value): string
+    {
+        return match (strtoupper(trim((string) $value))) {
+            'PENDING' => 'Chưa mở',
+            'OPENING' => 'Đang mở',
+            'CLOSED' => 'Đã đóng',
+            default => (string) ($value ?: 'Chưa mở'),
+        };
+    }
+
     public function chuongTrinhHop(): BelongsTo
     {
         return $this->belongsTo(ChuongTrinhHop::class, 'MaChuongTrinh', 'MaChuongTrinh');

@@ -54,9 +54,9 @@
         <div>
             <select name="format" class="stu-form-control" style="height: 38px;">
                 <option value="">-- Hình thức họp --</option>
-                <option value="Trực tiếp" {{ request('format') == 'Trực tiếp' || request('format') == 'IN_PERSON' ? 'selected' : '' }}>Trực tiếp</option>
-                <option value="Trực tuyến" {{ request('format') == 'Trực tuyến' || request('format') == 'ONLINE' ? 'selected' : '' }}>Trực tuyến</option>
-                <option value="Kết hợp" {{ request('format') == 'Kết hợp' || request('format') == 'HYBRID' ? 'selected' : '' }}>Kết hợp (Hybrid)</option>
+                <option value="Trực tiếp" {{ request('format') == 'Trực tiếp' ? 'selected' : '' }}>Trực tiếp</option>
+                <option value="Trực tuyến" {{ request('format') == 'Trực tuyến' ? 'selected' : '' }}>Trực tuyến</option>
+                <option value="Kết hợp" {{ request('format') == 'Kết hợp' ? 'selected' : '' }}>Kết hợp</option>
             </select>
         </div>
 
@@ -64,6 +64,7 @@
         <div>
             <select name="status" class="stu-form-control" style="height: 38px;">
                 <option value="">-- Trạng thái họp --</option>
+                <option value="Đang chuẩn bị" {{ request('status') == 'Đang chuẩn bị' ? 'selected' : '' }}>Đang chuẩn bị</option>
                 <option value="Sắp diễn ra" {{ request('status') == 'Sắp diễn ra' ? 'selected' : '' }}>Sắp diễn ra</option>
                 <option value="Đang diễn ra" {{ request('status') == 'Đang diễn ra' ? 'selected' : '' }}>Đang diễn ra</option>
                 <option value="Đã diễn ra" {{ request('status') == 'Đã diễn ra' ? 'selected' : '' }}>Đã diễn ra</option>
@@ -92,7 +93,7 @@
 
 <!-- BẢNG DỮ LIỆU PHIÊN HỌP (KHÔNG TRÀN & STICKY ACTION COLUMN) -->
 <x-table 
-    :headers="['Mã', 'Tên phiên họp', 'Thời gian', 'Địa điểm & Hình thức', 'Trạng thái', 'Hồ sơ / TV']"
+    :headers="['Mã', 'Tên phiên họp', 'Thời gian', 'Địa điểm & Hình thức', 'Người tạo', 'Trạng thái', 'Hồ sơ / TV']"
     :hasActions="true"
     actionTitle="Thao tác"
     :empty="$meetings->isEmpty()"
@@ -110,7 +111,7 @@
                 </a>
                 @if($meeting->GhiChu)
                     <div class="stu-truncate" style="font-size: 11px; color: var(--color-text-muted);" title="{{ $meeting->GhiChu }}">
-                        {{ $meeting->GhiChu }}
+                        Ghi chú: {{ $meeting->GhiChu }}
                     </div>
                 @endif
             </td>
@@ -128,6 +129,14 @@
                 <span class="stu-badge stu-badge-info" style="margin-top: 4px; padding: 2px 6px;">
                     {{ $meeting->HinhThuc }}
                 </span>
+            </td>
+            <td style="font-size: var(--font-size-xs); white-space: nowrap;">
+                <div style="font-weight: 600; color: var(--color-text-primary);">
+                    {{ $meeting->nguoiDung?->HoTen ?? 'ThS. Nguyễn Thị Thư Ký' }}
+                </div>
+                <div style="font-size: 11px; color: var(--color-text-muted);">
+                    ID: #{{ $meeting->MaNguoiDung ?? 3 }}
+                </div>
             </td>
             <td>
                 <x-status-badge :status="$meeting->TrangThai" />
@@ -147,6 +156,13 @@
                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             <span>Sửa</span>
                         </x-button>
+                        <form method="POST" action="{{ route('meetings.destroy', $meeting->MaPhienHop) }}" style="display: inline-block;" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn phiên họp #{{ $meeting->MaPhienHop }} khỏi danh sách?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="stu-btn stu-btn-outline stu-btn-sm" style="color: var(--color-danger); border-color: #fecaca;">
+                                <span>Xóa</span>
+                            </button>
+                        </form>
                     @endif
                 </div>
             </td>

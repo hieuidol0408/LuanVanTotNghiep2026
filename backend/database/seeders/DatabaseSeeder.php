@@ -179,6 +179,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // 5. Seed phiên họp mẫu PHIEN_HOP
+        $userThuky = User::where('email', 'thuky_hdt@stu.edu.vn')->first();
         $phienHop1 = \App\Models\PhienHop::firstOrCreate(
             ['TenPhienHop' => 'Phiên họp lần thứ 5 Hội đồng trường STU (Khóa IV)'],
             [
@@ -186,9 +187,10 @@ class DatabaseSeeder extends Seeder
                 'ThoiGianBatDau' => '2026-11-15 08:30:00',
                 'ThoiGianKetThuc' => '2026-11-15 11:45:00',
                 'DiaDiem' => 'Phòng họp A101, Nhà A - Trụ sở chính STU',
-                'HinhThuc' => 'IN_PERSON',
-                'TrangThai' => 'SCHEDULED',
-                'GhiChu' => 'Phiên họp định kỳ quý IV xem xét đề án mở ngành mới, thảo luận điều chỉnh quy chế chi tiêu và kiện toàn nhân sự Ban Kiểm soát.',
+                'HinhThuc' => 'Trực tiếp',
+                'TrangThai' => 'Sắp diễn ra',
+                'GhiChu' => 'A, B, C',
+                'MaNguoiDung' => $userThuky?->MaNguoiDung ?? 1,
             ]
         );
 
@@ -198,7 +200,7 @@ class DatabaseSeeder extends Seeder
             \App\Models\ThamDu::firstOrCreate(
                 ['MaPhienHop' => $phienHop1->MaPhienHop, 'MaThanhVien' => $tv->MaThanhVien],
                 [
-                    'TrangThaiThamDu' => 'PRESENT',
+                    'TrangThaiThamDu' => 'Có mặt',
                     'ThoiDiemXacNhan' => '2026-11-15 08:15:00',
                     'GhiChu' => 'Có mặt đúng giờ',
                 ]
@@ -211,10 +213,10 @@ class DatabaseSeeder extends Seeder
             ['TieuDe' => 'Đề án mở ngành đào tạo Kỹ thuật Robot & Trí tuệ nhân tạo (AI) bậc Đại học'],
             [
                 'NoiDungTomTat' => 'Mở ngành đào tạo mới đón đầu xu hướng công nghiệp 4.0 và nhu cầu nguồn nhân lực công nghệ cao.',
-                'NgayTrinh' => '2026-10-15',
-                'LinhVuc' => 'Đào tạo & Công nghệ',
-                'TrangThai' => 'APPROVED_FOR_MEETING',
-                'GhiChu' => 'Đã được Thư ký HĐT thẩm tra đạt yêu cầu',
+                'NgayTrinh' => '2026-11-05',
+                'LinhVuc' => 'Đào tạo & Đảm bảo chất lượng',
+                'TrangThai' => 'Mới tạo',
+                'GhiChu' => 'A, B',
                 'MaDonVi' => $donViMap['P_DT'],
                 'MaNguoiDung' => $userDaoTao?->MaNguoiDung ?? 1,
             ]
@@ -224,8 +226,8 @@ class DatabaseSeeder extends Seeder
         \App\Models\ChuongTrinhHop::firstOrCreate(
             ['MaPhienHop' => $phienHop1->MaPhienHop, 'ThuTu' => 1],
             [
-                'TrangThai' => 'PENDING',
-                'GhiChu' => 'Xem xét và thảo luận Đề án mở ngành đào tạo Kỹ thuật Robot & Trí tuệ nhân tạo (AI) bậc Đại học',
+                'TrangThai' => 'Chưa xem xét',
+                'GhiChu' => 'A, B, C',
                 'MaHoSo' => $hs1->MaHoSo,
             ]
         );
@@ -245,7 +247,7 @@ class DatabaseSeeder extends Seeder
             ['MaPhienHop' => $phienHop1->MaPhienHop, 'MaKhachMoi' => $km->MaKhachMoi],
             [
                 'NoiDungMoi' => 'Báo cáo tham luận và tư vấn khung chương trình đào tạo ngành Robot & AI',
-                'TrangThaiThamDu' => 'INVITED',
+                'TrangThaiThamDu' => 'Xác nhận',
             ]
         );
 

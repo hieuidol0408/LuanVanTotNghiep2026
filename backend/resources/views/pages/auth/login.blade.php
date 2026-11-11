@@ -12,21 +12,28 @@
         <x-alert type="info" :message="session('info')" :dismissible="false" />
     @endif
 
-    <form method="POST" action="{{ route('login.submit') }}" id="loginForm">
+    <form method="POST" action="{{ route('login.submit') }}" id="loginForm" novalidate>
         @csrf
 
         <!-- Ô nhập Email -->
-        <x-form.input 
-            type="email" 
-            name="email" 
-            id="loginEmail"
-            label="Địa chỉ Email" 
-            placeholder="nhanvien@stu.edu.vn" 
-            value="{{ old('email') }}" 
-            required 
-            autocomplete="email"
-            autofocus
-        />
+        <div class="stu-form-group">
+            <x-form.label for="loginEmail" required>
+                Địa chỉ Email
+            </x-form.label>
+            <input 
+                type="text" 
+                name="email" 
+                id="loginEmail" 
+                class="stu-input @error('email') is-invalid @enderror" 
+                placeholder="nhanvien@stu.edu.vn" 
+                value="{{ old('email') }}" 
+                required 
+                autocomplete="email"
+                autofocus
+            >
+            <div id="emailClientError" class="stu-form-error" style="display: none;"></div>
+            <x-form.error field="email" />
+        </div>
 
         <!-- Ô nhập Mật khẩu kèm nút Ẩn/Hiện -->
         <div class="stu-form-group">
@@ -59,6 +66,7 @@
                     </svg>
                 </button>
             </div>
+            <div id="passwordClientError" class="stu-form-error" style="display: none;"></div>
             <x-form.error field="password" />
         </div>
 
@@ -124,14 +132,80 @@
     </style>
 
     <script>
+        const emailInput = document.getElementById('loginEmail');
+        const passInput = document.getElementById('loginPassword');
+        const emailError = document.getElementById('emailClientError');
+        const passError = document.getElementById('passwordClientError');
+
+        function clearLoginErrors() {
+            if (emailError) { emailError.style.display = 'none'; emailError.textContent = ''; }
+            if (passError) { passError.style.display = 'none'; passError.textContent = ''; }
+            if (emailInput) emailInput.classList.remove('is-invalid');
+            if (passInput) passInput.classList.remove('is-invalid');
+        }
+
         function fillLogin(email, pass) {
-            document.getElementById('loginEmail').value = email;
-            document.getElementById('loginPassword').value = pass;
+            clearLoginErrors();
+            emailInput.value = email;
+            passInput.value = pass;
+        }
+
+        function validateEmailClient(val) {
+            const v = (val || '').trim();
+            if (!v) {
+                return 'Vui lòng nhập địa chỉ email đăng nhập.';
+            }
+            if (!v.includes('@')) {
+                return 'Địa chỉ email bắt buộc phải chứa ký tự "@".';
+            }
+            const parts = v.split('@');
+            if (parts.length !== 2 || !parts[0]) {
+                return 'Địa chỉ email không hợp lệ (thiếu phần tên trước "@").';
+            }
+            const domain = parts[1];
+            if (!domain || !domain.includes('.') || domain.startsWith('.') || domain.endsWith('.')) {
+                return 'Phần tên miền phía sau "@" bắt buộc phải có dấu chấm "." hợp lệ (ví dụ: @stu.edu.vn).';
+            }
+            const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+            if (!emailRegex.test(v)) {
+                return 'Địa chỉ email không đúng định dạng chuẩn.';
+            }
+            return '';
+        }
+
+        function validatePasswordClient(val) {
+            const v = val || '';
+            if (!v.trim()) {
+                return 'Vui lòng nhập mật khẩu đăng nhập.';
+            }
+            if (v.length < 6) {
+                return 'Mật khẩu phải có độ dài tối thiểu 6 ký tự.';
+            }
+            return '';
+        }
+
+        if (emailInput) {
+            emailInput.addEventListener('input', function () {
+                const err = validateEmailClient(this.value);
+                if (!err) {
+                    emailError.style.display = 'none';
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
+
+        if (passInput) {
+            passInput.addEventListener('input', function () {
+                const err = validatePasswordClient(this.value);
+                if (!err) {
+                    passError.style.display = 'none';
+                    this.classList.remove('is-invalid');
+                }
+            });
         }
 
         // Toggle show/hide password
         const toggleBtn = document.getElementById('togglePasswordBtn');
-        const passInput = document.getElementById('loginPassword');
         const eyeIcon = document.getElementById('eyeIcon');
         const eyeOffIcon = document.getElementById('eyeOffIcon');
 
@@ -144,14 +218,37 @@
             });
         }
 
-        // Loading state on submit
+        // Client-side validation & Loading state on submit
         const form = document.getElementById('loginForm');
         const submitBtn = document.getElementById('submitBtn');
         const btnText = document.getElementById('btnText');
         const btnSpinner = document.getElementById('btnSpinner');
 
         if (form) {
-            form.addEventListener('submit', function () {
+            form.addEventListener('submit', function (e) {
+                clearLoginErrors();
+                const eMsg = validateEmailClient(emailInput.value);
+                const pMsg = validatePasswordClient(passInput.value);
+
+                let hasErr = false;
+                if (eMsg) {
+                    emailError.textContent = eMsg;
+                    emailError.style.display = 'block';
+                    emailInput.classList.add('is-invalid');
+                    hasErr = true;
+                }
+                if (pMsg) {
+                    passError.textContent = pMsg;
+                    passError.style.display = 'block';
+                    passInput.classList.add('is-invalid');
+                    hasErr = true;
+                }
+
+                if (hasErr) {
+                    e.preventDefault();
+                    return false;
+                }
+
                 submitBtn.setAttribute('disabled', 'disabled');
                 btnText.style.display = 'none';
                 btnSpinner.style.display = 'inline-flex';

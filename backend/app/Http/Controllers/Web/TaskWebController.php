@@ -264,46 +264,50 @@ class TaskWebController extends Controller
             'TrangThai' => 'required|string|in:ASSIGNED,IN_PROGRESS,COMPLETED,OVERDUE',
         ]);
 
+        $statusMap = [
+            'ASSIGNED' => 'Đã phân công',
+            'IN_PROGRESS' => 'Đang thực hiện',
+            'COMPLETED' => 'Hoàn thành',
+            'OVERDUE' => 'Quá hạn',
+        ];
+        $normalizedStatus = $statusMap[$request->TrangThai] ?? $request->TrangThai;
+
         $task->update([
             'TenNhiemVu' => $request->TenNhiemVu,
             'NoiDung' => $request->NoiDung,
             'NgayGiao' => $request->NgayGiao,
-            'NgayGiaoNhiemVu' => $request->NgayGiao,
             'NgayHoanThanh' => $request->NgayHoanThanh,
-            'NgayHoanThanhNhiemVu' => $request->NgayHoanThanh,
-            'TrangThai' => $request->TrangThai,
-            'NgayXacNhanHoanThanh' => $request->TrangThai === 'COMPLETED' ? ($task->NgayXacNhanHoanThanh ?? now()->toDateString()) : null,
+            'TrangThai' => $normalizedStatus,
+            'NgayXacNhanHoanThanh' => in_array($request->TrangThai, ['COMPLETED', 'Hoàn thành']) ? ($task->NgayXacNhanHoanThanh ?? now()->toDateString()) : null,
         ]);
 
         return redirect()->route('tasks.show', $task->MaNhiemVu)->with('success', 'Cập nhật thông tin nhiệm vụ thành công!');
     }
 
     /**
-     * Hủy/Xóa nhiệm vụ
+     * Ẩn nhiệm vụ (Soft Delete - Không xóa cứng khỏi CSDL)
      */
     public function destroy(int $id): RedirectResponse
     {
         $user = Auth::user();
         if ($user && !in_array($user->role, ['SECRETARY', 'CHAIR', 'ADMIN'])) {
-            return redirect()->route('tasks.index')->with('error', 'Bạn không có quyền xóa nhiệm vụ.');
+            return redirect()->route('tasks.index')->with('error', 'Bạn không có quyền ẩn nhiệm vụ.');
         }
 
         $task = NhiemVu::findOrFail($id);
 
         DB::beginTransaction();
         try {
-            // Xóa các phân công và liên kết
             foreach ($task->phanCongNhiemVu as $pc) {
-                $pc->baoCao()->delete();
-                $pc->delete();
+                $pc->update(['TrangThaiThucHien' => 'Đã ẩn']);
             }
-            $task->delete();
+            $task->update(['TrangThai' => 'Đã ẩn']);
             DB::commit();
 
-            return redirect()->route('tasks.index')->with('success', 'Đã xóa nhiệm vụ và các phân công thành công.');
+            return redirect()->route('tasks.index')->with('success', 'Đã ẩn nhiệm vụ #' . $id . ' khỏi giao diện (Soft Delete).');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Lỗi khi xóa nhiệm vụ: ' . $e->getMessage());
+            return back()->with('error', 'Lỗi khi ẩn nhiệm vụ: ' . $e->getMessage());
         }
     }
 }

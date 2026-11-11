@@ -70,8 +70,11 @@ return new class extends Migration
             $table->date('NgayHop');
             $table->string('DiaDiem', 255);
             $table->string('HinhThuc', 255); // 'Trực tiếp' | 'Trực tuyến' | 'Kết hợp'
-            $table->string('TrangThai', 255); // 'Đã diễn ra' | 'Đang diễn ra' | 'Hủy'
+            $table->string('TrangThai', 255); // 'Sắp diễn ra' | 'Đang chuẩn bị' | 'Đang diễn ra' | 'Đã diễn ra' | 'Đã kết thúc' | 'Đã ẩn'
             $table->text('GhiChu')->nullable(); // [BR-11] NULLable
+            $table->unsignedInteger('MaNguoiDung')->nullable(); // Lưu vết ID người tạo phiên họp
+
+            $table->foreign('MaNguoiDung')->references('MaNguoiDung')->on('nguoi_dung')->cascadeOnUpdate()->nullOnDelete();
         });
 
         // 6. THAM_DU

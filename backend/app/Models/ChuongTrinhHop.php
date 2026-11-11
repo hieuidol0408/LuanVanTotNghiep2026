@@ -24,6 +24,23 @@ class ChuongTrinhHop extends Model
         'ThuTu' => 'integer',
     ];
 
+    protected static function booted(): void
+    {
+        static::addGlobalScope('not_hidden', function ($builder) {
+            $builder->where('chuong_trinh_hop.TrangThai', '!=', 'Đã ẩn');
+        });
+    }
+
+    public function getTrangThaiAttribute($value): string
+    {
+        return match (strtoupper(trim((string) $value))) {
+            'PENDING' => 'Chưa xem xét',
+            'DISCUSSING' => 'Đang thảo luận',
+            'COMPLETED', 'PASSED' => 'Đã thông qua',
+            default => (string) ($value ?: 'Chưa xem xét'),
+        };
+    }
+
     public function phienHop(): BelongsTo
     {
         return $this->belongsTo(PhienHop::class, 'MaPhienHop', 'MaPhienHop');

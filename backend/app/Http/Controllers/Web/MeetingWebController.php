@@ -27,6 +27,7 @@ class MeetingWebController extends Controller
     public function index(Request $request): View
     {
         $query = PhienHop::query()
+            ->with(['nguoiDung'])
             ->withCount(['chuongTrinhHop', 'thamDu', 'taiLieu']);
 
         // 1. Tìm kiếm từ khóa
@@ -53,7 +54,7 @@ class MeetingWebController extends Controller
             $query->where('HinhThuc', $format);
         }
 
-        $meetings = $query->orderBy('ThoiGianBatDau', 'desc')
+        $meetings = $query->orderBy('MaPhienHop', 'asc')
             ->paginate(10)
             ->withQueryString();
 
@@ -97,16 +98,20 @@ class MeetingWebController extends Controller
             'NgayHop' => ['required', 'date'],
             'GioBatDau' => ['required', 'string'],
             'GioKetThuc' => ['required', 'string'],
-            'DiaDiem' => ['required', 'string', 'max:255'],
+            'DiaDiem' => ['required', 'string', 'min:3', 'max:255'],
             'HinhThuc' => ['required', 'string'],
-            'GhiChu' => ['nullable', 'string'],
+            'GhiChu' => ['nullable', 'string', 'max:1000'],
         ], [
             'TenPhienHop.required' => 'Vui lòng nhập tên phiên họp.',
-            'NgayHop.required' => 'Vui lòng chọn ngày họp.',
+            'TenPhienHop.min' => 'Tên phiên họp phải có ít nhất 5 ký tự.',
+            'TenPhienHop.max' => 'Tên phiên họp không được vượt quá 255 ký tự.',
+            'NgayHop.required' => 'Vui lòng chọn ngày tổ chức họp.',
+            'NgayHop.date' => 'Ngày tổ chức họp không hợp lệ.',
             'GioBatDau.required' => 'Vui lòng nhập giờ bắt đầu.',
             'GioKetThuc.required' => 'Vui lòng nhập giờ kết thúc.',
             'DiaDiem.required' => 'Vui lòng nhập địa điểm tổ chức.',
-            'HinhThuc.required' => 'Vui lòng chọn hình thức họp.',
+            'DiaDiem.min' => 'Địa điểm tổ chức phải có ít nhất 3 ký tự.',
+            'HinhThuc.required' => 'Vui lòng chọn hình thức tổ chức họp.',
         ]);
 
         $startTimeStr = strlen($validated['GioBatDau']) === 5 ? "{$validated['GioBatDau']}:00" : $validated['GioBatDau'];
@@ -124,7 +129,7 @@ class MeetingWebController extends Controller
         }
 
         // [BR-08] Kiểm tra chống xung đột thời gian phiên họp (Thư ký & HĐT không thể họp trùng lịch)
-        $conflictingMeeting = PhienHop::whereNotIn('TrangThai', ['Hủy', 'Đã hủy', 'CANCELLED'])
+        $conflictingMeeting = PhienHop::whereNotIn('TrangThai', ['Hủy', 'Đã hủy', 'CANCELLED', 'Đã ẩn'])
             ->where(function ($query) use ($startDateTime, $endDateTime) {
                 $query->where('ThoiGianBatDau', '<', $endDateTime)
                       ->where('ThoiGianKetThuc', '>', $startDateTime);
@@ -144,16 +149,27 @@ class MeetingWebController extends Controller
                 ]);
         }
 
-        $phienHop = DB::transaction(function () use ($validated, $startDateTime, $endDateTime) {
+        // Chuẩn hóa hình thức sang tiếng Việt 100%
+        $hinhThucVi = match (strtoupper(trim($validated['HinhThuc']))) {
+            'IN_PERSON', 'IN PERSON' => 'Trực tiếp',
+            'ONLINE' => 'Trực tuyến',
+            'HYBRID' => 'Kết hợp',
+            default => $validated['HinhThuc'],
+        };
+
+        $creatorId = Auth::user()?->MaNguoiDung ?? Auth::id() ?? session('user_id') ?? 1;
+
+        $phienHop = DB::transaction(function () use ($validated, $startDateTime, $endDateTime, $hinhThucVi, $creatorId) {
             $meeting = PhienHop::create([
                 'TenPhienHop' => $validated['TenPhienHop'],
                 'NgayHop' => $validated['NgayHop'],
                 'ThoiGianBatDau' => $startDateTime,
                 'ThoiGianKetThuc' => $endDateTime,
                 'DiaDiem' => $validated['DiaDiem'],
-                'HinhThuc' => $validated['HinhThuc'],
+                'HinhThuc' => $hinhThucVi,
                 'TrangThai' => 'Sắp diễn ra',
                 'GhiChu' => $validated['GhiChu'] ?? null,
+                'MaNguoiDung' => $creatorId,
             ]);
 
             // [BR-02] Tự động mời tất cả thành viên HĐT chính thức vào phiên (chống trùng lặp)
@@ -182,6 +198,7 @@ class MeetingWebController extends Controller
     public function show(int|string $id): View
     {
         $meeting = PhienHop::with([
+            'nguoiDung',
             'thamDu.thanhVienHdt.nguoiDung.donVi',
             'khachMoiPhienHop.khachMoi',
             'chuongTrinhHop.hoSoTrinh.donVi',
@@ -198,11 +215,11 @@ class MeetingWebController extends Controller
             ->whereNotIn('MaThanhVien', $existingMemberIds)
             ->get();
 
-        // Danh sách hồ sơ trình có thể đưa vào chương trình họp (để modal gán hồ sơ BR-08)
+        // Danh sách hồ sơ trình có thể đưa vào chương trình họp (dựa trên khóa ngoại MaHoSo chưa gắn vào phiên này)
         $existingDossierIds = $meeting->chuongTrinhHop->pluck('MaHoSo')->toArray();
         $availableDossiers = HoSoTrinh::with('donVi')
             ->whereNotIn('MaHoSo', $existingDossierIds)
-            ->whereIn('TrangThai', ['Đủ điều kiện', 'Đầy đủ', 'APPROVED_FOR_MEETING', 'SUBMITTED', 'PENDING'])
+            ->orderByDesc('MaHoSo')
             ->get();
 
         // Thống kê kết quả biểu quyết bảo mật (BR-09): Tính tổng số phiếu, tuyệt đối không lộ danh tính
@@ -268,10 +285,19 @@ class MeetingWebController extends Controller
             'NgayHop' => ['required', 'date'],
             'GioBatDau' => ['required', 'string'],
             'GioKetThuc' => ['required', 'string'],
-            'DiaDiem' => ['required', 'string', 'max:255'],
+            'DiaDiem' => ['required', 'string', 'min:3', 'max:255'],
             'HinhThuc' => ['required', 'string'],
             'TrangThai' => ['required', 'string'],
-            'GhiChu' => ['nullable', 'string'],
+            'GhiChu' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'TenPhienHop.required' => 'Vui lòng nhập tên phiên họp.',
+            'TenPhienHop.min' => 'Tên phiên họp phải có ít nhất 5 ký tự.',
+            'NgayHop.required' => 'Vui lòng chọn ngày tổ chức họp.',
+            'GioBatDau.required' => 'Vui lòng nhập giờ bắt đầu.',
+            'GioKetThuc.required' => 'Vui lòng nhập giờ kết thúc.',
+            'DiaDiem.required' => 'Vui lòng nhập địa điểm tổ chức.',
+            'HinhThuc.required' => 'Vui lòng chọn hình thức tổ chức.',
+            'TrangThai.required' => 'Vui lòng chọn trạng thái phiên họp.',
         ]);
 
         $startTimeStr = strlen($validated['GioBatDau']) === 5 ? "{$validated['GioBatDau']}:00" : $validated['GioBatDau'];
@@ -288,9 +314,9 @@ class MeetingWebController extends Controller
         }
 
         // [BR-08] Kiểm tra chống xung đột thời gian phiên họp khi cập nhật
-        if (! in_array($validated['TrangThai'], ['Hủy', 'Đã hủy', 'CANCELLED'])) {
+        if (! in_array($validated['TrangThai'], ['Hủy', 'Đã hủy', 'CANCELLED', 'Đã ẩn'])) {
             $conflictingMeeting = PhienHop::where('MaPhienHop', '!=', $id)
-                ->whereNotIn('TrangThai', ['Hủy', 'Đã hủy', 'CANCELLED'])
+                ->whereNotIn('TrangThai', ['Hủy', 'Đã hủy', 'CANCELLED', 'Đã ẩn'])
                 ->where(function ($query) use ($startDateTime, $endDateTime) {
                     $query->where('ThoiGianBatDau', '<', $endDateTime)
                           ->where('ThoiGianKetThuc', '>', $startDateTime);
@@ -311,19 +337,43 @@ class MeetingWebController extends Controller
             }
         }
 
+        $hinhThucVi = match (strtoupper(trim($validated['HinhThuc']))) {
+            'IN_PERSON', 'IN PERSON' => 'Trực tiếp',
+            'ONLINE' => 'Trực tuyến',
+            'HYBRID' => 'Kết hợp',
+            default => $validated['HinhThuc'],
+        };
+
         $meeting->update([
             'TenPhienHop' => $validated['TenPhienHop'],
             'NgayHop' => $validated['NgayHop'],
             'ThoiGianBatDau' => $startDateTime,
             'ThoiGianKetThuc' => $endDateTime,
             'DiaDiem' => $validated['DiaDiem'],
-            'HinhThuc' => $validated['HinhThuc'],
+            'HinhThuc' => $hinhThucVi,
             'TrangThai' => $validated['TrangThai'],
             'GhiChu' => $validated['GhiChu'] ?? null,
         ]);
 
         return redirect()->route('meetings.show', $meeting->MaPhienHop)
-            ->with('success', 'Cập nhật phiên họp thành công!');
+            ->with('success', 'Đã cập nhật lịch họp, thời gian kết thúc và thông tin phiên họp thành công!');
+    }
+
+    /**
+     * Ẩn phiên họp (Soft Delete - không xóa cứng khỏi CSDL)
+     */
+    public function destroy(int|string $id): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return redirect()->route('meetings.index')->with('error', 'Bạn không có thẩm quyền xóa phiên họp.');
+        }
+
+        $meeting = PhienHop::findOrFail($id);
+        $meeting->update(['TrangThai' => 'Đã ẩn']);
+
+        return redirect()->route('meetings.index')
+            ->with('success', "Đã ẩn phiên họp #{$meeting->MaPhienHop} khỏi danh sách hiển thị (dữ liệu vẫn được bảo toàn trong CSDL).");
     }
 
     /**

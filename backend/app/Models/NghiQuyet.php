@@ -26,6 +26,23 @@ class NghiQuyet extends Model
         'NgayBanHanh' => 'date',
     ];
 
+    protected static function booted(): void
+    {
+        static::addGlobalScope('not_hidden', function ($builder) {
+            $builder->where('nghi_quyet.TrangThai', '!=', 'Đã ẩn');
+        });
+    }
+
+    public function getTrangThaiAttribute($value): string
+    {
+        return match (strtoupper(trim((string) $value))) {
+            'DRAFT' => 'Dự thảo',
+            'SIGNED' => 'Đã ký ban hành',
+            'PUBLISHED' => 'Đã công bố',
+            default => (string) ($value ?: 'Dự thảo'),
+        };
+    }
+
     public function phienHop(): BelongsTo
     {
         return $this->belongsTo(PhienHop::class, 'MaPhienHop', 'MaPhienHop');

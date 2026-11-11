@@ -21,6 +21,7 @@ class PhienHop extends Model
         'HinhThuc',
         'TrangThai',
         'GhiChu',
+        'MaNguoiDung',
     ];
 
     protected $casts = [
@@ -28,6 +29,40 @@ class PhienHop extends Model
         'ThoiGianKetThuc' => 'datetime',
         'NgayHop' => 'date',
     ];
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope('not_hidden', function ($builder) {
+            $builder->where('phien_hop.TrangThai', '!=', 'Đã ẩn');
+        });
+    }
+
+    public function getHinhThucAttribute($value): string
+    {
+        return match (strtoupper(trim((string) $value))) {
+            'IN_PERSON', 'IN PERSON' => 'Trực tiếp',
+            'ONLINE' => 'Trực tuyến',
+            'HYBRID' => 'Kết hợp',
+            default => (string) ($value ?: 'Trực tiếp'),
+        };
+    }
+
+    public function getTrangThaiAttribute($value): string
+    {
+        return match (strtoupper(trim((string) $value))) {
+            'PREPARING' => 'Đang chuẩn bị',
+            'SCHEDULED' => 'Sắp diễn ra',
+            'ONGOING', 'IN_PROGRESS' => 'Đang diễn ra',
+            'COMPLETED' => 'Đã kết thúc',
+            'CANCELLED' => 'Hủy',
+            default => (string) ($value ?: 'Sắp diễn ra'),
+        };
+    }
+
+    public function nguoiDung(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'MaNguoiDung', 'MaNguoiDung');
+    }
 
     public function thamDu(): HasMany
     {

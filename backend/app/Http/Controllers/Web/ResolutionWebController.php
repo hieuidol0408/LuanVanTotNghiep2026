@@ -309,4 +309,22 @@ class ResolutionWebController extends Controller
 
         return back()->with('success', 'Nghị quyết đã được công bố hiệu lực thi hành tới các đơn vị trực thuộc STU!');
     }
+
+    /**
+     * Ẩn Nghị quyết (Soft Delete - Không xóa cứng khỏi CSDL)
+     */
+    public function destroy(int|string $id): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Bạn không có thẩm quyền ẩn Nghị quyết.');
+        }
+
+        $resolution = NghiQuyet::findOrFail($id);
+        $soNghiQuyet = $resolution->SoNghiQuyet;
+        $resolution->update(['TrangThai' => 'Đã ẩn']);
+
+        return redirect()->route('resolutions.index')
+            ->with('success', "Đã ẩn Nghị quyết {$soNghiQuyet} khỏi giao diện (Soft Delete).");
+    }
 }

@@ -36,7 +36,7 @@
                 @endif
 
                 @if($isClosed)
-                    @if(in_array($vote->KetQua, ['PASSED', 'Đã thông qua', 'THÔNG QUA']))
+                    @if($voteStats['is_passed'])
                         <span class="stu-badge stu-badge-success" style="font-weight: 700;">✓ Đã thông qua</span>
                     @else
                         <span class="stu-badge stu-badge-danger" style="font-weight: 700;">✗ Không thông qua</span>
@@ -144,7 +144,7 @@
                         <div style="padding: 24px; background: #fffbeb; border-radius: var(--radius-md); border: 1px solid #fde68a; color: #92400e; font-size: 13px; line-height: 1.6;">
                             <strong>Thông báo quyền biểu quyết:</strong>
                             <p style="margin: 6px 0 0 0;">
-                                Tài khoản hiện tại không đủ điều kiện bỏ phiếu. Theo quy định, chỉ các <strong>Thành viên chính thức của Hội đồng trường đã được điểm danh có mặt (PRESENT)</strong> tại phiên họp mới có quyền biểu quyết.
+                                Tài khoản hiện tại không đủ điều kiện bỏ phiếu. Theo quy định, chỉ các <strong>Thành viên chính thức của Hội đồng trường đã được điểm danh có mặt</strong> tại phiên họp mới có quyền biểu quyết.
                             </p>
                         </div>
                     @elseif($hasVotedDirect)

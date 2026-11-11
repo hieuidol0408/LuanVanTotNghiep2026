@@ -57,23 +57,33 @@ class VoteWebController extends Controller
             }
         }
 
-        $votings = $query->orderBy('MaNoiDung', 'desc')
+        $votings = $query->orderBy('MaNoiDung', 'asc')
             ->paginate(10)
             ->withQueryString();
 
-        $meetings = PhienHop::orderBy('ThoiGianBatDau', 'desc')->get();
+        $meetings = PhienHop::orderBy('MaPhienHop', 'asc')->get();
         $agendaItems = ChuongTrinhHop::with(['phienHop', 'hoSoTrinh'])
-            ->orderBy('MaPhienHop', 'desc')
+            ->orderBy('MaPhienHop', 'asc')
             ->orderBy('ThuTu')
             ->get();
         $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
 
         // Thống kê nhanh
+        $allVotes = NoiDungBieuQuyet::with('ketQuaBieuQuyet')->get();
+        $passedCount = $allVotes->filter(function ($v) {
+            $total = $v->ketQuaBieuQuyet->count();
+            if ($total === 0) {
+                return false;
+            }
+            $agree = $v->ketQuaBieuQuyet->filter(fn ($k) => in_array($k->LuaChon, ['VOTE_FOR', 'Tán thành']))->count();
+            return ($agree / $total) >= 0.5;
+        })->count();
+
         $stats = [
-            'total' => NoiDungBieuQuyet::count(),
+            'total' => $allVotes->count(),
             'opening' => NoiDungBieuQuyet::whereIn('TrangThai', ['OPENING', 'Đang mở biểu quyết', 'Đang mở'])->count(),
             'closed' => NoiDungBieuQuyet::whereIn('TrangThai', ['CLOSED', 'Đã đóng'])->count(),
-            'passed' => NoiDungBieuQuyet::whereIn('KetQua', ['PASSED', 'Đã thông qua', 'THÔNG QUA'])->count(),
+            'passed' => $passedCount,
         ];
 
         return view('pages.votes.index', compact('votings', 'meetings', 'agendaItems', 'role', 'stats'));
@@ -92,30 +102,19 @@ class VoteWebController extends Controller
         $validated = $request->validate([
             'MaChuongTrinh' => ['required', 'integer', 'exists:chuong_trinh_hop,MaChuongTrinh'],
             'NoiDung' => ['required', 'string', 'min:5', 'max:255'],
-            'voting_type' => ['nullable', 'string', 'in:SECRET,OPEN'],
-            'pass_threshold' => ['nullable', 'integer', 'min:50', 'max:100'],
-            'notes' => ['nullable', 'string'],
         ], [
             'MaChuongTrinh.required' => 'Vui lòng chọn mục chương trình họp liên kết.',
             'MaChuongTrinh.exists' => 'Mục chương trình họp không hợp lệ.',
             'NoiDung.required' => 'Vui lòng nhập câu hỏi / nội dung biểu quyết.',
             'NoiDung.min' => 'Nội dung biểu quyết phải có ít nhất 5 ký tự.',
+            'NoiDung.max' => 'Nội dung biểu quyết không được vượt quá 255 ký tự.',
         ]);
 
-        $votingType = $validated['voting_type'] ?? 'SECRET';
-        $passThreshold = (int) ($validated['pass_threshold'] ?? 50);
-
         $vote = NoiDungBieuQuyet::create([
-            'NoiDung' => $validated['NoiDung'],
+            'NoiDung' => trim($validated['NoiDung']),
             'ThoiGianMo' => null,
             'ThoiGianDong' => now()->addMinutes(30),
-            'TrangThai' => 'PENDING',
-            'KetQua' => 'PENDING',
-            'GhiChu' => json_encode([
-                'voting_type' => $votingType,
-                'pass_threshold' => $passThreshold,
-                'user_notes' => $validated['notes'] ?? null,
-            ]),
+            'TrangThai' => 'Chưa mở',
             'MaChuongTrinh' => $validated['MaChuongTrinh'],
         ]);
 
@@ -255,9 +254,8 @@ class VoteWebController extends Controller
 
         $vote = NoiDungBieuQuyet::findOrFail($id);
         $vote->update([
-            'TrangThai' => 'OPENING',
+            'TrangThai' => 'Đang mở biểu quyết',
             'ThoiGianMo' => now(),
-            'KetQua' => 'PENDING',
         ]);
 
         return back()->with('success', 'Đã mở cổng biểu quyết thành công. Các thành viên có mặt có thể tiến hành bỏ phiếu.');
@@ -274,9 +272,7 @@ class VoteWebController extends Controller
         }
 
         $vote = NoiDungBieuQuyet::with(['chuongTrinhHop.phienHop', 'ketQuaBieuQuyet'])->findOrFail($id);
-
-        $meta = json_decode($vote->GhiChu ?? '{}', true) ?: [];
-        $passThreshold = (int) ($meta['pass_threshold'] ?? 50);
+        $passThreshold = 50;
 
         $votes = $vote->ketQuaBieuQuyet;
         $totalCast = $votes->count();
@@ -295,17 +291,31 @@ class VoteWebController extends Controller
         $agreePercent = round(($votesFor / $denominator) * 100, 1);
 
         $isPassed = $agreePercent >= $passThreshold;
-        $resultText = $isPassed ? 'PASSED' : 'REJECTED';
         $resultVietnamese = $isPassed ? 'Đã thông qua' : 'Không thông qua';
 
         $vote->update([
-            'TrangThai' => 'CLOSED',
+            'TrangThai' => 'Đã đóng',
             'ThoiGianDong' => now(),
-            'KetQua' => $resultText,
-            'KetQuaBieuQuyet' => $resultVietnamese,
         ]);
 
         return back()->with('success', "Đã kết thúc biểu quyết! Kết quả: {$resultVietnamese} (Tỷ lệ tán thành: {$agreePercent}% - Ngưỡng yêu cầu: {$passThreshold}%).");
+    }
+
+    /**
+     * Ẩn nội dung biểu quyết (Soft Delete - Không xóa cứng khỏi CSDL)
+     */
+    public function destroy(int|string $id): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Bạn không có thẩm quyền ẩn nội dung biểu quyết.');
+        }
+
+        $vote = NoiDungBieuQuyet::findOrFail($id);
+        $vote->update(['TrangThai' => 'Đã ẩn']);
+
+        return redirect()->route('votes.index')
+            ->with('success', 'Đã ẩn nội dung biểu quyết #' . $id . ' khỏi giao diện (Soft Delete).');
     }
 
     /**
@@ -355,7 +365,7 @@ class VoteWebController extends Controller
             ->first();
 
         if (! $attendance || ! in_array($attendance->TrangThaiThamDu, ['PRESENT', 'Có mặt'])) {
-            return back()->with('error', 'Bạn chưa được xác nhận có mặt (PRESENT) tại phiên họp nên không thể thực hiện biểu quyết.');
+            return back()->with('error', 'Bạn chưa được xác nhận có mặt tại phiên họp nên không thể thực hiện biểu quyết.');
         }
 
         $authId = $validated['authorization_id'] ?? null;

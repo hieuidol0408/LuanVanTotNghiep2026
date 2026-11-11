@@ -208,6 +208,16 @@
                                 </button>
                             </form>
                         @endif
+
+                        @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                            <form method="POST" action="{{ route('resolutions.destroy', $res->MaNghiQuyet) }}" style="display: inline-block;" onsubmit="return confirm('Xác nhận ẩn Nghị quyết {{ $res->SoNghiQuyet }} khỏi giao diện?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="stu-btn stu-btn-danger stu-btn-sm" title="Ẩn Nghị quyết (Soft Delete)">
+                                    <span>Xóa</span>
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </td>
             </tr>

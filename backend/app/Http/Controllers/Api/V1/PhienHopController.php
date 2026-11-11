@@ -127,7 +127,8 @@ class PhienHopController extends Controller
             ], 422);
         }
 
-        $meeting = DB::transaction(function () use ($validated, $startDateTime, $endDateTime) {
+        $creatorId = $request->user()?->MaNguoiDung ?? 3;
+        $meeting = DB::transaction(function () use ($validated, $startDateTime, $endDateTime, $creatorId) {
             $phienHop = PhienHop::create([
                 'TenPhienHop' => $validated['title'],
                 'NgayHop' => $validated['meeting_date'],
@@ -135,8 +136,9 @@ class PhienHopController extends Controller
                 'ThoiGianKetThuc' => $endDateTime,
                 'DiaDiem' => $validated['location'],
                 'HinhThuc' => $validated['meeting_format'],
-                'TrangThai' => 'PREPARING',
+                'TrangThai' => 'Đang chuẩn bị',
                 'GhiChu' => $validated['description'] ?? null,
+                'MaNguoiDung' => $creatorId,
             ]);
 
             // [BR-02] Ràng buộc bộ duy nhất (MaPhienHop, MaThanhVien) trong bảng THAM_DU (UNIQUE)
@@ -301,11 +303,11 @@ class PhienHopController extends Controller
             ], 422);
         }
 
-        $meeting->delete();
+        $meeting->update(['TrangThai' => 'Đã ẩn']);
 
         return response()->json([
             'success' => true,
-            'message' => 'Đã xóa phiên họp thành công.',
+            'message' => 'Đã ẩn phiên họp thành công (Soft Delete).',
             'data' => null,
             'errors' => null,
         ]);
@@ -395,7 +397,7 @@ class PhienHopController extends Controller
             ], 404);
         }
 
-        $agenda->delete();
+        $agenda->update(['TrangThai' => 'Đã ẩn']);
 
         // Tái đánh số thứ tự
         $remaining = ChuongTrinhHop::where('MaPhienHop', $id)->orderBy('ThuTu')->get();
@@ -405,7 +407,7 @@ class PhienHopController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Đã gỡ mục khỏi chương trình họp.',
+            'message' => 'Đã ẩn mục khỏi chương trình họp (Soft Delete).',
             'data' => null,
             'errors' => null,
         ]);

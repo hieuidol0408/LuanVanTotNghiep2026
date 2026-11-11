@@ -111,12 +111,20 @@ class DangNhapController extends Controller
     public function login(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
+            'email' => [
+                'required',
+                'string',
+                'max:191',
+                'email',
+                'regex:/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/',
+            ],
+            'password' => ['required', 'string', 'min:6', 'max:100'],
         ], [
-            'email.required' => 'Vui lòng nhập địa chỉ email.',
-            'email.email' => 'Địa chỉ email không đúng định dạng.',
+            'email.required' => 'Vui lòng nhập địa chỉ email công vụ.',
+            'email.email' => 'Địa chỉ email không đúng định dạng (bắt buộc có ký tự "@" và dấu chấm "." ở phần tên miền).',
+            'email.regex' => 'Địa chỉ email không hợp lệ: bắt buộc phải có ký tự "@" và dấu chấm "." hợp lệ ở phần tên miền phía sau "@" (ví dụ: ten@stu.edu.vn).',
             'password.required' => 'Vui lòng nhập mật khẩu.',
+            'password.min' => 'Mật khẩu phải có độ dài tối thiểu từ 6 ký tự trở lên.',
         ]);
 
         $user = User::with('department')->where('email', strtolower(trim($validated['email'])))->first();

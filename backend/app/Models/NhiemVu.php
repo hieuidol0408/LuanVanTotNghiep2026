@@ -34,6 +34,10 @@ class NhiemVu extends Model
 
     protected static function booted(): void
     {
+        static::addGlobalScope('not_hidden', function ($builder) {
+            $builder->where('nhiem_vu.TrangThai', '!=', 'Đã ẩn');
+        });
+
         static::saving(function ($model) {
             if (empty($model->NgayGiaoNhiemVu) && !empty($model->NgayGiao)) {
                 $model->NgayGiaoNhiemVu = $model->NgayGiao;
@@ -52,12 +56,16 @@ class NhiemVu extends Model
 
     public function getNgayGiaoNhiemVuAttribute($value)
     {
-        return $value ?? $this->attributes['NgayGiao'] ?? null;
+        $raw = $value ?? $this->attributes['NgayGiao'] ?? null;
+
+        return $raw ? \Carbon\Carbon::parse($raw) : null;
     }
 
     public function getNgayHoanThanhNhiemVuAttribute($value)
     {
-        return $value ?? $this->attributes['NgayHoanThanh'] ?? null;
+        $raw = $value ?? $this->attributes['NgayHoanThanh'] ?? null;
+
+        return $raw ? \Carbon\Carbon::parse($raw) : null;
     }
 
     public function nghiQuyet(): BelongsTo

@@ -46,10 +46,11 @@ Route::prefix('meetings')->name('meetings.')->group(function () {
     Route::get('/{id}', [MeetingWebController::class, 'show'])->name('show');
     Route::get('/{id}/edit', [MeetingWebController::class, 'edit'])->name('edit');
     Route::put('/{id}', [MeetingWebController::class, 'update'])->name('update');
+    Route::delete('/{id}', [MeetingWebController::class, 'destroy'])->name('destroy');
 
     // Thao tác nghiệp vụ phiên họp (7 Tabs & BR-02, BR-03, BR-05, BR-08)
     Route::post('/{id}/members', [MeetingWebController::class, 'addMember'])->name('members.add');
-    Route::post('/{id}/attendance', [MeetingWebController::class, 'updateAttendance'])->name('attendance');
+    Route::post('/{id}/attendance/{attendeeId}', [MeetingWebController::class, 'updateAttendance'])->name('attendance');
     Route::post('/{id}/guests', [MeetingWebController::class, 'addGuest'])->name('guests.add');
     Route::post('/{id}/agenda', [MeetingWebController::class, 'addAgendaItem'])->name('agenda.add');
     Route::post('/{id}/documents', [MeetingWebController::class, 'uploadDocument'])->name('documents.upload');
@@ -63,6 +64,7 @@ Route::prefix('submissions')->name('submissions.')->group(function () {
     Route::get('/{id}', [SubmissionWebController::class, 'show'])->name('show');
     Route::get('/{id}/edit', [SubmissionWebController::class, 'edit'])->name('edit');
     Route::put('/{id}', [SubmissionWebController::class, 'update'])->name('update');
+    Route::delete('/{id}', [SubmissionWebController::class, 'destroy'])->name('destroy');
     Route::post('/{id}/review', [SubmissionWebController::class, 'review'])->name('review');
 });
 
@@ -72,6 +74,7 @@ Route::prefix('votes')->name('votes.')->group(function () {
     Route::get('/', [VoteWebController::class, 'index'])->name('index');
     Route::post('/', [VoteWebController::class, 'store'])->name('store');
     Route::get('/{id}', [VoteWebController::class, 'show'])->name('show');
+    Route::delete('/{id}', [VoteWebController::class, 'destroy'])->name('destroy');
     Route::post('/{id}/open', [VoteWebController::class, 'open'])->name('open');
     Route::post('/{id}/close', [VoteWebController::class, 'close'])->name('close');
     Route::post('/{id}/vote', [VoteWebController::class, 'vote'])->name('vote');
@@ -86,6 +89,7 @@ Route::prefix('resolutions')->name('resolutions.')->group(function () {
     Route::get('/{id}', [ResolutionWebController::class, 'show'])->name('show');
     Route::get('/{id}/edit', [ResolutionWebController::class, 'edit'])->name('edit');
     Route::put('/{id}', [ResolutionWebController::class, 'update'])->name('update');
+    Route::delete('/{id}', [ResolutionWebController::class, 'destroy'])->name('destroy');
     Route::post('/{id}/sign', [ResolutionWebController::class, 'sign'])->name('sign');
     Route::post('/{id}/publish', [ResolutionWebController::class, 'publish'])->name('publish');
 });

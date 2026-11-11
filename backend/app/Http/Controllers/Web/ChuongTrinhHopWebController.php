@@ -26,14 +26,11 @@ class ChuongTrinhHopWebController extends Controller
         $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
 
         // 1. Danh sách phiên họp phục vụ bộ lọc và thêm mới
-        $meetings = PhienHop::orderByDesc('NgayHop')
-            ->orderByDesc('MaPhienHop')
-            ->get();
+        $meetings = PhienHop::orderBy('MaPhienHop', 'asc')->get();
 
-        // Danh sách hồ sơ trình đủ điều kiện đưa vào chương trình họp (BR-08)
+        // Danh sách hồ sơ trình đưa vào chương trình họp (BR-08)
         $availableDossiers = HoSoTrinh::with('donVi')
-            ->whereIn('TrangThai', ['Đủ điều kiện', 'Đầy đủ', 'ELIGIBLE'])
-            ->orderByDesc('MaHoSo')
+            ->orderBy('MaHoSo', 'asc')
             ->get();
 
         // 2. Query chương trình họp có eager load
@@ -76,7 +73,7 @@ class ChuongTrinhHopWebController extends Controller
         if ($selectedMeetingId && $selectedMeetingId !== 'ALL') {
             $query->orderBy('ThuTu', 'asc');
         } else {
-            $query->orderByDesc('MaPhienHop')->orderBy('ThuTu', 'asc');
+            $query->orderBy('MaPhienHop', 'asc')->orderBy('ThuTu', 'asc');
         }
 
         // 7. Phân trang
@@ -173,23 +170,18 @@ class ChuongTrinhHopWebController extends Controller
     }
 
     /**
-     * Xóa mục khỏi chương trình họp (nếu chưa phát sinh biểu quyết)
+     * Ẩn mục khỏi chương trình họp (Soft Delete - Không xóa cứng khỏi CSDL)
      */
     public function destroy(int|string $id): RedirectResponse
     {
         $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
         if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
-            return back()->with('error', 'Bạn không có quyền xóa mục chương trình họp.');
+            return back()->with('error', 'Bạn không có quyền ẩn mục chương trình họp.');
         }
 
-        $agenda = ChuongTrinhHop::withCount('noiDungBieuQuyet')->findOrFail($id);
+        $agenda = ChuongTrinhHop::findOrFail($id);
+        $agenda->update(['TrangThai' => 'Đã ẩn']);
 
-        if ($agenda->noi_dung_bieu_quyet_count > 0) {
-            return back()->with('error', 'Không thể xóa mục chương trình đã có nội dung biểu quyết liên kết.');
-        }
-
-        $agenda->delete();
-
-        return back()->with('success', 'Đã xóa mục khỏi chương trình họp.');
+        return back()->with('success', 'Đã ẩn mục khỏi chương trình họp (Soft Delete).');
     }
 }
