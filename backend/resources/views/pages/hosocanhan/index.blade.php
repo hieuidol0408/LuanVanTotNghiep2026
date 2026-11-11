@@ -333,9 +333,9 @@
                             Thời gian tham gia HĐT
                         </div>
                         <div style="font-weight: 500;">
-                            Từ ngày {{ $thanhVien->NgayBatDauThamGia->format('d/m/Y') }}
+                            Từ ngày {{ \Carbon\Carbon::parse($thanhVien->NgayBatDauThamGia)->format('d/m/Y') }}
                             @if($thanhVien->NgayKetThuc)
-                                đến {{ $thanhVien->NgayKetThuc->format('d/m/Y') }}
+                                đến {{ \Carbon\Carbon::parse($thanhVien->NgayKetThuc)->format('d/m/Y') }}
                             @endif
                         </div>
                     </div>

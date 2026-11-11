@@ -37,7 +37,9 @@ class ThanhVienHdt extends Model
 
     public function getNgayBatDauThamGiaAttribute($value)
     {
-        return $value ?? $this->attributes['NgayBatDau'] ?? null;
+        $raw = $value ?? $this->attributes['NgayBatDau'] ?? null;
+
+        return $raw ? \Carbon\Carbon::parse($raw) : null;
     }
 
     public function nguoiDung(): BelongsTo
