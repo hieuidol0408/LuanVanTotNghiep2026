@@ -147,7 +147,7 @@
                 <td style="font-weight: 700; color: var(--color-primary); white-space: nowrap;">
                     #BQ-{{ str_pad($v->MaNoiDung, 3, '0', STR_PAD_LEFT) }}
                 </td>
-                <td style="min-width: 280px; max-width: 440px;">
+                <td style="max-width: 340px;">
                     <a href="{{ route('votes.show', $v->MaNoiDung) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none; line-height: 1.5; display: block;" class="hover:text-primary">
                         {{ $v->NoiDung }}
                     </a>
@@ -157,7 +157,7 @@
                         </div>
                     @endif
                 </td>
-                <td style="white-space: nowrap; font-size: 13px;">
+                <td style="max-width: 200px; font-size: 13px; line-height: 1.4;">
                     <div style="font-weight: 500;">
                         {{ $v->chuongTrinhHop?->phienHop?->TenPhienHop ?? 'Phiên họp #' . ($v->chuongTrinhHop?->MaPhienHop ?? '—') }}
                     </div>

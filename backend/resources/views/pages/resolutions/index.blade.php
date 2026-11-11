@@ -122,108 +122,105 @@
     </div>
 
     {{-- Bảng danh sách Nghị quyết (Áp dụng layout chống tràn) --}}
-    <div class="stu-table-responsive" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
-        <x-table 
-            cardTitle="Danh sách Nghị quyết Hội đồng trường (Tổng: {{ $resolutions->total() }})"
-            :headers="['Số hiệu', 'Trích yếu nội dung', 'Phiên họp & Ngày', 'Trạng thái', 'Tiến độ thực hiện']" 
-            :hasActions="true"
-            actionTitle="Thao tác"
-            style="min-width: 1150px;"
-        >
-            @forelse($resolutions as $res)
-                @php
-                    $tasks = $res->nhiemVu;
-                    $totalTasks = $tasks->count();
-                    $completedTasks = $tasks->filter(fn ($t) => in_array($t->TrangThai, ['COMPLETED', 'Hoàn thành']))->count();
-                    $progress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 1) : 0;
-                    $isDraft = in_array($res->TrangThai, ['DRAFT', 'Dự thảo']);
-                    $isSigned = in_array($res->TrangThai, ['SIGNED', 'Đã ký ban hành', 'Đã ký']);
-                    $isPublished = in_array($res->TrangThai, ['PUBLISHED', 'Đã công bố hiệu lực', 'Đã công bố']);
-                @endphp
-                <tr>
-                    <td style="font-weight: 700; color: var(--color-primary); white-space: nowrap; width: 170px;">
-                        <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" style="color: var(--color-primary); text-decoration: none;">
-                            {{ $res->SoNghiQuyet }}
+    <x-table 
+        cardTitle="Danh sách Nghị quyết Hội đồng trường (Tổng: {{ $resolutions->total() }})"
+        :headers="['Số hiệu', 'Trích yếu nội dung', 'Phiên họp & Ngày', 'Trạng thái', 'Tiến độ thực hiện']" 
+        :hasActions="true"
+        actionTitle="Thao tác"
+    >
+        @forelse($resolutions as $res)
+            @php
+                $tasks = $res->nhiemVu;
+                $totalTasks = $tasks->count();
+                $completedTasks = $tasks->filter(fn ($t) => in_array($t->TrangThai, ['COMPLETED', 'Hoàn thành']))->count();
+                $progress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 1) : 0;
+                $isDraft = in_array($res->TrangThai, ['DRAFT', 'Dự thảo']);
+                $isSigned = in_array($res->TrangThai, ['SIGNED', 'Đã ký ban hành', 'Đã ký']);
+                $isPublished = in_array($res->TrangThai, ['PUBLISHED', 'Đã công bố hiệu lực', 'Đã công bố']);
+            @endphp
+            <tr>
+                <td style="font-weight: 700; color: var(--color-primary); white-space: nowrap;">
+                    <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" style="color: var(--color-primary); text-decoration: none;">
+                        {{ $res->SoNghiQuyet }}
+                    </a>
+                </td>
+                <td style="max-width: 340px;">
+                    <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none; line-height: 1.5; display: block;" class="hover:text-primary">
+                        {{ $res->TrichYeu }}
+                    </a>
+                    @if($res->taiLieu->count() > 0)
+                        <div style="font-size: 11px; color: var(--color-accent); margin-top: 3px; display: flex; align-items: center; gap: 4px;">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                            <span>Có {{ $res->taiLieu->count() }} văn bản chính thức</span>
+                        </div>
+                    @endif
+                </td>
+                <td style="max-width: 210px;">
+                    <div style="font-weight: 500; font-size: 13px; line-height: 1.4;">
+                        {{ $res->phienHop?->TenPhienHop ?? 'Phiên họp #' . $res->MaPhienHop }}
+                    </div>
+                    <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
+                        {{ $res->NgayBanHanh ? \Carbon\Carbon::parse($res->NgayBanHanh)->format('d/m/Y') : 'Chưa ấn định' }}
+                    </div>
+                </td>
+                <td style="text-align: center; white-space: nowrap;">
+                    <x-status-badge :status="$res->TrangThai" />
+                </td>
+                <td style="text-align: center; min-width: 120px;">
+                    @if($totalTasks > 0)
+                        <div style="font-size: 12px; font-weight: 700; color: var(--color-primary); margin-bottom: 4px;">
+                            {{ $progress }}% ({{ $completedTasks }}/{{ $totalTasks }} NV)
+                        </div>
+                        <div style="height: 6px; background: var(--color-bg-muted); border-radius: var(--radius-full); overflow: hidden;">
+                            <div style="height: 100%; width: {{ $progress }}%; background: {{ $progress == 100 ? 'var(--color-success)' : 'var(--color-primary)' }};"></div>
+                        </div>
+                    @else
+                        <a href="{{ route('tasks.create', ['resolution_id' => $res->MaNghiQuyet]) }}" style="font-size: 12px; color: var(--color-text-muted); text-decoration: none;" class="hover:text-primary" title="Bấm để phân rã nhiệm vụ">
+                            Chưa phân rã NV ↗
                         </a>
-                    </td>
-                    <td style="min-width: 300px; max-width: 440px;">
-                        <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none; line-height: 1.5; display: block;" class="hover:text-primary">
-                            {{ $res->TrichYeu }}
+                    @endif
+                </td>
+                <td class="col-actions" style="text-align: right; white-space: nowrap;">
+                    <div class="stu-table-actions-group" style="justify-content: flex-end; gap: 6px;">
+                        <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" class="stu-btn stu-btn-outline stu-btn-sm" title="Xem chi tiết toàn văn">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            <span>Xem</span>
                         </a>
-                        @if($res->taiLieu->count() > 0)
-                            <div style="font-size: 11px; color: var(--color-accent); margin-top: 3px; display: flex; align-items: center; gap: 4px;">
-                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                                <span>Có {{ $res->taiLieu->count() }} văn bản chính thức</span>
-                            </div>
-                        @endif
-                    </td>
-                    <td style="width: 220px; max-width: 250px;">
-                        <div style="font-weight: 500; font-size: 13px; line-height: 1.4;">
-                            {{ $res->phienHop?->TenPhienHop ?? 'Phiên họp #' . $res->MaPhienHop }}
-                        </div>
-                        <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
-                            {{ $res->NgayBanHanh ? \Carbon\Carbon::parse($res->NgayBanHanh)->format('d/m/Y') : 'Chưa ấn định' }}
-                        </div>
-                    </td>
-                    <td style="text-align: center; white-space: nowrap; width: 150px;">
-                        <x-status-badge :status="$res->TrangThai" />
-                    </td>
-                    <td style="text-align: center; min-width: 140px; width: 160px;">
-                        @if($totalTasks > 0)
-                            <div style="font-size: 12px; font-weight: 700; color: var(--color-primary); margin-bottom: 4px;">
-                                {{ $progress }}% ({{ $completedTasks }}/{{ $totalTasks }} NV)
-                            </div>
-                            <div style="height: 6px; background: var(--color-bg-muted); border-radius: var(--radius-full); overflow: hidden;">
-                                <div style="height: 100%; width: {{ $progress }}%; background: {{ $progress == 100 ? 'var(--color-success)' : 'var(--color-primary)' }};"></div>
-                            </div>
-                        @else
-                            <a href="{{ route('tasks.create', ['resolution_id' => $res->MaNghiQuyet]) }}" style="font-size: 12px; color: var(--color-text-muted); text-decoration: none;" class="hover:text-primary" title="Bấm để phân rã nhiệm vụ">
-                                Chưa phân rã NV ↗
-                            </a>
-                        @endif
-                    </td>
-                    <td class="col-actions" style="width: 210px; min-width: 210px; text-align: right; white-space: nowrap;">
-                        <div class="stu-table-actions-group" style="justify-content: flex-end; gap: 6px;">
-                            <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" class="stu-btn stu-btn-outline stu-btn-sm" title="Xem chi tiết toàn văn">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                <span>Xem</span>
-                            </a>
 
-                            {{-- Ký ban hành (Dành cho Chủ tịch) --}}
-                            @if($isDraft && in_array($role, ['CHAIR', 'ADMIN']))
-                                <form method="POST" action="{{ route('resolutions.sign', $res->MaNghiQuyet) }}" style="display: inline-block;">
-                                    @csrf
-                                    <button type="submit" class="stu-btn stu-btn-secondary stu-btn-sm" title="Chủ tịch ký ban hành">
-                                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                        <span>Ký</span>
-                                    </button>
-                                </form>
-                            @endif
+                        {{-- Ký ban hành (Dành cho Chủ tịch) --}}
+                        @if($isDraft && in_array($role, ['CHAIR', 'ADMIN']))
+                            <form method="POST" action="{{ route('resolutions.sign', $res->MaNghiQuyet) }}" style="display: inline-block;">
+                                @csrf
+                                <button type="submit" class="stu-btn stu-btn-secondary stu-btn-sm" title="Chủ tịch ký ban hành">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                    <span>Ký</span>
+                                </button>
+                            </form>
+                        @endif
 
-                            {{-- Công bố hiệu lực (Thư ký / Chủ tịch) --}}
-                            @if($isSigned && in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                                <form method="POST" action="{{ route('resolutions.publish', $res->MaNghiQuyet) }}" style="display: inline-block;">
-                                    @csrf
-                                    <button type="submit" class="stu-btn stu-btn-primary stu-btn-sm" title="Công bố hiệu lực toàn trường">
-                                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                        <span>Công bố</span>
-                                    </button>
-                                </form>
-                            @endif
-                        </div>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 48px; color: var(--color-text-muted);">
-                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 12px; color: var(--color-border);"><path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
-                        <div style="font-weight: 600; font-size: 15px;">Chưa có Nghị quyết nào</div>
-                        <div style="font-size: 13px; margin-top: 4px;">Các Nghị quyết được ban hành từ phiên họp sẽ xuất hiện tại đây.</div>
-                    </td>
-                </tr>
-            @endforelse
-        </x-table>
-    </div>
+                        {{-- Công bố hiệu lực (Thư ký / Chủ tịch) --}}
+                        @if($isSigned && in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                            <form method="POST" action="{{ route('resolutions.publish', $res->MaNghiQuyet) }}" style="display: inline-block;">
+                                @csrf
+                                <button type="submit" class="stu-btn stu-btn-primary stu-btn-sm" title="Công bố hiệu lực toàn trường">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                    <span>Công bố</span>
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 48px; color: var(--color-text-muted);">
+                    <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 12px; color: var(--color-border);"><path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                    <div style="font-weight: 600; font-size: 15px;">Chưa có Nghị quyết nào</div>
+                    <div style="font-size: 13px; margin-top: 4px;">Các Nghị quyết được ban hành từ phiên họp sẽ xuất hiện tại đây.</div>
+                </td>
+            </tr>
+        @endforelse
+    </x-table>
 
     {{-- Phân trang --}}
     @if($resolutions->hasPages())

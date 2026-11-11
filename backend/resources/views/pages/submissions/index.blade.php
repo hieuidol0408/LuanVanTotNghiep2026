@@ -133,10 +133,10 @@
     >
         @forelse($submissions as $item)
             <tr>
-                <td style="font-weight: 700; color: var(--color-primary); white-space: nowrap;">
+                <td style="font-weight: 700; color: var(--color-primary); white-space: nowrap; width: 95px;">
                     #HS-{{ str_pad($item->MaHoSo, 4, '0', STR_PAD_LEFT) }}
                 </td>
-                <td style="min-width: 280px; max-width: 420px;">
+                <td style="max-width: 340px;">
                     <a href="{{ route('submissions.show', $item->MaHoSo) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none; line-height: 1.5; display: block;" class="hover:text-primary">
                         {{ $item->TieuDe }}
                     </a>
@@ -152,13 +152,13 @@
                         </div>
                     @endif
                 </td>
-                <td style="white-space: nowrap; font-size: 13px;">
+                <td style="font-size: 13px; max-width: 180px; line-height: 1.4;">
                     <span style="font-weight: 500;">{{ $item->donVi?->TenDonVi ?? 'Chưa xác định' }}</span>
                 </td>
-                <td style="white-space: nowrap; font-size: 13px;">
-                    <span class="stu-badge stu-badge-light">{{ $item->LinhVuc ?? 'Tổng hợp' }}</span>
+                <td style="font-size: 13px; max-width: 180px; line-height: 1.4;">
+                    <span class="stu-badge stu-badge-light" style="white-space: normal; text-align: left; line-height: 1.3;">{{ $item->LinhVuc ?? 'Tổng hợp' }}</span>
                 </td>
-                <td style="text-align: center; white-space: nowrap;">
+                <td style="white-space: nowrap;">
                     <x-status-badge :status="$item->TrangThai" />
                 </td>
                 <td style="white-space: nowrap; font-size: 12px; color: var(--color-text-muted);">
