@@ -90,7 +90,7 @@ class ChuongTrinhHopWebController extends Controller
             ? $meetings->firstWhere('MaPhienHop', $selectedMeetingId)
             : null;
 
-        return view('pages.chuongtrinhhop.index', compact(
+        return view('pages.chuongtrinhhop.danhsach', compact(
             'agendas',
             'meetings',
             'availableDossiers',

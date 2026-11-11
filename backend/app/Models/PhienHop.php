@@ -61,7 +61,7 @@ class PhienHop extends Model
 
     public function nguoiDung(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(User::class, 'MaNguoiDung', 'MaNguoiDung');
+        return $this->belongsTo(NguoiDung::class, 'MaNguoiDung', 'MaNguoiDung');
     }
 
     public function thamDu(): HasMany

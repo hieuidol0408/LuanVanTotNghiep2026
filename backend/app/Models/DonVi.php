@@ -23,7 +23,7 @@ class DonVi extends Model
 
     public function nguoiDung(): HasMany
     {
-        return $this->hasMany(User::class, 'MaDonVi', 'MaDonVi');
+        return $this->hasMany(NguoiDung::class, 'MaDonVi', 'MaDonVi');
     }
 
     public function hoSoTrinh(): HasMany

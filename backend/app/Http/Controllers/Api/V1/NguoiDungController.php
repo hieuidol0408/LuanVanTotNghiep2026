@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\DonVi;
-use App\Models\User;
+use App\Models\NguoiDung;
 use App\Models\VaiTro;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -52,7 +52,7 @@ class NguoiDungController extends Controller
             ], 403);
         }
 
-        $query = User::with(['vaiTro', 'donVi']);
+        $query = NguoiDung::with(['vaiTro', 'donVi']);
 
         // 1. Tìm kiếm từ khóa (Họ tên, email)
         if ($search = $request->input('search')) {
@@ -147,7 +147,7 @@ class NguoiDungController extends Controller
         $defaultPassword = $validated['MatKhau'] ?? 'STU@123456';
         $status = $validated['TrangThai'] ?? 'Hoạt động';
 
-        $user = User::create([
+        $user = NguoiDung::create([
             'HoTen' => $validated['HoTen'],
             'email' => $validated['email'],
             'MatKhau' => Hash::make($defaultPassword),
@@ -172,7 +172,7 @@ class NguoiDungController extends Controller
     public function show(Request $request, $id): JsonResponse
     {
         $currentUser = $request->user();
-        $user = User::with(['vaiTro', 'donVi'])->find($id);
+        $user = NguoiDung::with(['vaiTro', 'donVi'])->find($id);
 
         if (!$user) {
             return response()->json([
@@ -210,7 +210,7 @@ class NguoiDungController extends Controller
             ], 403);
         }
 
-        $user = User::find($id);
+        $user = NguoiDung::find($id);
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -278,7 +278,7 @@ class NguoiDungController extends Controller
             ], 403);
         }
 
-        $user = User::find($id);
+        $user = NguoiDung::find($id);
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -328,7 +328,7 @@ class NguoiDungController extends Controller
             ], 403);
         }
 
-        $user = User::find($id);
+        $user = NguoiDung::find($id);
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -361,7 +361,7 @@ class NguoiDungController extends Controller
             ], 403);
         }
 
-        $user = User::find($id);
+        $user = NguoiDung::find($id);
         if (!$user) {
             return response()->json([
                 'success' => false,

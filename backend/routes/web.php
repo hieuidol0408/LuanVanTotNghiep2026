@@ -1,18 +1,18 @@
 <?php
 
-use App\Http\Controllers\Web\AuthController;
+use App\Http\Controllers\Web\DangNhapWebController;
 use App\Http\Controllers\Web\ChuongTrinhHopWebController;
-use App\Http\Controllers\Web\DashboardController;
-use App\Http\Controllers\Web\DocumentWebController;
+use App\Http\Controllers\Web\BangDieuHanhWebController;
+use App\Http\Controllers\Web\TaiLieuWebController;
 use App\Http\Controllers\Web\HoSoCaNhanWebController;
-use App\Http\Controllers\Web\MeetingWebController;
-use App\Http\Controllers\Web\MemberWebController;
-use App\Http\Controllers\Web\ResolutionWebController;
-use App\Http\Controllers\Web\SubmissionWebController;
-use App\Http\Controllers\Web\TaskReportWebController;
-use App\Http\Controllers\Web\TaskWebController;
-use App\Http\Controllers\Web\UserWebController;
-use App\Http\Controllers\Web\VoteWebController;
+use App\Http\Controllers\Web\PhienHopWebController;
+use App\Http\Controllers\Web\ThanhVienHdtWebController;
+use App\Http\Controllers\Web\NghiQuyetWebController;
+use App\Http\Controllers\Web\HoSoTrinhWebController;
+use App\Http\Controllers\Web\BaoCaoWebController;
+use App\Http\Controllers\Web\NhiemVuWebController;
+use App\Http\Controllers\Web\NguoiDungWebController;
+use App\Http\Controllers\Web\BieuQuyetWebController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,94 +25,94 @@ use Illuminate\Support\Facades\Route;
 */
 
 // --- XÁC THỰC NGƯỜI DÙNG (AUTHENTICATION) ---
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
-Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/login', [DangNhapWebController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [DangNhapWebController::class, 'login'])->name('login.submit');
+Route::match(['get', 'post'], '/logout', [DangNhapWebController::class, 'logout'])->name('logout');
 
 // --- BẢNG ĐIỀU HÀNH TỔNG QUAN (DASHBOARD) ---
-Route::get('/', [DashboardController::class, 'index'])->name('home');
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/', [BangDieuHanhWebController::class, 'index'])->name('home');
+Route::get('/dashboard', [BangDieuHanhWebController::class, 'index'])->name('dashboard');
 
 // --- THƯ VIỆN DESIGN SYSTEM & BLADE COMPONENTS SHOWCASE ---
 Route::get('/design-system', function () {
-    return view('pages.design-system-showcase');
+    return view('pages.hethongthietke');
 })->name('design-system');
 
 // --- PHÂN HỆ QUẢN LÝ PHIÊN HỌP (MEETINGS) ---
 Route::prefix('meetings')->name('meetings.')->group(function () {
-    Route::get('/', [MeetingWebController::class, 'index'])->name('index');
-    Route::get('/create', [MeetingWebController::class, 'create'])->name('create');
-    Route::post('/', [MeetingWebController::class, 'store'])->name('store');
-    Route::get('/{id}', [MeetingWebController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [MeetingWebController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [MeetingWebController::class, 'update'])->name('update');
-    Route::delete('/{id}', [MeetingWebController::class, 'destroy'])->name('destroy');
+    Route::get('/', [PhienHopWebController::class, 'index'])->name('index');
+    Route::get('/create', [PhienHopWebController::class, 'create'])->name('create');
+    Route::post('/', [PhienHopWebController::class, 'store'])->name('store');
+    Route::get('/{id}', [PhienHopWebController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [PhienHopWebController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [PhienHopWebController::class, 'update'])->name('update');
+    Route::delete('/{id}', [PhienHopWebController::class, 'destroy'])->name('destroy');
 
     // Thao tác nghiệp vụ phiên họp (7 Tabs & BR-02, BR-03, BR-05, BR-08)
-    Route::post('/{id}/members', [MeetingWebController::class, 'addMember'])->name('members.add');
-    Route::post('/{id}/attendance/{attendeeId}', [MeetingWebController::class, 'updateAttendance'])->name('attendance');
-    Route::post('/{id}/guests', [MeetingWebController::class, 'addGuest'])->name('guests.add');
-    Route::post('/{id}/agenda', [MeetingWebController::class, 'addAgendaItem'])->name('agenda.add');
-    Route::post('/{id}/documents', [MeetingWebController::class, 'uploadDocument'])->name('documents.upload');
+    Route::post('/{id}/members', [PhienHopWebController::class, 'addMember'])->name('members.add');
+    Route::post('/{id}/attendance/{attendeeId}', [PhienHopWebController::class, 'updateAttendance'])->name('attendance');
+    Route::post('/{id}/guests', [PhienHopWebController::class, 'addGuest'])->name('guests.add');
+    Route::post('/{id}/agenda', [PhienHopWebController::class, 'addAgendaItem'])->name('agenda.add');
+    Route::post('/{id}/documents', [PhienHopWebController::class, 'uploadDocument'])->name('documents.upload');
 });
 
 // --- PHÂN HỆ QUẢN LÝ HỒ SƠ TRÌNH (SUBMISSIONS) ---
 Route::prefix('submissions')->name('submissions.')->group(function () {
-    Route::get('/', [SubmissionWebController::class, 'index'])->name('index');
-    Route::get('/create', [SubmissionWebController::class, 'create'])->name('create');
-    Route::post('/', [SubmissionWebController::class, 'store'])->name('store');
-    Route::get('/{id}', [SubmissionWebController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [SubmissionWebController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [SubmissionWebController::class, 'update'])->name('update');
-    Route::delete('/{id}', [SubmissionWebController::class, 'destroy'])->name('destroy');
-    Route::post('/{id}/review', [SubmissionWebController::class, 'review'])->name('review');
+    Route::get('/', [HoSoTrinhWebController::class, 'index'])->name('index');
+    Route::get('/create', [HoSoTrinhWebController::class, 'create'])->name('create');
+    Route::post('/', [HoSoTrinhWebController::class, 'store'])->name('store');
+    Route::get('/{id}', [HoSoTrinhWebController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [HoSoTrinhWebController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [HoSoTrinhWebController::class, 'update'])->name('update');
+    Route::delete('/{id}', [HoSoTrinhWebController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/review', [HoSoTrinhWebController::class, 'review'])->name('review');
 });
 
 // --- PHÂN HỆ BIỂU QUYẾT & BỎ PHIẾU (VOTES) ---
 Route::get('/voting', fn () => redirect()->route('votes.index'));
 Route::prefix('votes')->name('votes.')->group(function () {
-    Route::get('/', [VoteWebController::class, 'index'])->name('index');
-    Route::post('/', [VoteWebController::class, 'store'])->name('store');
-    Route::get('/{id}', [VoteWebController::class, 'show'])->name('show');
-    Route::delete('/{id}', [VoteWebController::class, 'destroy'])->name('destroy');
-    Route::post('/{id}/open', [VoteWebController::class, 'open'])->name('open');
-    Route::post('/{id}/close', [VoteWebController::class, 'close'])->name('close');
-    Route::post('/{id}/vote', [VoteWebController::class, 'vote'])->name('vote');
-    Route::post('/delegations', [VoteWebController::class, 'storeDelegation'])->name('delegations.store');
+    Route::get('/', [BieuQuyetWebController::class, 'index'])->name('index');
+    Route::post('/', [BieuQuyetWebController::class, 'store'])->name('store');
+    Route::get('/{id}', [BieuQuyetWebController::class, 'show'])->name('show');
+    Route::delete('/{id}', [BieuQuyetWebController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/open', [BieuQuyetWebController::class, 'open'])->name('open');
+    Route::post('/{id}/close', [BieuQuyetWebController::class, 'close'])->name('close');
+    Route::post('/{id}/vote', [BieuQuyetWebController::class, 'vote'])->name('vote');
+    Route::post('/delegations', [BieuQuyetWebController::class, 'storeDelegation'])->name('delegations.store');
 });
 
 // --- PHÂN HỆ QUẢN LÝ NGHỊ QUYẾT (RESOLUTIONS) ---
 Route::prefix('resolutions')->name('resolutions.')->group(function () {
-    Route::get('/', [ResolutionWebController::class, 'index'])->name('index');
-    Route::get('/create', [ResolutionWebController::class, 'create'])->name('create');
-    Route::post('/', [ResolutionWebController::class, 'store'])->name('store');
-    Route::get('/{id}', [ResolutionWebController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [ResolutionWebController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [ResolutionWebController::class, 'update'])->name('update');
-    Route::delete('/{id}', [ResolutionWebController::class, 'destroy'])->name('destroy');
-    Route::post('/{id}/sign', [ResolutionWebController::class, 'sign'])->name('sign');
-    Route::post('/{id}/publish', [ResolutionWebController::class, 'publish'])->name('publish');
+    Route::get('/', [NghiQuyetWebController::class, 'index'])->name('index');
+    Route::get('/create', [NghiQuyetWebController::class, 'create'])->name('create');
+    Route::post('/', [NghiQuyetWebController::class, 'store'])->name('store');
+    Route::get('/{id}', [NghiQuyetWebController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [NghiQuyetWebController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [NghiQuyetWebController::class, 'update'])->name('update');
+    Route::delete('/{id}', [NghiQuyetWebController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/sign', [NghiQuyetWebController::class, 'sign'])->name('sign');
+    Route::post('/{id}/publish', [NghiQuyetWebController::class, 'publish'])->name('publish');
 });
 
 // --- PHÂN HỆ PHÂN CÔNG NHIỆM VỤ (TASKS) ---
 Route::prefix('tasks')->name('tasks.')->group(function () {
-    Route::get('/', [TaskWebController::class, 'index'])->name('index');
-    Route::get('/create', [TaskWebController::class, 'create'])->name('create');
-    Route::post('/', [TaskWebController::class, 'store'])->name('store');
-    Route::get('/{id}', [TaskWebController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [TaskWebController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [TaskWebController::class, 'update'])->name('update');
-    Route::delete('/{id}', [TaskWebController::class, 'destroy'])->name('destroy');
+    Route::get('/', [NhiemVuWebController::class, 'index'])->name('index');
+    Route::get('/create', [NhiemVuWebController::class, 'create'])->name('create');
+    Route::post('/', [NhiemVuWebController::class, 'store'])->name('store');
+    Route::get('/{id}', [NhiemVuWebController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [NhiemVuWebController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [NhiemVuWebController::class, 'update'])->name('update');
+    Route::delete('/{id}', [NhiemVuWebController::class, 'destroy'])->name('destroy');
 });
 
 // --- PHÂN HỆ BÁO CÁO & THEO DÕI TIẾN ĐỘ (TASK REPORTS) ---
 Route::get('/reports', fn () => redirect()->route('task-reports.index'));
 Route::prefix('task-reports')->name('task-reports.')->group(function () {
-    Route::get('/', [TaskReportWebController::class, 'index'])->name('index');
-    Route::get('/create', [TaskReportWebController::class, 'create'])->name('create');
-    Route::post('/', [TaskReportWebController::class, 'store'])->name('store');
-    Route::get('/{id}', [TaskReportWebController::class, 'show'])->name('show');
-    Route::post('/{id}/review', [TaskReportWebController::class, 'review'])->name('review');
+    Route::get('/', [BaoCaoWebController::class, 'index'])->name('index');
+    Route::get('/create', [BaoCaoWebController::class, 'create'])->name('create');
+    Route::post('/', [BaoCaoWebController::class, 'store'])->name('store');
+    Route::get('/{id}', [BaoCaoWebController::class, 'show'])->name('show');
+    Route::post('/{id}/review', [BaoCaoWebController::class, 'review'])->name('review');
 });
 
 // --- PHÂN HỆ QUẢN LÝ CHƯƠNG TRÌNH HỌP (AGENDAS / BR-08) ---
@@ -124,17 +124,17 @@ Route::prefix('agendas')->name('agendas.')->group(function () {
 });
 
 Route::prefix('documents')->name('documents.')->group(function () {
-    Route::get('/', [DocumentWebController::class, 'index'])->name('index');
-    Route::get('/{id}/download', [DocumentWebController::class, 'download'])->name('download');
+    Route::get('/', [TaiLieuWebController::class, 'index'])->name('index');
+    Route::get('/{id}/download', [TaiLieuWebController::class, 'download'])->name('download');
 });
 
 Route::prefix('members')->name('members.')->group(function () {
-    Route::get('/', [MemberWebController::class, 'index'])->name('index');
+    Route::get('/', [ThanhVienHdtWebController::class, 'index'])->name('index');
 });
 
 Route::prefix('users')->name('users.')->group(function () {
-    Route::get('/', [UserWebController::class, 'index'])->name('index');
-    Route::post('/', [UserWebController::class, 'store'])->name('store');
+    Route::get('/', [NguoiDungWebController::class, 'index'])->name('index');
+    Route::post('/', [NguoiDungWebController::class, 'store'])->name('store');
 });
 
 // --- PHÂN HỆ HỒ SƠ CÁ NHÂN (USER PROFILE) ---

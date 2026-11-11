@@ -18,6 +18,6 @@ class VaiTro extends Model
 
     public function nguoiDung(): HasMany
     {
-        return $this->hasMany(User::class, 'MaVaiTro', 'MaVaiTro');
+        return $this->hasMany(NguoiDung::class, 'MaVaiTro', 'MaVaiTro');
     }
 }

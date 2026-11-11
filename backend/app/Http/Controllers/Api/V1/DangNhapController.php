@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\NguoiDung;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -127,7 +127,7 @@ class DangNhapController extends Controller
             'password.min' => 'Mật khẩu phải có độ dài tối thiểu từ 6 ký tự trở lên.',
         ]);
 
-        $user = User::with('department')->where('email', strtolower(trim($validated['email'])))->first();
+        $user = NguoiDung::with('department')->where('email', strtolower(trim($validated['email'])))->first();
 
         if (! $user || ! Hash::check($validated['password'], $user->password)) {
             return response()->json([

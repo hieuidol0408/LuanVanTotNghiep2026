@@ -44,7 +44,7 @@ class ThanhVienHdt extends Model
 
     public function nguoiDung(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'MaNguoiDung', 'MaNguoiDung');
+        return $this->belongsTo(NguoiDung::class, 'MaNguoiDung', 'MaNguoiDung');
     }
 
     public function thamDu(): HasMany

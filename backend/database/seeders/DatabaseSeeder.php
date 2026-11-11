@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\Department;
 use App\Models\DonVi;
 use App\Models\ThanhVienHdt;
-use App\Models\User;
+use App\Models\NguoiDung;
 use App\Models\VaiTro;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -128,7 +128,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($users as $u) {
-            $user = User::updateOrCreate(
+            $user = NguoiDung::updateOrCreate(
                 ['email' => $u['email']],
                 [
                     'HoTen' => $u['HoTen'],
@@ -179,7 +179,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // 5. Seed phiên họp mẫu PHIEN_HOP
-        $userThuky = User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $userThuky = NguoiDung::where('email', 'thuky_hdt@stu.edu.vn')->first();
         $phienHop1 = \App\Models\PhienHop::firstOrCreate(
             ['TenPhienHop' => 'Phiên họp lần thứ 5 Hội đồng trường STU (Khóa IV)'],
             [
@@ -208,7 +208,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // Tạo hồ sơ trình mẫu HO_SO_TRINH
-        $userDaoTao = User::where('email', 'daotao@stu.edu.vn')->first();
+        $userDaoTao = NguoiDung::where('email', 'daotao@stu.edu.vn')->first();
         $hs1 = \App\Models\HoSoTrinh::firstOrCreate(
             ['TieuDe' => 'Đề án mở ngành đào tạo Kỹ thuật Robot & Trí tuệ nhân tạo (AI) bậc Đại học'],
             [
@@ -299,7 +299,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // 8. Seed Nhiệm vụ phân rã NHIEM_VU & PHAN_CONG_NHIEM_VU & BAO_CAO
-        $userCntt = User::where('email', 'cntt@stu.edu.vn')->first();
+        $userCntt = NguoiDung::where('email', 'cntt@stu.edu.vn')->first();
         $task1 = \App\Models\NghiQuyet::first()->nhiemVu()->firstOrCreate(
             ['TenNhiemVu' => 'Xây dựng Đề án mở ngành Robot & AI và ban hành chuẩn đầu ra'],
             [
@@ -336,7 +336,7 @@ class DatabaseSeeder extends Seeder
         );
 
         // 9. Seed tài liệu mẫu TAI_LIEU & liên kết phiên họp / nghị quyết
-        $userThuky = User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $userThuky = NguoiDung::where('email', 'thuky_hdt@stu.edu.vn')->first();
         $doc1 = \App\Models\TaiLieu::firstOrCreate(
             ['TenTaiLieu' => 'Quy_che_to_chuc_va_hoat_dong_HDT_STU.pdf'],
             [

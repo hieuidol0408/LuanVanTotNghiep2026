@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\DonVi;
 use App\Models\ThanhVienHdt;
-use App\Models\User;
+use App\Models\NguoiDung;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

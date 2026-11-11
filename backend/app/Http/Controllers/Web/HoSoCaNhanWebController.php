@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\HoSoTrinh;
 use App\Models\PhanCongNhiemVu;
 use App\Models\ThamDu;
-use App\Models\User;
+use App\Models\NguoiDung;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +25,7 @@ class HoSoCaNhanWebController extends Controller
 
         // Fallback lấy tài khoản đầu tiên nếu chạy chế độ test / demo chưa qua session
         if (! $user) {
-            $user = User::with(['vaiTro', 'donVi', 'thanhVienHdt'])->first();
+            $user = NguoiDung::with(['vaiTro', 'donVi', 'thanhVienHdt'])->first();
         } else {
             $user->loadMissing(['vaiTro', 'donVi', 'thanhVienHdt']);
         }
@@ -57,7 +57,7 @@ class HoSoCaNhanWebController extends Controller
             'co_quyen_bieu_quyet' => (bool) ($thanhVien?->CoQuyenBieuQuyet ?? in_array($user->role, ['CHAIR', 'SECRETARY', 'MEMBER'])),
         ];
 
-        return view('pages.hosocanhan.index', compact('user', 'thanhVien', 'stats', 'recentAttendances'));
+        return view('pages.hosocanhan.chitiet', compact('user', 'thanhVien', 'stats', 'recentAttendances'));
     }
 
     /**
@@ -68,7 +68,7 @@ class HoSoCaNhanWebController extends Controller
         /** @var User|null $user */
         $user = Auth::user();
         if (! $user) {
-            $user = User::first();
+            $user = NguoiDung::first();
         }
 
         $validated = $request->validate([
