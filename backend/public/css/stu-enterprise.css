@@ -768,18 +768,20 @@ a:hover {
 }
 
 .stu-btn-action,
-.stu-table-actions-group .stu-btn {
+.stu-table-actions-group .stu-btn,
+.stu-table-actions-group a.stu-btn,
+.stu-table-actions-group button.stu-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  height: 27px;
-  padding: 0 8px;
+  height: 25px;
+  padding: 0 7px;
   font-family: var(--font-family);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 1;
-  border-radius: 5px;
+  border-radius: 4px;
   border: 1px solid var(--color-border);
   background-color: #ffffff;
   color: var(--color-text-main);
@@ -788,6 +790,13 @@ a:hover {
   white-space: nowrap;
   transition: all 0.15s ease;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-sizing: border-box;
+}
+
+.stu-table-actions-group .stu-btn svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
 }
 
 .stu-btn-action:hover,
