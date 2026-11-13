@@ -168,7 +168,7 @@
 
     {{-- Modal Thêm người dùng mới dành cho Admin/Chủ tịch --}}
     @if(auth()->user() && in_array(auth()->user()->role, ['ADMIN', 'CHAIR']))
-        <x-hop-thoai id="addUserModal" title="Thêm Người Dùng &amp; Phân Quyền Mới" size="md">
+        <x-hop-thoai id="addUserModal" title="Thêm Người Dùng & Phân Quyền Mới" size="md">
             <form method="POST" action="{{ route('users.store') }}">
                 @csrf
                 <div class="stu-form-group stu-mb-4" style="margin-bottom: 14px;">
