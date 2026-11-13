@@ -289,25 +289,27 @@
                         {{ $agenda->GhiChu ?: '-' }}
                     </td>
                     <td class="col-actions">
-                        <div class="stu-table-actions-group">
+                        <div class="stu-btn-group">
                             @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                                <x-nut-bam variant="secondary" size="sm" data-modal-open="editMeetingAgendaModal-{{ $agenda->MaChuongTrinh }}">
-                                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <button type="button" class="stu-btn-group-item stu-btn-group-item-primary" data-modal-open="editMeetingAgendaModal-{{ $agenda->MaChuongTrinh }}" title="Cập nhật thứ tự, trạng thái và ghi chú">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     <span>Cập nhật</span>
-                                </x-nut-bam>
+                                </button>
                             @endif
-                            <x-nut-bam variant="outline" size="sm" href="{{ route('submissions.show', $dossier?->MaHoSo) }}">
-                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                <span>Xem hồ sơ</span>
-                            </x-nut-bam>
+                            @if($dossier)
+                                <a href="{{ route('submissions.show', $dossier->MaHoSo) }}" class="stu-btn-group-item" title="Xem hồ sơ trình: {{ $dossier->TieuDe }}">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span>Hồ sơ</span>
+                                </a>
+                            @endif
                             @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
                                 <form method="POST" action="{{ route('agendas.destroy', $agenda->MaChuongTrinh) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mục chương trình họp này khỏi giao diện?');">
                                     @csrf
                                     @method('DELETE')
-                                    <x-nut-bam type="submit" variant="danger" size="sm">
-                                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    <button type="submit" class="stu-btn-group-item stu-btn-group-item-danger" title="Ẩn mục chương trình họp (Soft Delete)">
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         <span>Xóa</span>
-                                    </x-nut-bam>
+                                    </button>
                                 </form>
                             @endif
                         </div>
