@@ -127,12 +127,12 @@
             </button>
         </div>
 
-        <!-- Nút Xóa bộ lọc -->
+        <!-- Nút Đặt lại bộ lọc -->
         <div>
             @if(request()->anyFilled(['search', 'meeting_id', 'status']))
-                <a href="{{ route('agendas.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px; padding: 0 14px;" title="Xóa bộ lọc">
+                <a href="{{ route('agendas.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px; padding: 0 14px;" title="Đặt lại bộ lọc">
                     <i class="bi bi-arrow-counterclockwise"></i>
-                    <span>Xóa</span>
+                    <span>Đặt lại</span>
                 </a>
             @endif
         </div>
