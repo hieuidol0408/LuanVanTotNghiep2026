@@ -79,7 +79,12 @@ class NhiemVuWebController extends Controller
                   });
             })->count();
 
-        $tasks = $query->orderByDesc('MaNhiemVu')->paginate(10)->withQueryString();
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 20, 50, 100])) {
+            $perPage = 10;
+        }
+
+        $tasks = $query->orderByDesc('MaNhiemVu')->paginate($perPage)->withQueryString();
         $resolutions = NghiQuyet::orderByDesc('MaNghiQuyet')->get(['MaNghiQuyet', 'SoNghiQuyet', 'TrichYeu']);
         $departments = DonVi::orderBy('TenDonVi')->get(['MaDonVi', 'TenDonVi']);
 

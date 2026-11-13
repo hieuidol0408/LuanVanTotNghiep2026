@@ -172,7 +172,7 @@
 </x-bang-du-lieu>
 
 <!-- PHÂN TRANG -->
-<div style="margin-top: var(--space-4); width: 100%;">
+<div class="stu-mt-6" style="width: 100%;">
     {{ $meetings->links() }}
 </div>
 @endsection

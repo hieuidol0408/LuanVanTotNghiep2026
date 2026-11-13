@@ -43,7 +43,12 @@ class NguoiDungWebController extends Controller
             $query->where('MaDonVi', $deptId);
         }
 
-        $users = $query->orderBy('MaNguoiDung')->paginate(15)->withQueryString();
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 20, 50, 100])) {
+            $perPage = 10;
+        }
+
+        $users = $query->orderBy('MaNguoiDung')->paginate($perPage)->withQueryString();
         $roles = VaiTro::all();
         $departments = DonVi::orderBy('TenDonVi')->get();
 

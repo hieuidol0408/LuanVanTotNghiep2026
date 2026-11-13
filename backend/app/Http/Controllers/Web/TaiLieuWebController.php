@@ -35,9 +35,14 @@ class TaiLieuWebController extends Controller
             }
         }
 
+        $perPage = (int) $request->input('per_page', 12);
+        if (!in_array($perPage, [6, 12, 24, 48, 96])) {
+            $perPage = 12;
+        }
+
         $documents = $query->orderByDesc('NgayTaiLen')
             ->orderByDesc('MaTaiLieu')
-            ->paginate(12)
+            ->paginate($perPage)
             ->withQueryString();
 
         $types = TaiLieu::select('LoaiTaiLieu')->distinct()->pluck('LoaiTaiLieu')->filter();

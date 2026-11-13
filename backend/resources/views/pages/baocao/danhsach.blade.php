@@ -171,11 +171,9 @@
             </x-bang-du-lieu>
         </div>
 
-        @if($reports->hasPages())
-            <div class="card-footer bg-white border-top-0 py-3">
-                {{ $reports->links() }}
-            </div>
-        @endif
+        <div class="stu-mt-6" style="width: 100%;">
+        {{ $reports->links() }}
+    </div>
     </div>
 </div>
 @endsection

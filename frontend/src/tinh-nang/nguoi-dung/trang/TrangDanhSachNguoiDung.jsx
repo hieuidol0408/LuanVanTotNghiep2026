@@ -19,6 +19,7 @@ import {
 import PageHeader from "../../../thanh-phan/bo-cuc/TieuDeTrang";
 import StatusBadge from "../../../thanh-phan/giao-dien/NhanTrangThai";
 import EmptyState from "../../../thanh-phan/giao-dien/TrangThaiTrong";
+import Pagination from "../../../thanh-phan/giao-dien/PhanTrang";
 import { useToast } from "../../../thanh-phan/giao-dien/ThongBaoNhanh";
 import { userService } from "../dich-vu/dichVuNguoiDung";
 import councilService from "../../hoi-dong/dich-vu/dichVuHoiDong";
@@ -37,6 +38,9 @@ export default function UserListPage() {
   const [selectedDept, setSelectedDept] = useState("ALL");
   const [selectedStatus, setSelectedStatus] = useState("ALL");
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [meta, setMeta] = useState({ total: 0, current_page: 1, total_pages: 1 });
 
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -86,11 +90,20 @@ export default function UserListPage() {
         search,
         role: selectedRole,
         department_id: selectedDept,
-        status: selectedStatus
+        status: selectedStatus,
+        page,
+        perPage
       });
 
       if (res.success) {
         setUsers(res.data);
+        if (res.meta) {
+          setMeta({
+            total: res.meta.total || 0,
+            current_page: res.meta.current_page || 1,
+            total_pages: res.meta.last_page || res.meta.total_pages || 1
+          });
+        }
       } else {
         toast.error(res.message || "Không thể tải danh sách người dùng");
       }
@@ -100,7 +113,7 @@ export default function UserListPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, selectedRole, selectedDept, selectedStatus, toast]);
+  }, [search, selectedRole, selectedDept, selectedStatus, page, perPage, toast]);
 
   useEffect(() => {
     fetchUsers();
@@ -561,6 +574,24 @@ export default function UserListPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Phân trang người dùng */}
+        {users.length > 0 && (
+          <div style={{ padding: "var(--space-3) var(--space-4)" }}>
+            <Pagination
+              currentPage={meta.current_page || page}
+              totalPages={meta.total_pages || 1}
+              totalItems={meta.total || 0}
+              itemsPerPage={perPage}
+              pageSizeOptions={[5, 10, 20, 50]}
+              onPageChange={setPage}
+              onItemsPerPageChange={(val) => {
+                setPerPage(val);
+                setPage(1);
+              }}
+            />
           </div>
         )}
       </div>

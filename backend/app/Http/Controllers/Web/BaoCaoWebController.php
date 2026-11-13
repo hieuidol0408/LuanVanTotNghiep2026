@@ -58,7 +58,12 @@ class BaoCaoWebController extends Controller
             });
         }
 
-        $reports = $query->orderByDesc('MaBaoCao')->paginate(10)->withQueryString();
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 20, 50, 100])) {
+            $perPage = 10;
+        }
+
+        $reports = $query->orderByDesc('MaBaoCao')->paginate($perPage)->withQueryString();
         $departments = DonVi::orderBy('TenDonVi')->get(['MaDonVi', 'TenDonVi']);
 
         return view('pages.baocao.danhsach', compact('reports', 'departments'));

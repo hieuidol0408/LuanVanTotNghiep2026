@@ -12,6 +12,8 @@ export const councilService = {
       const queryParams = new URLSearchParams();
       if (params.term && params.term !== "ALL") queryParams.append("term", params.term);
       if (params.search) queryParams.append("search", params.search);
+      if (params.page) queryParams.append("page", params.page);
+      if (params.perPage) queryParams.append("perPage", params.perPage);
 
       const url = `/councils/members?${queryParams.toString()}`;
       const res = await apiClient.get(url);

@@ -29,6 +29,7 @@ import { useToast } from "../../../thanh-phan/giao-dien/ThongBaoNhanh";
 import taskService from "../dich-vu/dichVuNhiemVu";
 import resolutionService from "../../nghi-quyet/dich-vu/dichVuNghiQuyet";
 import apiClient from "../../../dich-vu/khachApi";
+import Pagination from "../../../thanh-phan/giao-dien/PhanTrang";
 
 export default function TaskListPage() {
   const { user } = useAuth();
@@ -48,6 +49,7 @@ export default function TaskListPage() {
   const [deptFilter, setDeptFilter] = useState("ALL");
   const [resFilter, setResFilter] = useState(searchParams.get("resolution_id") || "ALL");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
   // Sync with searchParams
   useEffect(() => {
@@ -142,7 +144,7 @@ export default function TaskListPage() {
         department_id: deptFilter,
         resolution_id: resFilter,
         page,
-        perPage: 10
+        perPage
       });
 
       if (res.success) {
@@ -157,7 +159,7 @@ export default function TaskListPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, deptFilter, resFilter, page, toast]);
+  }, [search, statusFilter, deptFilter, resFilter, page, perPage, toast]);
 
   useEffect(() => {
     fetchTasks();
@@ -612,40 +614,19 @@ export default function TaskListPage() {
         )}
 
         {/* Phân trang */}
-        {meta.total_pages > 1 && (
-          <div
-            style={{
-              padding: "var(--space-3) var(--space-4)",
-              borderTop: "1px solid var(--color-border)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              fontSize: "var(--font-size-sm)"
+        <div style={{ marginTop: "var(--space-4)" }}>
+          <Pagination
+            currentPage={meta.current_page || page}
+            totalPages={meta.total_pages || 1}
+            totalItems={meta.total || 0}
+            itemsPerPage={perPage}
+            onPageChange={(p) => setPage(p)}
+            onItemsPerPageChange={(val) => {
+              setPerPage(val);
+              setPage(1);
             }}
-          >
-            <span style={{ color: "var(--color-text-muted)" }}>
-              Tổng cộng {meta.total} Nhiệm vụ (Trang {meta.current_page}/{meta.total_pages})
-            </span>
-            <div style={{ display: "flex", gap: "var(--space-2)" }}>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                Trang trước
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                disabled={page >= meta.total_pages}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Trang sau
-              </button>
-            </div>
-          </div>
-        )}
+          />
+        </div>
       </div>
 
       {/* Modal: Chi tiết nhiệm vụ kèm nhật ký tiến độ */}

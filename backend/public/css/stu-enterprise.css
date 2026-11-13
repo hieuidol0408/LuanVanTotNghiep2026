@@ -1804,6 +1804,46 @@ select.stu-form-control {
     font-weight: 600;
 }
 
+.stu-pagination-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.stu-pagination-per-page {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.stu-pagination-per-page label {
+    margin: 0;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.stu-per-page-select {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-main);
+    background-color: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.stu-per-page-select:hover,
+.stu-per-page-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(0, 91, 170, 0.15);
+}
+
 .stu-pagination-links {
     display: inline-flex;
     align-items: center;

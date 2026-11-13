@@ -238,11 +238,9 @@
     @endforeach
 </x-bang-du-lieu>
 
-@if($agendas->hasPages())
-    <div style="margin-top: 20px; width: 100%;">
+<div class="stu-mt-6" style="width: 100%;">
         {{ $agendas->links() }}
     </div>
-@endif
 
 @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
     {{-- Modal Thêm Mục Chương trình Họp Mới --}}

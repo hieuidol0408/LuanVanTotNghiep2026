@@ -77,7 +77,12 @@ class ChuongTrinhHopWebController extends Controller
         }
 
         // 7. Phân trang
-        $agendas = $query->paginate(15)->withQueryString();
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 15, 20, 50, 100])) {
+            $perPage = 10;
+        }
+
+        $agendas = $query->paginate($perPage)->withQueryString();
 
         // 8. Chỉ số KPI thống kê
         $totalAgendas = ChuongTrinhHop::count();

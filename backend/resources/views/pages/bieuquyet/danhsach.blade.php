@@ -226,11 +226,9 @@
     </x-bang-du-lieu>
 
     {{-- Phân trang --}}
-    @if($votings->hasPages())
-        <div class="stu-mt-6" style="width: 100%;">
-            {{ $votings->links() }}
-        </div>
-    @endif
+    <div class="stu-mt-6" style="width: 100%;">
+        {{ $votings->links() }}
+    </div>
 
     {{-- Modal Tạo Nội dung Biểu quyết mới --}}
     @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))

@@ -351,15 +351,20 @@ export default function DossierListPage() {
           emptyMessage="Không tìm thấy hồ sơ tờ trình nào."
         />
 
-        {meta.total_pages > 1 && (
-          <div style={{ marginTop: "var(--space-4)" }}>
-            <Pagination
-              currentPage={currentPage}
-              totalPages={meta.total_pages}
-              onPageChange={setCurrentPage}
-            />
-          </div>
-        )}
+        {/* Pagination */}
+        <div style={{ marginTop: "var(--space-4)" }}>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={meta.total_pages}
+            totalItems={meta.total}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={(val) => {
+              setItemsPerPage(val);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
       </div>
 
       {/* Modal Tạo hồ sơ mới */}

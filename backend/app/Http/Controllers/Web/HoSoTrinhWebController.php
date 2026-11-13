@@ -56,8 +56,13 @@ class HoSoTrinhWebController extends Controller
             $query->where('LinhVuc', $field);
         }
 
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 20, 50, 100])) {
+            $perPage = 10;
+        }
+
         $submissions = $query->orderBy('MaHoSo', 'asc')
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
 
         $departments = DonVi::whereIn('TrangThai', ['ACTIVE', 'Hoạt động'])->get();

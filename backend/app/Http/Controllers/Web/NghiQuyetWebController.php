@@ -66,9 +66,14 @@ class NghiQuyetWebController extends Controller
             }
         }
 
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 20, 50, 100])) {
+            $perPage = 10;
+        }
+
         $resolutions = $query->orderBy('NgayBanHanh', 'desc')
             ->orderBy('MaNghiQuyet', 'desc')
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
 
         $meetings = PhienHop::orderBy('ThoiGianBatDau', 'desc')->get();

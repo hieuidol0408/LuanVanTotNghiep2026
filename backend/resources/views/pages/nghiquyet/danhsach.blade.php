@@ -234,10 +234,8 @@
     </x-bang-du-lieu>
 
     {{-- Phân trang --}}
-    @if($resolutions->hasPages())
-        <div class="stu-mt-6" style="width: 100%;">
-            {{ $resolutions->links() }}
-        </div>
-    @endif
+    <div class="stu-mt-6" style="width: 100%;">
+        {{ $resolutions->links() }}
+    </div>
 </div>
 @endsection

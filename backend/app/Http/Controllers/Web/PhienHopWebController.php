@@ -54,8 +54,13 @@ class PhienHopWebController extends Controller
             $query->where('HinhThuc', $format);
         }
 
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 20, 50, 100])) {
+            $perPage = 10;
+        }
+
         $meetings = $query->orderBy('MaPhienHop', 'asc')
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
 
         // Danh sách các năm họp để hiển thị trong bộ lọc

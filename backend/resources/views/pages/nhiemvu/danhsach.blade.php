@@ -226,11 +226,9 @@
             </x-bang-du-lieu>
         </div>
 
-        @if($tasks->hasPages())
-            <div class="card-footer bg-white border-top-0 py-3">
-                {{ $tasks->links() }}
-            </div>
-        @endif
+        <div class="stu-mt-6" style="width: 100%;">
+        {{ $tasks->links() }}
+    </div>
     </div>
 </div>
 @endsection

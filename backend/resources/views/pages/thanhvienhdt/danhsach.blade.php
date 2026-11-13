@@ -105,11 +105,9 @@
             </x-bang-du-lieu>
         </div>
 
-        @if($members->hasPages())
-            <div class="card-footer bg-white border-top-0 py-3">
-                {{ $members->links() }}
-            </div>
-        @endif
+        <div class="stu-mt-6" style="width: 100%;">
+        {{ $members->links() }}
+    </div>
     </div>
 </div>
 @endsection

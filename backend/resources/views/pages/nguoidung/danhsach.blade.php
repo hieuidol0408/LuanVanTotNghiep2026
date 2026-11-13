@@ -159,11 +159,9 @@
             </x-bang-du-lieu>
         </div>
 
-        @if($users->hasPages())
-            <div class="card-footer bg-white border-top-0 py-3">
-                {{ $users->links() }}
-            </div>
-        @endif
+        <div class="stu-mt-6" style="width: 100%;">
+        {{ $users->links() }}
+    </div>
     </div>
 
     {{-- Modal Thêm người dùng mới dành cho Admin/Chủ tịch --}}

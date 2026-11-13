@@ -25,7 +25,12 @@ class ThanhVienHdtWebController extends Controller
             });
         }
 
-        $members = $query->orderBy('MaThanhVien')->paginate(12)->withQueryString();
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 20, 50, 100])) {
+            $perPage = 10;
+        }
+
+        $members = $query->orderBy('MaThanhVien')->paginate($perPage)->withQueryString();
 
         $stats = [
             'total' => ThanhVienHdt::count(),

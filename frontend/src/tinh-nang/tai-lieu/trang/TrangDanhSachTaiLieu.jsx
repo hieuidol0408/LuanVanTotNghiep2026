@@ -18,6 +18,7 @@ import {
 import PageHeader from "../../../thanh-phan/bo-cuc/TieuDeTrang";
 import StatusBadge from "../../../thanh-phan/giao-dien/NhanTrangThai";
 import EmptyState from "../../../thanh-phan/giao-dien/TrangThaiTrong";
+import Pagination from "../../../thanh-phan/giao-dien/PhanTrang";
 import ConfirmDialog from "../../../thanh-phan/giao-dien/HopThoaiXacNhan";
 import { useAuth } from "../../xac-thuc/ngu-canh/NguCanhXacThuc";
 import { useToast } from "../../../thanh-phan/giao-dien/ThongBaoNhanh";
@@ -38,6 +39,7 @@ export default function DocumentListPage() {
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [meetingFilter, setMeetingFilter] = useState("ALL");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(12);
 
   // Upload Modal
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -87,7 +89,7 @@ export default function DocumentListPage() {
         type: typeFilter,
         meeting_id: meetingFilter,
         page,
-        perPage: 12
+        perPage
       });
 
       if (res.success) {
@@ -102,7 +104,7 @@ export default function DocumentListPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, typeFilter, meetingFilter, page, toast]);
+  }, [search, typeFilter, meetingFilter, page, perPage, toast]);
 
   useEffect(() => {
     fetchDocuments();
@@ -390,6 +392,24 @@ export default function DocumentListPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Phân trang tài liệu */}
+      {documents.length > 0 && (
+        <div style={{ marginTop: "var(--space-4)" }}>
+          <Pagination
+            currentPage={meta.current_page || page}
+            totalPages={meta.total_pages || 1}
+            totalItems={meta.total || 0}
+            itemsPerPage={perPage}
+            pageSizeOptions={[6, 12, 24, 48]}
+            onPageChange={setPage}
+            onItemsPerPageChange={(val) => {
+              setPerPage(val);
+              setPage(1);
+            }}
+          />
         </div>
       )}
 

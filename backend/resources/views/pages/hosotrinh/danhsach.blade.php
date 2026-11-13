@@ -199,10 +199,8 @@
     </x-bang-du-lieu>
 
     {{-- Phân trang --}}
-    @if($submissions->hasPages())
-        <div class="stu-mt-6" style="width: 100%;">
-            {{ $submissions->links() }}
-        </div>
-    @endif
+    <div class="stu-mt-6" style="width: 100%;">
+        {{ $submissions->links() }}
+    </div>
 </div>
 @endsection

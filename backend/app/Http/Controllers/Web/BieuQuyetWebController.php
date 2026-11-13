@@ -57,8 +57,13 @@ class BieuQuyetWebController extends Controller
             }
         }
 
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 20, 50, 100])) {
+            $perPage = 10;
+        }
+
         $votings = $query->orderBy('MaNoiDung', 'asc')
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
 
         $meetings = PhienHop::orderBy('MaPhienHop', 'asc')->get();

@@ -29,6 +29,7 @@ import resolutionService from "../dich-vu/dichVuNghiQuyet";
 import meetingService from "../../phien-hop/dich-vu/dichVuPhienHop";
 import { xuatPdf } from "../../../tien-ich/xuatPdf";
 import MauVanBanNghiQuyet from "../../../thanh-phan/pdf/MauVanBanNghiQuyet";
+import Pagination from "../../../thanh-phan/giao-dien/PhanTrang";
 
 export default function ResolutionListPage() {
   const { user } = useAuth();
@@ -46,6 +47,7 @@ export default function ResolutionListPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [meetingFilter, setMeetingFilter] = useState(searchParams.get("meeting_id") || "ALL");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
   // Selected Resolution Detail Modal
   const [selectedResolution, setSelectedResolution] = useState(null);
@@ -120,7 +122,7 @@ export default function ResolutionListPage() {
         status: statusFilter,
         meeting_id: meetingFilter,
         page,
-        perPage: 10
+        perPage
       });
 
       if (res.success) {
@@ -135,7 +137,7 @@ export default function ResolutionListPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, meetingFilter, page, toast]);
+  }, [search, statusFilter, meetingFilter, page, perPage, toast]);
 
   useEffect(() => {
     fetchResolutions();
@@ -578,40 +580,19 @@ export default function ResolutionListPage() {
         )}
 
         {/* Phân trang */}
-        {meta.total_pages > 1 && (
-          <div
-            style={{
-              padding: "var(--space-3) var(--space-4)",
-              borderTop: "1px solid var(--color-border)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              fontSize: "var(--font-size-sm)"
+        <div style={{ marginTop: "var(--space-4)" }}>
+          <Pagination
+            currentPage={meta.current_page || page}
+            totalPages={meta.total_pages || 1}
+            totalItems={meta.total || 0}
+            itemsPerPage={perPage}
+            onPageChange={(p) => setPage(p)}
+            onItemsPerPageChange={(val) => {
+              setPerPage(val);
+              setPage(1);
             }}
-          >
-            <span style={{ color: "var(--color-text-muted)" }}>
-              Tổng cộng {meta.total} Nghị quyết (Trang {meta.current_page}/{meta.total_pages})
-            </span>
-            <div style={{ display: "flex", gap: "var(--space-2)" }}>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                Trang trước
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                disabled={page >= meta.total_pages}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Trang sau
-              </button>
-            </div>
-          </div>
-        )}
+          />
+        </div>
       </div>
 
       {/* Modal: Chi tiết toàn văn Nghị quyết */}

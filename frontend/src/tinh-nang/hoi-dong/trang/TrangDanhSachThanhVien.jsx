@@ -15,6 +15,7 @@ import {
 import PageHeader from "../../../thanh-phan/bo-cuc/TieuDeTrang";
 import StatusBadge from "../../../thanh-phan/giao-dien/NhanTrangThai";
 import EmptyState from "../../../thanh-phan/giao-dien/TrangThaiTrong";
+import Pagination from "../../../thanh-phan/giao-dien/PhanTrang";
 import { useToast } from "../../../thanh-phan/giao-dien/ThongBaoNhanh";
 import councilService from "../dich-vu/dichVuHoiDong";
 
@@ -26,6 +27,9 @@ export default function CouncilMemberListPage() {
   const [selectedTerm, setSelectedTerm] = useState("ALL");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [meta, setMeta] = useState({ total: 0, current_page: 1, total_pages: 1 });
 
   // 1. Tải danh sách khóa nhiệm kỳ
   const fetchTerms = useCallback(async () => {
@@ -49,11 +53,26 @@ export default function CouncilMemberListPage() {
     try {
       const res = await councilService.getCouncilMembers({
         term: selectedTerm,
-        search
+        search,
+        page,
+        perPage
       });
 
       if (res.success) {
         setMembers(res.data);
+        if (res.meta) {
+          setMeta({
+            total: res.meta.total || res.data.length,
+            current_page: res.meta.current_page || 1,
+            total_pages: res.meta.last_page || res.meta.total_pages || 1
+          });
+        } else {
+          setMeta({
+            total: res.data.length,
+            current_page: 1,
+            total_pages: 1
+          });
+        }
       } else {
         toast.error(res.message || "Không thể tải danh sách thành viên");
       }
@@ -63,7 +82,7 @@ export default function CouncilMemberListPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedTerm, search, toast]);
+  }, [selectedTerm, search, page, perPage, toast]);
 
   useEffect(() => {
     fetchMembers();
@@ -288,6 +307,24 @@ export default function CouncilMemberListPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Phân trang thành viên */}
+      {members.length > 0 && (
+        <div style={{ marginTop: "var(--space-4)" }}>
+          <Pagination
+            currentPage={meta.current_page || page}
+            totalPages={meta.total_pages || 1}
+            totalItems={meta.total || 0}
+            itemsPerPage={perPage}
+            pageSizeOptions={[5, 10, 20, 50]}
+            onPageChange={setPage}
+            onItemsPerPageChange={(val) => {
+              setPerPage(val);
+              setPage(1);
+            }}
+          />
         </div>
       )}
     </div>

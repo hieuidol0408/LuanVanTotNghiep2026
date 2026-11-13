@@ -113,10 +113,8 @@
         @endforelse
     </div>
 
-    @if($documents->hasPages())
-        <div class="mt-4">
-            {{ $documents->links() }}
-        </div>
-    @endif
+    <div class="stu-mt-6" style="width: 100%;">
+        {{ $documents->links() }}
+    </div>
 </div>
 @endsection
