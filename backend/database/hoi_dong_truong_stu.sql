@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 9.1.0, for Win64 (x86_64)
+﻿-- MySQL dump 10.13  Distrib 9.1.0, for Win64 (x86_64)
 --
 -- Host: 127.0.0.1    Database: hoi_dong_truong_stu
 -- ------------------------------------------------------
@@ -19,7 +19,7 @@
 -- Current Database: `hoi_dong_truong_stu`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `hoi_dong_truong_stu` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `hoi_dong_truong_stu` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ ;
 
 USE `hoi_dong_truong_stu`;
 
@@ -49,7 +49,7 @@ CREATE TABLE `bao_cao` (
   CONSTRAINT `fk_bao_cao_nguoi_dung` FOREIGN KEY (`MaNguoiDung`) REFERENCES `nguoi_dung` (`MaNguoiDung`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_bao_cao_phan_cong` FOREIGN KEY (`MaPhanCong`) REFERENCES `phan_cong_nhiem_vu` (`MaPhanCong`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `chk_tien_do_hop_le` CHECK (((`TienDo` >= 0) and (`TienDo` <= 100)))
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -82,7 +82,7 @@ CREATE TABLE `chuong_trinh_hop` (
   KEY `fk_cth_ho_so` (`MaHoSo`),
   CONSTRAINT `fk_cth_ho_so` FOREIGN KEY (`MaHoSo`) REFERENCES `ho_so_trinh` (`MaHoSo`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_cth_phien_hop` FOREIGN KEY (`MaPhienHop`) REFERENCES `phien_hop` (`MaPhienHop`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -109,7 +109,7 @@ CREATE TABLE `don_vi` (
   `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`MaDonVi`),
   UNIQUE KEY `don_vi_tendonvi_unique` (`TenDonVi`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -145,7 +145,7 @@ CREATE TABLE `ho_so_trinh` (
   KEY `fk_ho_so_nguoi_dung` (`MaNguoiDung`),
   CONSTRAINT `fk_ho_so_don_vi` FOREIGN KEY (`MaDonVi`) REFERENCES `don_vi` (`MaDonVi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_ho_so_nguoi_dung` FOREIGN KEY (`MaNguoiDung`) REFERENCES `nguoi_dung` (`MaNguoiDung`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -180,7 +180,7 @@ CREATE TABLE `ket_qua_bieu_quyet` (
   CONSTRAINT `fk_kqbq_noi_dung` FOREIGN KEY (`MaNoiDung`) REFERENCES `noi_dung_bieu_quyet` (`MaNoiDung`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_kqbq_tham_du` FOREIGN KEY (`MaThamDu`) REFERENCES `tham_du` (`MaThamDu`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_kqbq_uy_quyen` FOREIGN KEY (`MaUyQuyen`) REFERENCES `uy_quyen_bieu_quyet` (`MaUyQuyen`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -209,7 +209,7 @@ CREATE TABLE `khach_moi` (
   `SoDienThoai` varchar(255) DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`MaKhachMoi`)
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -241,7 +241,7 @@ CREATE TABLE `khach_moi_phien_hop` (
   KEY `fk_kmph_phien_hop` (`MaPhienHop`),
   CONSTRAINT `fk_kmph_khach_moi` FOREIGN KEY (`MaKhachMoi`) REFERENCES `khach_moi` (`MaKhachMoi`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_kmph_phien_hop` FOREIGN KEY (`MaPhienHop`) REFERENCES `phien_hop` (`MaPhienHop`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -266,7 +266,7 @@ CREATE TABLE `migrations` (
   `migration` varchar(191) NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -299,7 +299,7 @@ CREATE TABLE `nghi_quyet` (
   UNIQUE KEY `nghi_quyet_songhiquyet_unique` (`SoNghiQuyet`),
   KEY `fk_nghi_quyet_phien_hop` (`MaPhienHop`),
   CONSTRAINT `fk_nghi_quyet_phien_hop` FOREIGN KEY (`MaPhienHop`) REFERENCES `phien_hop` (`MaPhienHop`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=98 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=98 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -326,7 +326,7 @@ CREATE TABLE `nghi_quyet_bieu_quyet` (
   KEY `fk_nqbq_noi_dung` (`MaNoiDung`),
   CONSTRAINT `fk_nqbq_nghi_quyet` FOREIGN KEY (`MaNghiQuyet`) REFERENCES `nghi_quyet` (`MaNghiQuyet`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_nqbq_noi_dung` FOREIGN KEY (`MaNoiDung`) REFERENCES `noi_dung_bieu_quyet` (`MaNoiDung`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -353,7 +353,7 @@ CREATE TABLE `nghi_quyet_ho_so` (
   KEY `fk_nqhs_ho_so` (`MaHoSo`),
   CONSTRAINT `fk_nqhs_ho_so` FOREIGN KEY (`MaHoSo`) REFERENCES `ho_so_trinh` (`MaHoSo`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_nqhs_nghi_quyet` FOREIGN KEY (`MaNghiQuyet`) REFERENCES `nghi_quyet` (`MaNghiQuyet`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -391,7 +391,7 @@ CREATE TABLE `nguoi_dung` (
   KEY `fk_nguoi_dung_vai_tro` (`MaVaiTro`),
   CONSTRAINT `fk_nguoi_dung_don_vi` FOREIGN KEY (`MaDonVi`) REFERENCES `don_vi` (`MaDonVi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_nguoi_dung_vai_tro` FOREIGN KEY (`MaVaiTro`) REFERENCES `vai_tro` (`MaVaiTro`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -426,7 +426,7 @@ CREATE TABLE `nhiem_vu` (
   PRIMARY KEY (`MaNhiemVu`),
   KEY `fk_nhiem_vu_nghi_quyet` (`MaNghiQuyet`),
   CONSTRAINT `fk_nhiem_vu_nghi_quyet` FOREIGN KEY (`MaNghiQuyet`) REFERENCES `nghi_quyet` (`MaNghiQuyet`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -460,7 +460,7 @@ CREATE TABLE `noi_dung_bieu_quyet` (
   PRIMARY KEY (`MaNoiDung`),
   KEY `fk_ndbq_chuong_trinh` (`MaChuongTrinh`),
   CONSTRAINT `fk_ndbq_chuong_trinh` FOREIGN KEY (`MaChuongTrinh`) REFERENCES `chuong_trinh_hop` (`MaChuongTrinh`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -495,7 +495,7 @@ CREATE TABLE `personal_access_tokens` (
   UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
   KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`),
   KEY `personal_access_tokens_expires_at_index` (`expires_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=274 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=274 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -528,7 +528,7 @@ CREATE TABLE `phan_cong_nhiem_vu` (
   KEY `fk_pcnv_don_vi` (`MaDonVi`),
   CONSTRAINT `fk_pcnv_don_vi` FOREIGN KEY (`MaDonVi`) REFERENCES `don_vi` (`MaDonVi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_pcnv_nhiem_vu` FOREIGN KEY (`MaNhiemVu`) REFERENCES `nhiem_vu` (`MaNhiemVu`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -563,7 +563,7 @@ CREATE TABLE `phien_hop` (
   PRIMARY KEY (`MaPhienHop`),
   KEY `phien_hop_manguoidung_foreign` (`MaNguoiDung`),
   CONSTRAINT `phien_hop_manguoidung_foreign` FOREIGN KEY (`MaNguoiDung`) REFERENCES `nguoi_dung` (`MaNguoiDung`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -596,7 +596,7 @@ CREATE TABLE `tai_lieu` (
   PRIMARY KEY (`MaTaiLieu`),
   KEY `fk_tai_lieu_nguoi_dung` (`MaNguoiDung`),
   CONSTRAINT `fk_tai_lieu_nguoi_dung` FOREIGN KEY (`MaNguoiDung`) REFERENCES `nguoi_dung` (`MaNguoiDung`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -623,7 +623,7 @@ CREATE TABLE `tai_lieu_bao_cao` (
   KEY `fk_tlbc_bao_cao` (`MaBaoCao`),
   CONSTRAINT `fk_tlbc_bao_cao` FOREIGN KEY (`MaBaoCao`) REFERENCES `bao_cao` (`MaBaoCao`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_tlbc_tai_lieu` FOREIGN KEY (`MaTaiLieu`) REFERENCES `tai_lieu` (`MaTaiLieu`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -649,7 +649,7 @@ CREATE TABLE `tai_lieu_ho_so` (
   KEY `fk_tlhs_ho_so` (`MaHoSo`),
   CONSTRAINT `fk_tlhs_ho_so` FOREIGN KEY (`MaHoSo`) REFERENCES `ho_so_trinh` (`MaHoSo`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_tlhs_tai_lieu` FOREIGN KEY (`MaTaiLieu`) REFERENCES `tai_lieu` (`MaTaiLieu`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -676,7 +676,7 @@ CREATE TABLE `tai_lieu_nghi_quyet` (
   KEY `fk_tlnq_nghi_quyet` (`MaNghiQuyet`),
   CONSTRAINT `fk_tlnq_nghi_quyet` FOREIGN KEY (`MaNghiQuyet`) REFERENCES `nghi_quyet` (`MaNghiQuyet`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_tlnq_tai_lieu` FOREIGN KEY (`MaTaiLieu`) REFERENCES `tai_lieu` (`MaTaiLieu`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -703,7 +703,7 @@ CREATE TABLE `tai_lieu_phien_hop` (
   KEY `fk_tlph_phien_hop` (`MaPhienHop`),
   CONSTRAINT `fk_tlph_phien_hop` FOREIGN KEY (`MaPhienHop`) REFERENCES `phien_hop` (`MaPhienHop`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_tlph_tai_lieu` FOREIGN KEY (`MaTaiLieu`) REFERENCES `tai_lieu` (`MaTaiLieu`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -736,7 +736,7 @@ CREATE TABLE `tham_du` (
   KEY `fk_tham_du_thanh_vien` (`MaThanhVien`),
   CONSTRAINT `fk_tham_du_phien_hop` FOREIGN KEY (`MaPhienHop`) REFERENCES `phien_hop` (`MaPhienHop`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_tham_du_thanh_vien` FOREIGN KEY (`MaThanhVien`) REFERENCES `thanh_vien_hdt` (`MaThanhVien`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=160 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=160 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -770,7 +770,7 @@ CREATE TABLE `thanh_vien_hdt` (
   PRIMARY KEY (`MaThanhVien`),
   KEY `fk_thanh_vien_nguoi_dung` (`MaNguoiDung`),
   CONSTRAINT `fk_thanh_vien_nguoi_dung` FOREIGN KEY (`MaNguoiDung`) REFERENCES `nguoi_dung` (`MaNguoiDung`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -808,7 +808,7 @@ CREATE TABLE `uy_quyen_bieu_quyet` (
   CONSTRAINT `fk_uq_tv_nhan_uy_quyen` FOREIGN KEY (`MaThanhVienNhanUyQuyen`) REFERENCES `thanh_vien_hdt` (`MaThanhVien`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_uq_tv_uy_quyen` FOREIGN KEY (`MaThanhVienUyQuyen`) REFERENCES `thanh_vien_hdt` (`MaThanhVien`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `chk_thanh_vien_khac_nhau` CHECK ((`MaThanhVienUyQuyen` <> `MaThanhVienNhanUyQuyen`))
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -835,7 +835,7 @@ CREATE TABLE `vai_tro` (
   `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`MaVaiTro`),
   UNIQUE KEY `vai_tro_tenvaitro_unique` (`TenVaiTro`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
