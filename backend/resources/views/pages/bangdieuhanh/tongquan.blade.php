@@ -237,7 +237,7 @@
                                 <th>Thời gian</th>
                                 <th>Địa điểm</th>
                                 <th>Trạng thái</th>
-                                <th style="text-align: center;">Thao tác</th>
+                                <th style="text-align: center; white-space: nowrap;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
