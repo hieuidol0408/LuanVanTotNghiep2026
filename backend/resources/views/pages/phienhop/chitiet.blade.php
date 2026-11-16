@@ -27,10 +27,10 @@
     </div>
     <div class="stu-page-actions">
         @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-            <x-nut-bam variant="secondary" href="{{ route('meetings.edit', $meeting->MaPhienHop) }}">
+            <button type="button" class="stu-btn stu-btn-secondary" data-modal-open="editMeetingModal">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 <span>Chỉnh sửa phiên</span>
-            </x-nut-bam>
+            </button>
         @endif
         <x-nut-bam variant="outline" href="{{ route('meetings.index') }}">
             <span>Danh sách phiên</span>
@@ -655,6 +655,71 @@
             </form>
         </x-hop-thoai>
     @endforeach
+
+    {{-- Modal Chỉnh sửa & Dời lịch phiên họp --}}
+    <x-hop-thoai id="editMeetingModal" title="Chỉnh Sửa & Dời Lịch Phiên Họp #{{ $meeting->MaPhienHop }}" size="lg">
+        <form method="POST" action="{{ route('meetings.update', $meeting->MaPhienHop) }}" id="editMeetingModalForm">
+            @csrf
+            @method('PUT')
+
+            <div class="stu-form-group stu-mb-4">
+                <label class="stu-form-label" style="font-weight: 700; font-size: 13px;">Tên phiên họp <span style="color: var(--color-danger);">*</span></label>
+                <input type="text" name="TenPhienHop" value="{{ old('TenPhienHop', $meeting->TenPhienHop) }}" class="stu-form-control" required minlength="5">
+            </div>
+
+            <div class="stu-grid stu-grid-cols-3 stu-gap-3 stu-mb-4">
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-weight: 700; font-size: 13px;">Ngày tổ chức họp <span style="color: var(--color-danger);">*</span></label>
+                    <input type="date" name="NgayHop" value="{{ old('NgayHop', $meeting->NgayHop ? date('Y-m-d', strtotime($meeting->NgayHop)) : '') }}" class="stu-form-control" required>
+                </div>
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-weight: 700; font-size: 13px;">Giờ bắt đầu <span style="color: var(--color-danger);">*</span></label>
+                    <input type="time" name="GioBatDau" value="{{ old('GioBatDau', $meeting->ThoiGianBatDau ? date('H:i', strtotime($meeting->ThoiGianBatDau)) : '08:30') }}" class="stu-form-control" required>
+                </div>
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-weight: 700; font-size: 13px;">Giờ kết thúc <span style="color: var(--color-danger);">*</span></label>
+                    <input type="time" name="GioKetThuc" value="{{ old('GioKetThuc', $meeting->ThoiGianKetThuc ? date('H:i', strtotime($meeting->ThoiGianKetThuc)) : '11:30') }}" class="stu-form-control" required>
+                </div>
+            </div>
+
+            <div class="stu-grid stu-grid-cols-2 stu-gap-3 stu-mb-4">
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-weight: 700; font-size: 13px;">Địa điểm tổ chức <span style="color: var(--color-danger);">*</span></label>
+                    <input type="text" name="DiaDiem" value="{{ old('DiaDiem', $meeting->DiaDiem) }}" class="stu-form-control" required>
+                </div>
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-weight: 700; font-size: 13px;">Hình thức tổ chức <span style="color: var(--color-danger);">*</span></label>
+                    <select name="HinhThuc" class="stu-form-control" required>
+                        <option value="Trực tiếp" {{ old('HinhThuc', $meeting->HinhThuc) == 'Trực tiếp' ? 'selected' : '' }}>Trực tiếp (Tại STU)</option>
+                        <option value="Trực tuyến" {{ old('HinhThuc', $meeting->HinhThuc) == 'Trực tuyến' ? 'selected' : '' }}>Trực tuyến (Zoom/Teams)</option>
+                        <option value="Kết hợp" {{ old('HinhThuc', $meeting->HinhThuc) == 'Kết hợp' ? 'selected' : '' }}>Kết hợp (Hybrid)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="stu-form-group stu-mb-4">
+                <label class="stu-form-label" style="font-weight: 700; font-size: 13px;">Trạng thái phiên họp <span style="color: var(--color-danger);">*</span></label>
+                <select name="TrangThai" class="stu-form-control" required>
+                    <option value="Đang chuẩn bị" {{ old('TrangThai', $meeting->TrangThai) == 'Đang chuẩn bị' ? 'selected' : '' }}>Đang chuẩn bị</option>
+                    <option value="Sắp diễn ra" {{ old('TrangThai', $meeting->TrangThai) == 'Sắp diễn ra' ? 'selected' : '' }}>Sắp diễn ra</option>
+                    <option value="Đang diễn ra" {{ old('TrangThai', $meeting->TrangThai) == 'Đang diễn ra' ? 'selected' : '' }}>Đang diễn ra</option>
+                    <option value="Đã diễn ra" {{ old('TrangThai', $meeting->TrangThai) == 'Đã diễn ra' ? 'selected' : '' }}>Đã diễn ra</option>
+                    <option value="Đã kết thúc" {{ old('TrangThai', $meeting->TrangThai) == 'Đã kết thúc' ? 'selected' : '' }}>Đã kết thúc</option>
+                    <option value="Hủy" {{ old('TrangThai', $meeting->TrangThai) == 'Hủy' ? 'selected' : '' }}>Hủy phiên họp</option>
+                </select>
+            </div>
+
+            <div class="stu-form-group stu-mb-5">
+                <label class="stu-form-label" style="font-weight: 700; font-size: 13px;">Ghi chú &amp; Kịch bản phiên họp</label>
+                <textarea name="GhiChu" rows="3" class="stu-form-control" placeholder="Ghi chú nội dung, kịch bản hoặc lý do điều chỉnh lịch...">{{ old('GhiChu', $meeting->GhiChu) }}</textarea>
+            </div>
+
+            <div class="stu-flex stu-justify-end stu-gap-3" style="border-top: 1px solid var(--color-border); padding-top: 16px;">
+                <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>Hủy bỏ</button>
+                <button type="submit" class="stu-btn stu-btn-primary" style="padding: 10px 24px;">Lưu thay đổi</button>
+            </div>
+        </form>
+    </x-hop-thoai>
 @endif
 
 <script>
@@ -663,6 +728,8 @@
         const modal = urlParams.get('modal');
         if (modal && window.STUModal) {
             window.STUModal.open(modal);
+        } else if (urlParams.get('edit') === '1' || urlParams.get('chinh_sua') === '1') {
+            window.STUModal && window.STUModal.open('editMeetingModal');
         } else if (urlParams.get('add_member') === '1') {
             window.STUModal && window.STUModal.open('addMemberModal');
         } else if (urlParams.get('add_guest') === '1') {

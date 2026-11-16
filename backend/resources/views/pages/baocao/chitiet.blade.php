@@ -31,7 +31,12 @@
             </div>
         </div>
 
-        <div>
+        <div class="d-flex gap-2">
+            @if(Auth::user() && in_array(Auth::user()->role, ['SECRETARY', 'CHAIR', 'VICE_CHAIR', 'ADMIN']))
+                <button type="button" class="btn btn-primary" data-modal-open="reviewReportModal">
+                    <i class="bi bi-shield-check me-1"></i> Thẩm định & Phê duyệt
+                </button>
+            @endif
             @if($report->phanCongNhiemVu?->nhiemVu)
                 <a href="{{ route('tasks.show', $report->phanCongNhiemVu->nhiemVu->MaNhiemVu) }}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-1"></i> Về chi tiết nhiệm vụ
@@ -236,4 +241,49 @@
         </div>
     </div>
 </div>
+
+@if(Auth::user() && in_array(Auth::user()->role, ['SECRETARY', 'CHAIR', 'VICE_CHAIR', 'ADMIN']))
+    {{-- Modal Thẩm định & Phê duyệt Báo cáo --}}
+    <x-hop-thoai id="reviewReportModal" title="Thẩm định & Phê duyệt Báo cáo Tiến độ #BC-{{ $report->MaBaoCao }}" size="md">
+        <form method="POST" action="{{ route('task-reports.review', $report->MaBaoCao) }}">
+            @csrf
+
+            <div style="background: var(--color-bg-subtle); padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;">
+                <div><strong>Nhiệm vụ:</strong> {{ $report->phanCongNhiemVu?->nhiemVu?->TenNhiemVu }}</div>
+                <div style="margin-top: 4px;"><strong>Đơn vị báo cáo:</strong> {{ $report->phanCongNhiemVu?->donVi?->TenDonVi }}</div>
+                <div style="margin-top: 4px;"><strong>Mức độ tiến độ ghi nhận:</strong> <span style="font-weight: 700; color: var(--color-primary);">{{ $report->TienDo }}%</span></div>
+            </div>
+
+            <div class="stu-form-group stu-mb-4">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Ý kiến thẩm định / Ghi chú chỉ đạo</label>
+                <textarea name="GhiChu" rows="4" class="stu-form-control" placeholder="Nhập ý kiến thẩm định, đánh giá chất lượng hoàn thành hoặc yêu cầu giải trình thêm...">{{ old('GhiChu', $report->GhiChu) }}</textarea>
+            </div>
+
+            <div class="stu-flex stu-items-center stu-justify-between" style="border-top: 1px solid var(--color-border); padding-top: 16px;">
+                <button type="button" class="stu-btn stu-btn-ghost" data-modal-close>Đóng</button>
+                <div class="stu-flex stu-gap-2">
+                    <button type="submit" name="action" value="reject" class="stu-btn stu-btn-danger">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <span>Yêu cầu bổ sung</span>
+                    </button>
+                    <button type="submit" name="action" value="approve" class="stu-btn stu-btn-success">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <span>Phê duyệt báo cáo</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </x-hop-thoai>
+@endif
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('review') === '1' || urlParams.get('edit') === '1') {
+            if (window.STUModal) {
+                window.STUModal.open('reviewReportModal');
+            }
+        }
+    });
+</script>
 @endsection

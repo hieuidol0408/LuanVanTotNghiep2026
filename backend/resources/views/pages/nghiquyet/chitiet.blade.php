@@ -66,10 +66,11 @@
                 </a>
             @endif
 
-            @if($isDraft && in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                <a href="{{ route('resolutions.edit', $resolution->MaNghiQuyet) }}" class="stu-btn stu-btn-ghost" style="height: 38px;">
-                    Sửa dự thảo
-                </a>
+            @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                <button type="button" class="stu-btn stu-btn-outline" style="height: 38px;" data-modal-open="editResolutionModal">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <span>Sửa dự thảo</span>
+                </button>
             @endif
 
             <a href="{{ route('resolutions.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px;">
@@ -291,4 +292,74 @@
         </div>
     </div>
 </div>
+
+@if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+    {{-- Modal Chỉnh sửa Nghị quyết --}}
+    <x-hop-thoai id="editResolutionModal" title="Chỉnh sửa Dự thảo Nghị quyết: {{ $resolution->SoNghiQuyet }}" size="lg">
+        <form method="POST" action="{{ route('resolutions.update', $resolution->MaNghiQuyet) }}">
+            @csrf
+            @method('PUT')
+
+            <div class="stu-grid" style="grid-template-columns: 1.5fr 1.5fr 1fr; gap: 16px;" class="stu-mb-4">
+                <div class="stu-form-group">
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Số hiệu Nghị quyết <span style="color: var(--color-danger);">*</span></label>
+                    <input type="text" name="SoNghiQuyet" value="{{ old('SoNghiQuyet', $resolution->SoNghiQuyet) }}" class="stu-form-control" required>
+                </div>
+
+                <div class="stu-form-group">
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Phiên họp ban hành <span style="color: var(--color-danger);">*</span></label>
+                    <select name="MaPhienHop" class="stu-form-control" required>
+                        @foreach($meetings ?? [] as $m)
+                            <option value="{{ $m->MaPhienHop }}" {{ old('MaPhienHop', $resolution->MaPhienHop) == $m->MaPhienHop ? 'selected' : '' }}>
+                                {{ $m->TenPhienHop }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="stu-form-group">
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Ngày ban hành <span style="color: var(--color-danger);">*</span></label>
+                    <input type="date" name="NgayBanHanh" value="{{ old('NgayBanHanh', $resolution->NgayBanHanh ? \Carbon\Carbon::parse($resolution->NgayBanHanh)->format('Y-m-d') : '') }}" class="stu-form-control" required>
+                </div>
+            </div>
+
+            <div class="stu-grid stu-grid-cols-2 stu-gap-4 stu-mb-4" style="margin-top: 12px;">
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Trích yếu nội dung <span style="color: var(--color-danger);">*</span></label>
+                    <input type="text" name="TrichYeu" value="{{ old('TrichYeu', $resolution->TrichYeu) }}" class="stu-form-control" required>
+                </div>
+
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Trạng thái xử lý <span style="color: var(--color-danger);">*</span></label>
+                    <select name="TrangThai" class="stu-form-control" required>
+                        <option value="Dự thảo" {{ old('TrangThai', $resolution->TrangThai) === 'Dự thảo' ? 'selected' : '' }}>Dự thảo (DRAFT)</option>
+                        <option value="Đã ký ban hành" {{ old('TrangThai', $resolution->TrangThai) === 'Đã ký ban hành' ? 'selected' : '' }}>Đã ký ban hành (SIGNED)</option>
+                        <option value="Đã công bố hiệu lực" {{ old('TrangThai', $resolution->TrangThai) === 'Đã công bố hiệu lực' ? 'selected' : '' }}>Đã công bố hiệu lực (PUBLISHED)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="stu-form-group stu-mb-5" style="margin-top: 12px;">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Toàn văn nội dung Nghị quyết <span style="color: var(--color-danger);">*</span></label>
+                <textarea name="NoiDung" rows="7" class="stu-form-control" required>{{ old('NoiDung', $resolution->NoiDung) }}</textarea>
+            </div>
+
+            <div class="stu-flex stu-items-center stu-justify-between" style="border-top: 1px solid var(--color-border); padding-top: 16px;">
+                <button type="button" class="stu-btn stu-btn-ghost" data-modal-close>Hủy bỏ</button>
+                <button type="submit" class="stu-btn stu-btn-primary" style="padding: 10px 24px;">Lưu cập nhật</button>
+            </div>
+        </form>
+    </x-hop-thoai>
+@endif
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('edit') === '1' || urlParams.get('chinh_sua') === '1') {
+            if (window.STUModal) {
+                window.STUModal.open('editResolutionModal');
+            }
+        }
+    });
+</script>
 @endsection

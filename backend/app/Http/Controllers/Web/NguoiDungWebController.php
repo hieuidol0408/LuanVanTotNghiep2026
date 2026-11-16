@@ -138,6 +138,61 @@ class NguoiDungWebController extends Controller
     }
 
     /**
+     * Cập nhật thông tin và vai trò người dùng
+     */
+    public function update(Request $request, int|string $id): RedirectResponse
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser || !in_array($currentUser->role, ['ADMIN', 'CHAIR'])) {
+            return redirect()->route('users.index')->with('error', 'Chỉ Quản trị viên hệ thống (ADMIN) mới có quyền cập nhật người dùng.');
+        }
+
+        $user = NguoiDung::findOrFail($id);
+
+        $validated = $request->validate([
+            'HoTen' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:191', 'unique:nguoi_dung,email,' . $user->MaNguoiDung . ',MaNguoiDung'],
+            'password' => ['nullable', 'string', 'min:6'],
+            'MaVaiTro' => ['required', 'integer', 'exists:vai_tro,MaVaiTro'],
+            'MaDonVi' => ['required', 'integer', 'exists:don_vi,MaDonVi'],
+            'TrangThai' => ['nullable', 'string', 'in:Hoạt động,Khóa,Cho phép'],
+        ]);
+
+        $updateData = [
+            'HoTen' => $validated['HoTen'],
+            'email' => $validated['email'],
+            'MaVaiTro' => $validated['MaVaiTro'],
+            'MaDonVi' => $validated['MaDonVi'],
+            'TrangThai' => $validated['TrangThai'] ?? 'Hoạt động',
+        ];
+
+        if (!empty($validated['password'])) {
+            $updateData['MatKhau'] = Hash::make($validated['password']);
+        }
+
+        $user->update($updateData);
+
+        $vaiTro = VaiTro::find($validated['MaVaiTro']);
+
+        if (DB::getSchemaBuilder()->hasTable('users')) {
+            $userSync = [
+                'name' => $user->HoTen,
+                'full_name' => $user->HoTen,
+                'role' => $vaiTro?->TenVaiTro ?? 'MEMBER',
+                'department_id' => $user->MaDonVi,
+                'is_active' => $user->TrangThai === 'Hoạt động',
+                'updated_at' => now(),
+            ];
+            if (!empty($validated['password'])) {
+                $userSync['password'] = Hash::make($validated['password']);
+            }
+            DB::table('users')->where('email', $user->email)->update($userSync);
+        }
+
+        return redirect()->route('users.index')->with('success', "Đã cập nhật thông tin tài khoản '{$user->HoTen}' thành công.");
+    }
+
+    /**
      * Xóa tài khoản người dùng khỏi danh sách hiển thị (Soft Delete)
      */
     public function destroy(int|string $id): RedirectResponse

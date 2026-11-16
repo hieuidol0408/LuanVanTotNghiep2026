@@ -37,6 +37,10 @@
         </div>
 
         <div style="display: flex; gap: var(--space-2);">
+            <button type="button" class="stu-btn stu-btn-primary" data-modal-open="editProfileModal" style="background: #ffffff !important; color: var(--color-primary) !important; font-weight: 700; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <span>Cập nhật thông tin</span>
+            </button>
             <x-nut-bam variant="outline" href="{{ url('/dashboard') }}" style="background: rgba(255,255,255,0.15) !important; color: #FFFFFF !important; border-color: rgba(255,255,255,0.4) !important;">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 <span>Quay lại Dashboard</span>
@@ -363,4 +367,59 @@
         </div>
     </div>
 </div>
+
+{{-- Modal Cập nhật Hồ sơ cá nhân --}}
+<x-hop-thoai id="editProfileModal" title="Cập Nhật Thông Tin Cá Nhân" size="md">
+    <form action="{{ route('profile.update') }}" method="POST">
+        @csrf
+        @method('PUT')
+
+        <div class="stu-form-group stu-mb-4">
+            <label class="stu-form-label" style="font-weight: 700; font-size: 13px;">Họ và tên <span style="color: var(--color-danger);">*</span></label>
+            <input type="text" name="HoTen" value="{{ old('HoTen', $user->full_name) }}" class="stu-form-control" required>
+        </div>
+
+        <div class="stu-form-group stu-mb-4">
+            <label class="stu-form-label" style="font-weight: 700; font-size: 13px;">Địa chỉ Email</label>
+            <input type="email" value="{{ $user->email }}" class="stu-form-control" disabled style="background: var(--color-bg-subtle);">
+        </div>
+
+        <div style="background: var(--color-bg-subtle); border: 1px solid var(--color-border); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 12.5px;">
+            <div style="font-weight: 700; color: var(--color-primary); margin-bottom: 4px;">Đổi mật khẩu tài khoản (Tùy chọn)</div>
+            <div style="color: var(--color-text-muted); margin-bottom: 10px;">Bỏ trống các ô bên dưới nếu bạn không có nhu cầu đổi mật khẩu.</div>
+
+            <div class="stu-form-group stu-mb-3">
+                <label class="stu-form-label" style="font-size: 12px; font-weight: 600;">Mật khẩu hiện tại</label>
+                <input type="password" name="current_password" class="stu-form-control" placeholder="Nhập mật khẩu đang sử dụng">
+            </div>
+
+            <div class="stu-grid stu-grid-cols-2 stu-gap-3">
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-size: 12px; font-weight: 600;">Mật khẩu mới</label>
+                    <input type="password" name="new_password" class="stu-form-control" placeholder="Tối thiểu 6 ký tự">
+                </div>
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-size: 12px; font-weight: 600;">Xác nhận mật khẩu</label>
+                    <input type="password" name="new_password_confirmation" class="stu-form-control" placeholder="Nhập lại mật khẩu mới">
+                </div>
+            </div>
+        </div>
+
+        <div class="stu-flex stu-justify-end stu-gap-3" style="border-top: 1px solid var(--color-border); padding-top: 16px;">
+            <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>Đóng</button>
+            <button type="submit" class="stu-btn stu-btn-primary" style="padding: 10px 24px;">Lưu cập nhật</button>
+        </div>
+    </form>
+</x-hop-thoai>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('edit') === '1' || urlParams.get('profile') === '1') {
+            if (window.STUModal) {
+                window.STUModal.open('editProfileModal');
+            }
+        }
+    });
+</script>
 @endsection

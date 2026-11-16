@@ -224,7 +224,9 @@ class NghiQuyetWebController extends Controller
         $completedTasks = $tasks->filter(fn ($t) => in_array($t->TrangThai, ['COMPLETED', 'Hoàn thành']))->count();
         $overallProgress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 1) : 0;
 
-        return view('pages.nghiquyet.chitiet', compact('resolution', 'role', 'totalTasks', 'completedTasks', 'overallProgress'));
+        $meetings = PhienHop::orderBy('ThoiGianBatDau', 'desc')->get();
+
+        return view('pages.nghiquyet.chitiet', compact('resolution', 'role', 'totalTasks', 'completedTasks', 'overallProgress', 'meetings'));
     }
 
     /**
@@ -232,23 +234,7 @@ class NghiQuyetWebController extends Controller
      */
     public function edit(int|string $id): View|RedirectResponse
     {
-        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
-        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
-            return redirect()->route('resolutions.show', $id)->with('error', 'Bạn không có quyền chỉnh sửa Nghị quyết này.');
-        }
-
-        $resolution = NghiQuyet::with(['hoSoTrinh', 'noiDungBieuQuyet', 'taiLieu'])->findOrFail($id);
-        $meetings = PhienHop::orderBy('ThoiGianBatDau', 'desc')->get();
-
-        $dossiers = HoSoTrinh::whereHas('chuongTrinhHop', function ($q) use ($resolution) {
-            $q->where('MaPhienHop', $resolution->MaPhienHop);
-        })->get();
-
-        $votings = NoiDungBieuQuyet::whereHas('chuongTrinhHop', function ($q) use ($resolution) {
-            $q->where('MaPhienHop', $resolution->MaPhienHop);
-        })->get();
-
-        return view('pages.nghiquyet.chinhsua', compact('resolution', 'meetings', 'dossiers', 'votings', 'role'));
+        return redirect()->route('resolutions.show', ['id' => $id, 'edit' => 1]);
     }
 
     /**

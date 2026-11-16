@@ -365,9 +365,7 @@ class PhienHopWebController extends Controller
                 ->with('error', 'Bạn không có quyền chỉnh sửa phiên họp.');
         }
 
-        $meeting = PhienHop::findOrFail($id);
-
-        return view('pages.phienhop.chinhsua', compact('meeting'));
+        return redirect()->route('meetings.show', ['id' => $id, 'edit' => 1]);
     }
 
     /**

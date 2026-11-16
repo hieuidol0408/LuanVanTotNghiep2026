@@ -138,14 +138,19 @@
                             @endif
                         </td>
                         <td class="text-end">
-                            @if(auth()->user() && in_array(auth()->user()->role, ['ADMIN', 'CHAIR']) && auth()->user()->MaNguoiDung !== $u->MaNguoiDung)
-                                <form method="POST" action="{{ route('users.destroy', $u->MaNguoiDung) }}" style="display:inline-block; margin:0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản {{ $u->HoTen }} không?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa người dùng">
-                                        <i class="bi bi-trash"></i> Xóa
-                                    </button>
-                                </form>
+                            @if(auth()->user() && in_array(auth()->user()->role, ['ADMIN', 'CHAIR']))
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-modal-open="editUserModal-{{ $u->MaNguoiDung }}" title="Cập nhật tài khoản">
+                                    <i class="bi bi-pencil"></i> Sửa
+                                </button>
+                                @if(auth()->user()->MaNguoiDung !== $u->MaNguoiDung)
+                                    <form method="POST" action="{{ route('users.destroy', $u->MaNguoiDung) }}" style="display:inline-block; margin:0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản {{ $u->HoTen }} không?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa người dùng">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </button>
+                                    </form>
+                                @endif
                             @else
                                 <span class="text-muted small">--</span>
                             @endif
@@ -243,12 +248,90 @@
             </form>
         </x-hop-thoai>
 
+        {{-- Danh sách Modal Chỉnh sửa từng Người dùng --}}
+        @foreach($users as $u)
+            <x-hop-thoai id="editUserModal-{{ $u->MaNguoiDung }}" title="Cập Nhật Người Dùng: {{ $u->HoTen }}" size="md">
+                <form method="POST" action="{{ route('users.update', $u->MaNguoiDung) }}">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="stu-form-group stu-mb-4" style="margin-bottom: 14px;">
+                        <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                            Họ và tên <span style="color: #dc2626;">*</span>
+                        </label>
+                        <input type="text" name="HoTen" required class="stu-form-control" value="{{ old('HoTen', $u->HoTen) }}">
+                    </div>
+
+                    <div class="stu-form-group stu-mb-4" style="margin-bottom: 14px;">
+                        <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                            Email STU (Tên đăng nhập) <span style="color: #dc2626;">*</span>
+                        </label>
+                        <input type="email" name="email" required class="stu-form-control" value="{{ old('email', $u->email) }}">
+                    </div>
+
+                    <div class="stu-form-group stu-mb-4" style="margin-bottom: 14px;">
+                        <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                            Mật khẩu mới (Bỏ trống nếu giữ nguyên)
+                        </label>
+                        <input type="password" name="password" minlength="6" class="stu-form-control" placeholder="Nhập nếu muốn đổi mật khẩu">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                        <div class="stu-form-group" style="margin-bottom: 0;">
+                            <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                                Vai trò RBAC <span style="color: #dc2626;">*</span>
+                            </label>
+                            <select name="MaVaiTro" required class="stu-form-control">
+                                @foreach($roles as $r)
+                                    <option value="{{ $r->MaVaiTro }}" {{ old('MaVaiTro', $u->MaVaiTro) == $r->MaVaiTro ? 'selected' : '' }}>
+                                        {{ $r->TenVaiTro }} ({{ $r->MoTa }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="stu-form-group" style="margin-bottom: 0;">
+                            <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                                Đơn vị công tác <span style="color: #dc2626;">*</span>
+                            </label>
+                            <select name="MaDonVi" required class="stu-form-control">
+                                @foreach($departments as $d)
+                                    <option value="{{ $d->MaDonVi }}" {{ old('MaDonVi', $u->MaDonVi) == $d->MaDonVi ? 'selected' : '' }}>
+                                        {{ $d->TenDonVi }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="stu-form-group" style="margin-bottom: 20px;">
+                        <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
+                            Trạng thái tài khoản
+                        </label>
+                        <select name="TrangThai" class="stu-form-control">
+                            <option value="Hoạt động" {{ old('TrangThai', $u->TrangThai) === 'Hoạt động' ? 'selected' : '' }}>Hoạt động</option>
+                            <option value="Khóa" {{ old('TrangThai', $u->TrangThai) === 'Khóa' ? 'selected' : '' }}>Khóa tài khoản</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid var(--color-border);">
+                        <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>Hủy bỏ</button>
+                        <button type="submit" class="stu-btn stu-btn-primary">Lưu cập nhật</button>
+                    </div>
+                </form>
+            </x-hop-thoai>
+        @endforeach
+
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('create') === '1' || urlParams.get('add') === '1' @if($errors->any()) || true @endif) {
+                if (urlParams.get('create') === '1' || urlParams.get('add') === '1') {
                     if (window.STUModal) {
                         window.STUModal.open('addUserModal');
+                    }
+                } else if (urlParams.get('edit_user')) {
+                    if (window.STUModal) {
+                        window.STUModal.open('editUserModal-' + urlParams.get('edit_user'));
                     }
                 }
             });

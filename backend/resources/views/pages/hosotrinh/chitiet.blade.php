@@ -23,10 +23,10 @@
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
             @if(in_array($role, ['UNIT_REP', 'SECRETARY', 'CHAIR', 'ADMIN']))
-                <a href="{{ route('submissions.edit', $dossier->MaHoSo) }}" class="stu-btn stu-btn-primary stu-btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                <button type="button" class="stu-btn stu-btn-primary stu-btn-sm" data-modal-open="editSubmissionModal" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     <span>Chỉnh sửa hồ sơ</span>
-                </a>
+                </button>
                 <form method="POST" action="{{ route('submissions.destroy', $dossier->MaHoSo) }}" style="display: inline-flex; margin: 0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa hồ sơ trình {{ $dossier->ma_ho_so_hien_thi }} khỏi danh sách hiển thị?');">
                     @csrf
                     @method('DELETE')
@@ -164,4 +164,104 @@
         </div>
     </div>
 </div>
+
+@if(in_array($role, ['UNIT_REP', 'SECRETARY', 'CHAIR', 'ADMIN']))
+    {{-- Modal Chỉnh sửa Hồ sơ trình --}}
+    <x-hop-thoai id="editSubmissionModal" title="Cập nhật Hồ sơ trình: {{ $dossier->ma_ho_so_hien_thi }}" size="lg">
+        <form method="POST" action="{{ route('submissions.update', $dossier->MaHoSo) }}" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+
+            <div class="stu-grid stu-mb-4" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Mã số hồ sơ</label>
+                    <input type="text" value="{{ $dossier->ma_ho_so_hien_thi }}" class="stu-form-control" style="background-color: var(--color-bg-subtle); font-weight: 700; color: var(--color-primary);" readonly>
+                </div>
+
+                @if(in_array($role, ['SECRETARY', 'CHAIR', 'ADMIN']))
+                    <div class="stu-form-group" style="margin-bottom: 0;">
+                        <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Trạng thái hồ sơ</label>
+                        @php $curStatus = old('TrangThai', $dossier->TrangThai); @endphp
+                        <select name="TrangThai" class="stu-form-control">
+                            @foreach(['Mới tạo', 'Đầy đủ', 'Chờ bổ sung', 'Đủ điều kiện'] as $st)
+                                <option value="{{ $st }}" {{ $curStatus === $st ? 'selected' : '' }}>{{ $st }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+            </div>
+
+            <div class="stu-form-group stu-mb-4">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Tiêu đề hồ sơ trình <span style="color: var(--color-danger);">*</span></label>
+                <input type="text" name="TieuDe" value="{{ old('TieuDe', $dossier->TieuDe) }}" class="stu-form-control" required minlength="5" maxlength="255">
+            </div>
+
+            <div class="stu-grid stu-mb-4" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Đơn vị trình <span style="color: var(--color-danger);">*</span></label>
+                    <select name="MaDonVi" class="stu-form-control" required {{ $role === 'UNIT_REP' ? 'readonly' : '' }}>
+                        @foreach($departments as $dept)
+                            <option value="{{ $dept->MaDonVi }}" {{ old('MaDonVi', $dossier->MaDonVi) == $dept->MaDonVi ? 'selected' : '' }}>{{ $dept->TenDonVi }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Lĩnh vực <span style="color: var(--color-danger);">*</span></label>
+                    @php
+                        $currentField = old('LinhVuc', $dossier->LinhVuc);
+                        $standardFields = [
+                            'Đào tạo & Đảm bảo chất lượng',
+                            'Khoa học công nghệ & Dự án',
+                            'Cơ sở vật chất & Đầu tư xây dựng',
+                            'Tài chính & Kế hoạch ngân sách',
+                            'Tổ chức cán bộ & Nhân sự',
+                            'Hợp tác quốc tế & Doanh nghiệp',
+                            'Khác',
+                        ];
+                        if ($currentField && !in_array($currentField, $standardFields)) {
+                            array_unshift($standardFields, $currentField);
+                        }
+                    @endphp
+                    <select name="LinhVuc" class="stu-form-control" required>
+                        @foreach($standardFields as $fieldItem)
+                            <option value="{{ $fieldItem }}" {{ $currentField === $fieldItem ? 'selected' : '' }}>{{ $fieldItem }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="stu-form-group stu-mb-4">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Nội dung tóm tắt <span style="color: var(--color-danger);">*</span></label>
+                <textarea name="NoiDungTomTat" rows="4" class="stu-form-control" required minlength="5">{{ old('NoiDungTomTat', $dossier->NoiDungTomTat) }}</textarea>
+            </div>
+
+            <div class="stu-form-group stu-mb-4" style="background: var(--color-bg-muted); padding: 14px 16px; border-radius: var(--radius-md); border: 1px dashed var(--color-border);">
+                <label class="stu-form-label" style="font-size: 12px; font-weight: 700;">Tải lên tài liệu đính kèm bổ sung (Tùy chọn)</label>
+                <input type="file" name="file" class="stu-form-control" accept=".pdf,.doc,.docx,.xls,.xlsx">
+            </div>
+
+            <div class="stu-form-group stu-mb-5">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Ghi chú</label>
+                <textarea name="GhiChu" rows="2" class="stu-form-control" placeholder="Ghi chú thêm...">{{ old('GhiChu', $dossier->GhiChu) }}</textarea>
+            </div>
+
+            <div class="stu-flex stu-items-center stu-justify-between" style="border-top: 1px solid var(--color-border); padding-top: 16px;">
+                <button type="button" class="stu-btn stu-btn-ghost" data-modal-close>Hủy bỏ</button>
+                <button type="submit" class="stu-btn stu-btn-primary" style="padding: 10px 24px;">Lưu cập nhật hồ sơ</button>
+            </div>
+        </form>
+    </x-hop-thoai>
+@endif
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('edit') === '1' || urlParams.get('chinh_sua') === '1') {
+            if (window.STUModal) {
+                window.STUModal.open('editSubmissionModal');
+            }
+        }
+    });
+</script>
 @endsection

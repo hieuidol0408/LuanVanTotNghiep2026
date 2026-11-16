@@ -179,7 +179,9 @@ class HoSoTrinhWebController extends Controller
                 ->with('error', 'Bạn không có quyền truy cập hồ sơ của đơn vị khác.');
         }
 
-        return view('pages.hosotrinh.chitiet', compact('dossier', 'role'));
+        $departments = DonVi::all();
+
+        return view('pages.hosotrinh.chitiet', compact('dossier', 'role', 'departments'));
     }
 
     /**
@@ -187,25 +189,7 @@ class HoSoTrinhWebController extends Controller
      */
     public function edit(int|string $id): View|RedirectResponse
     {
-        $dossier = HoSoTrinh::with(['donVi', 'taiLieu'])->findOrFail($id);
-
-        $user = Auth::user();
-        $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
-        $userDeptId = $user?->department_id ?? session('department_id');
-
-        if ($role === 'UNIT_REP' && $userDeptId && $dossier->MaDonVi !== (int) $userDeptId) {
-            return redirect()->route('submissions.index')
-                ->with('error', 'Bạn không có quyền chỉnh sửa hồ sơ của đơn vị khác.');
-        }
-
-        if (! in_array($role, ['UNIT_REP', 'SECRETARY', 'CHAIR', 'ADMIN'])) {
-            return redirect()->route('submissions.show', $dossier->MaHoSo)
-                ->with('error', 'Bạn không có quyền chỉnh sửa hồ sơ trình.');
-        }
-
-        $departments = DonVi::all();
-
-        return view('pages.hosotrinh.chinhsua', compact('dossier', 'departments', 'role', 'userDeptId'));
+        return redirect()->route('submissions.show', ['id' => $id, 'edit' => 1]);
     }
 
     /**

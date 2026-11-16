@@ -234,19 +234,7 @@ class NhiemVuWebController extends Controller
      */
     public function edit(int $id): View|RedirectResponse
     {
-        $user = Auth::user();
-        if ($user && $user->role === 'EXECUTING_UNIT') {
-            return redirect()->route('tasks.index')->with('error', 'Bạn không có quyền chỉnh sửa thông tin nhiệm vụ.');
-        }
-
-        $task = NhiemVu::with(['nghiQuyet', 'phanCongNhiemVu.donVi'])->findOrFail($id);
-        $resolutions = NghiQuyet::orderByDesc('MaNghiQuyet')->get(['MaNghiQuyet', 'SoNghiQuyet', 'TrichYeu']);
-        $departments = DonVi::orderBy('TenDonVi')->get(['MaDonVi', 'TenDonVi']);
-
-        $leadAssignment = $task->phanCongNhiemVu->firstWhere('VaiTroThucHien', 'CHỦ TRÌ');
-        $coopAssignments = $task->phanCongNhiemVu->where('VaiTroThucHien', 'PHỐI HỢP');
-
-        return view('pages.nhiemvu.chinhsua', compact('task', 'resolutions', 'departments', 'leadAssignment', 'coopAssignments'));
+        return redirect()->route('tasks.show', ['id' => $id, 'edit' => 1]);
     }
 
     /**

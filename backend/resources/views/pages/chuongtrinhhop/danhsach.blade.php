@@ -372,6 +372,16 @@
             if (window.STUModal) {
                 window.STUModal.open('createAgendaModal');
             }
+        } else if (urlParams.get('edit_agenda')) {
+            if (window.STUModal) {
+                window.STUModal.open('editAgendaModal-' + urlParams.get('edit_agenda'));
+            }
+        } else if (urlParams.get('edit') === '1') {
+            @if(isset($agendas) && $agendas->count() > 0)
+                if (window.STUModal) {
+                    window.STUModal.open('editAgendaModal-{{ $agendas->first()->MaChuongTrinh }}');
+                }
+            @endif
         }
     });
 </script>

@@ -44,9 +44,9 @@
             </a>
 
             @if(Auth::user() && in_array(Auth::user()->role, ['SECRETARY', 'CHAIR', 'ADMIN']))
-                <a href="{{ route('tasks.edit', $task->MaNhiemVu) }}" class="btn btn-outline-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-modal-open="editTaskModal">
                     <i class="bi bi-pencil me-1"></i> Chỉnh sửa
-                </a>
+                </button>
             @endif
         </div>
     </div>
@@ -290,4 +290,66 @@
         </div>
     </div>
 </div>
+
+@if(Auth::user() && in_array(Auth::user()->role, ['SECRETARY', 'CHAIR', 'ADMIN']))
+    {{-- Modal Chỉnh sửa Nhiệm vụ --}}
+    <x-hop-thoai id="editTaskModal" title="Cập nhật Thông tin Nhiệm vụ #{{ $task->MaNhiemVu }}" size="lg">
+        <form method="POST" action="{{ route('tasks.update', $task->MaNhiemVu) }}">
+            @csrf
+            @method('PUT')
+
+            <div class="stu-form-group stu-mb-4">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Tên nhiệm vụ <span style="color: var(--color-danger);">*</span></label>
+                <input type="text" name="TenNhiemVu" value="{{ old('TenNhiemVu', $task->TenNhiemVu) }}" class="stu-form-control" required>
+            </div>
+
+            <div class="stu-form-group stu-mb-4">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Nội dung chi tiết</label>
+                <textarea name="NoiDung" rows="4" class="stu-form-control">{{ old('NoiDung', $task->NoiDung) }}</textarea>
+            </div>
+
+            <div class="stu-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 16px;" class="stu-mb-5">
+                <div class="stu-form-group">
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Ngày giao nhiệm vụ <span style="color: var(--color-danger);">*</span></label>
+                    <input type="date" name="NgayGiao" 
+                           value="{{ old('NgayGiao', $task->NgayGiao ? \Carbon\Carbon::parse($task->NgayGiao)->format('Y-m-d') : '') }}" 
+                           class="stu-form-control" required>
+                </div>
+
+                <div class="stu-form-group">
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Hạn hoàn thành <span style="color: var(--color-danger);">*</span></label>
+                    <input type="date" name="NgayHoanThanh" 
+                           value="{{ old('NgayHoanThanh', $task->NgayHoanThanh ? \Carbon\Carbon::parse($task->NgayHoanThanh)->format('Y-m-d') : '') }}" 
+                           class="stu-form-control" required>
+                </div>
+
+                <div class="stu-form-group">
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Trạng thái nhiệm vụ <span style="color: var(--color-danger);">*</span></label>
+                    <select name="TrangThai" class="stu-form-control" required>
+                        <option value="ASSIGNED" {{ old('TrangThai', $task->TrangThai) === 'ASSIGNED' ? 'selected' : '' }}>Chưa thực hiện (ASSIGNED)</option>
+                        <option value="IN_PROGRESS" {{ old('TrangThai', $task->TrangThai) === 'IN_PROGRESS' ? 'selected' : '' }}>Đang thực hiện (IN_PROGRESS)</option>
+                        <option value="COMPLETED" {{ old('TrangThai', $task->TrangThai) === 'COMPLETED' ? 'selected' : '' }}>Đã hoàn tất (COMPLETED)</option>
+                        <option value="OVERDUE" {{ old('TrangThai', $task->TrangThai) === 'OVERDUE' ? 'selected' : '' }}>Quá hạn (OVERDUE)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="stu-flex stu-items-center stu-justify-between" style="border-top: 1px solid var(--color-border); padding-top: 16px;">
+                <button type="button" class="stu-btn stu-btn-ghost" data-modal-close>Hủy bỏ</button>
+                <button type="submit" class="stu-btn stu-btn-primary" style="padding: 10px 24px;">Lưu thay đổi</button>
+            </div>
+        </form>
+    </x-hop-thoai>
+@endif
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('edit') === '1' || urlParams.get('chinh_sua') === '1') {
+            if (window.STUModal) {
+                window.STUModal.open('editTaskModal');
+            }
+        }
+    });
+</script>
 @endsection

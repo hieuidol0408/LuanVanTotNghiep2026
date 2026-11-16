@@ -141,6 +141,7 @@ Route::prefix('members')->name('members.')->group(function () {
 Route::prefix('users')->name('users.')->group(function () {
     Route::get('/', [NguoiDungWebController::class, 'index'])->name('index');
     Route::post('/', [NguoiDungWebController::class, 'store'])->name('store');
+    Route::put('/{id}', [NguoiDungWebController::class, 'update'])->name('update');
     Route::delete('/{id}', [NguoiDungWebController::class, 'destroy'])->name('destroy');
 });
 
