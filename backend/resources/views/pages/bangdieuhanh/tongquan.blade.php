@@ -225,11 +225,11 @@
                 @else
                     <table class="dashboard-table" style="width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed;">
                         <colgroup>
-                            <col style="width: 36%;">
-                            <col style="width: 17%;">
-                            <col style="width: 22%;">
+                            <col style="width: 32%;">
                             <col style="width: 15%;">
-                            <col style="width: 10%;">
+                            <col style="width: 20%;">
+                            <col style="width: 21%;">
+                            <col style="width: 12%;">
                         </colgroup>
                         <thead>
                             <tr>
