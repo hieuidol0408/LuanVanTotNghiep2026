@@ -244,14 +244,6 @@
                             @foreach($upcomingMeetings->take(3) as $meeting)
                                 @php
                                     $rawStatus = $meeting->TrangThai ?: 'PREPARING';
-                                    $displayStatus = match(strtoupper($rawStatus)) {
-                                        'PREPARING' => 'Chuẩn bị',
-                                        'SCHEDULED' => 'Đã lên lịch',
-                                        'HAPPENING', 'ONGOING' => 'Đang diễn ra',
-                                        'COMPLETED' => 'Đã hoàn thành',
-                                        'CANCELLED' => 'Đã hủy',
-                                        default => $rawStatus
-                                    };
                                 @endphp
                                 <tr>
                                     <td>
@@ -273,7 +265,7 @@
                                         </span>
                                     </td>
                                     <td style="white-space: nowrap;">
-                                        <x-nhan-trang-thai :status="$displayStatus" />
+                                        <x-nhan-trang-thai :status="$rawStatus" />
                                     </td>
                                     <td style="text-align: center; white-space: nowrap;">
                                         <a href="{{ url('/meetings/' . $meeting->MaPhienHop) }}" style="font-size: 11px; font-weight: 600; color: var(--color-primary); padding: 2px 7px; border: 1px solid var(--color-primary); border-radius: 4px; white-space: nowrap; display: inline-block; text-decoration: none; background: #fff;">
