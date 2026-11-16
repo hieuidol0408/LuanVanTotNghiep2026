@@ -16,7 +16,7 @@
     </div>
     <div class="stu-page-actions">
         @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-            <x-nut-bam variant="primary" href="{{ route('meetings.create') }}">
+            <x-nut-bam variant="primary" data-modal-open="createMeetingModal">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                 <span>Tạo phiên họp mới</span>
             </x-nut-bam>
@@ -175,4 +175,161 @@
 <div class="stu-mt-6" style="width: 100%;">
     {{ $meetings->links() }}
 </div>
+
+<!-- MODAL FORM LƠ LỬNG: TẠO PHIÊN HỌP MỚI -->
+<x-hop-thoai id="createMeetingModal" title="Lập Kế Hoạch & Tạo Phiên Họp Mới" size="lg">
+    <form method="POST" action="{{ route('meetings.store') }}" id="modalCreateMeetingForm" novalidate>
+        @csrf
+
+        <!-- Thông tin người tạo tự động -->
+        <div style="background: var(--color-bg-subtle); border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; font-size: 12.5px;">
+            <div>
+                <span style="color: var(--color-text-muted);">Người tạo phiên họp:</span>
+                <strong style="color: var(--color-primary); margin-left: 6px;">{{ auth()->user()?->HoTen ?? session('user_name', 'Thư ký Hội đồng trường') }}</strong>
+            </div>
+            <span class="stu-badge stu-badge-info" style="font-size: 11px;">Mã người tạo: #{{ auth()->user()?->MaNguoiDung ?? session('user_id', 1) }}</span>
+        </div>
+
+        <!-- Tên phiên họp -->
+        <x-bieu-mau.o-nhap 
+            name="TenPhienHop" 
+            id="modalTenPhienHopInput"
+            label="Tên phiên họp" 
+            placeholder="Ví dụ: Phiên họp thường kỳ Lần thứ 5 Hội đồng trường STU (Khóa IV)" 
+            value="{{ old('TenPhienHop') }}" 
+            required 
+            hint="Đặt tên trang trọng, phản ánh đúng kỳ họp và khóa nhiệm kỳ (tối thiểu 5 ký tự)"
+        />
+        <div id="modalTenPhienHopError" class="stu-form-error" style="display: none; margin-top: -10px; margin-bottom: 12px; font-size: 12px; color: var(--color-danger);"></div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <!-- Ngày họp -->
+            <x-bieu-mau.o-nhap 
+                type="date" 
+                name="NgayHop" 
+                id="modalNgayHopInput"
+                label="Ngày tổ chức họp" 
+                value="{{ old('NgayHop', date('Y-m-d')) }}" 
+                required 
+            />
+
+            <!-- Giờ bắt đầu -->
+            <x-bieu-mau.o-nhap 
+                type="time" 
+                name="GioBatDau" 
+                id="modalGioBatDauInput"
+                label="Giờ bắt đầu" 
+                value="{{ old('GioBatDau', '08:30') }}" 
+                required 
+            />
+
+            <!-- Giờ kết thúc -->
+            <x-bieu-mau.o-nhap 
+                type="time" 
+                name="GioKetThuc" 
+                id="modalGioKetThucInput"
+                label="Giờ kết thúc" 
+                value="{{ old('GioKetThuc', '11:30') }}" 
+                required 
+                hint="Phải lớn hơn giờ bắt đầu"
+            />
+        </div>
+        <div id="modalTimeRangeError" class="stu-form-error" style="display: none; margin-top: -8px; margin-bottom: 12px; font-size: 12px; color: var(--color-danger);"></div>
+
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <!-- Địa điểm tổ chức -->
+            <x-bieu-mau.o-nhap 
+                name="DiaDiem" 
+                id="modalDiaDiemInput"
+                label="Địa điểm tổ chức" 
+                placeholder="Ví dụ: Phòng họp Hội đồng trường, Tầng 3 Nhà A" 
+                value="{{ old('DiaDiem', 'Phòng họp Hội đồng trường, Tòa nhà A') }}" 
+                required 
+            />
+
+            <!-- Hình thức tổ chức -->
+            <x-bieu-mau.o-chon name="HinhThuc" label="Hình thức tổ chức họp" required>
+                <option value="Trực tiếp" {{ old('HinhThuc') == 'Trực tiếp' ? 'selected' : '' }}>Trực tiếp (Tại STU)</option>
+                <option value="Trực tuyến" {{ old('HinhThuc') == 'Trực tuyến' ? 'selected' : '' }}>Trực tuyến</option>
+                <option value="Kết hợp" {{ old('HinhThuc') == 'Kết hợp' ? 'selected' : '' }}>Kết hợp (Trực tiếp & Online)</option>
+            </x-bieu-mau.o-chon>
+        </div>
+        <div id="modalDiaDiemError" class="stu-form-error" style="display: none; margin-top: -8px; margin-bottom: 12px; font-size: 12px; color: var(--color-danger);"></div>
+
+        <!-- Ghi chú / Kịch bản cuộc họp -->
+        <x-bieu-mau.vung-van-ban 
+            name="GhiChu" 
+            label="Ghi chú & Kịch bản phiên họp" 
+            placeholder="Ví dụ: Thảo luận thông qua định mức tài chính và công tác nhân sự..." 
+            rows="2" 
+            hint="Ghi chú ngắn gọn nội dung phiên họp (không bắt buộc)"
+        >{{ old('GhiChu') }}</x-bieu-mau.vung-van-ban>
+
+        <div style="background: rgba(0, 58, 140, 0.05); border: 1px dashed var(--color-primary); border-radius: 8px; padding: 10px 14px; margin-top: 12px; font-size: 12px; color: var(--color-primary);">
+            <strong>Quy tắc nghiệp vụ tự động (BR-02):</strong> Hệ thống tự động lưu vết người tạo và lập danh sách triệu tập thành viên HĐT, đảm bảo không trùng khung giờ phòng họp.
+        </div>
+
+        <!-- Nút hành động trong footer modal -->
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--color-border);">
+            <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>
+                <span>Hủy bỏ</span>
+            </button>
+            <button type="submit" class="stu-btn stu-btn-primary" style="font-weight: 600;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <span>Xác nhận tạo phiên họp</span>
+            </button>
+        </div>
+    </form>
+</x-hop-thoai>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        @if(request('create') || $errors->any())
+            window.STUModal?.open('createMeetingModal');
+        @endif
+
+        const modalForm = document.getElementById('modalCreateMeetingForm');
+        if (modalForm) {
+            modalForm.addEventListener('submit', function (e) {
+                const titleEl = document.getElementById('modalTenPhienHopInput');
+                const startEl = document.getElementById('modalGioBatDauInput');
+                const endEl = document.getElementById('modalGioKetThucInput');
+                const locEl = document.getElementById('modalDiaDiemInput');
+                const titleErr = document.getElementById('modalTenPhienHopError');
+                const timeErr = document.getElementById('modalTimeRangeError');
+                const locErr = document.getElementById('modalDiaDiemError');
+
+                if (titleErr) titleErr.style.display = 'none';
+                if (timeErr) timeErr.style.display = 'none';
+                if (locErr) locErr.style.display = 'none';
+
+                let hasErr = false;
+                if (!titleEl || !titleEl.value.trim() || titleEl.value.trim().length < 5) {
+                    if (titleErr) {
+                        titleErr.textContent = 'Vui lòng nhập tên phiên họp tối thiểu 5 ký tự.';
+                        titleErr.style.display = 'block';
+                    }
+                    hasErr = true;
+                }
+                if (!locEl || !locEl.value.trim() || locEl.value.trim().length < 3) {
+                    if (locErr) {
+                        locErr.textContent = 'Vui lòng nhập địa điểm tổ chức hợp lệ.';
+                        locErr.style.display = 'block';
+                    }
+                    hasErr = true;
+                }
+                if (startEl && endEl && (!startEl.value || !endEl.value || endEl.value <= startEl.value)) {
+                    if (timeErr) {
+                        timeErr.textContent = 'Giờ kết thúc bắt buộc phải lớn hơn Giờ bắt đầu.';
+                        timeErr.style.display = 'block';
+                    }
+                    hasErr = true;
+                }
+                if (hasErr) {
+                    e.preventDefault();
+                }
+            });
+        }
+    });
+</script>
 @endsection

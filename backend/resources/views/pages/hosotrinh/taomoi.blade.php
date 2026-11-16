@@ -27,7 +27,23 @@
         </x-canh-bao>
     @endif
 
-    <div class="stu-card" style="max-width: 900px; padding: 28px;">
+    <div style="display: flex; justify-content: center; padding: 10px 0 30px 0;">
+        <div class="stu-card" style="width: 100%; max-width: 820px; padding: 32px 36px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.06); background: #ffffff;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="width: 36px; height: 36px; border-radius: 8px; background: rgba(0, 58, 140, 0.1); display: flex; align-items: center; justify-content: center; color: var(--color-primary);">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </span>
+                    <div>
+                        <h2 style="font-size: 18px; font-weight: 700; color: var(--color-text-main); margin: 0;">Tạo mới Hồ sơ trình Hội đồng trường STU</h2>
+                        <p style="font-size: 12px; color: var(--color-text-muted); margin: 2px 0 0 0;">Điền thông tin và đính kèm tài liệu tờ trình</p>
+                    </div>
+                </div>
+                <a href="{{ route('submissions.index') }}" class="stu-btn stu-btn-ghost stu-btn-sm" style="font-size: 12px;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <span>Đóng</span>
+                </a>
+            </div>
         <form method="POST" action="{{ route('submissions.store') }}" enctype="multipart/form-data" id="createSubmissionForm" novalidate>
             @csrf
 
@@ -175,6 +191,7 @@
             </div>
         </form>
     </div>
+</div>
 </div>
 
 @push('scripts')

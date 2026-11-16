@@ -19,10 +19,10 @@
         </div>
         <div>
             @if(in_array($role, ['UNIT_REP', 'SECRETARY', 'CHAIR', 'ADMIN']))
-                <a href="{{ route('submissions.create') }}" class="stu-btn stu-btn-primary stu-flex stu-items-center" style="gap: 8px;">
+                <button type="button" class="stu-btn stu-btn-primary stu-flex stu-items-center" style="gap: 8px;" data-modal-open="createSubmissionModal">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     <span>Tạo hồ sơ trình mới</span>
-                </a>
+                </button>
             @endif
         </div>
     </div>
@@ -203,4 +203,152 @@
         {{ $submissions->links() }}
     </div>
 </div>
+
+<!-- MODAL FORM LƠ LỬNG: TẠO MỚI HỒ SƠ TRÌNH -->
+<x-hop-thoai id="createSubmissionModal" title="Tạo Mới Hồ Sơ Trình Hội Đồng Trường" size="lg">
+    <form method="POST" action="{{ route('submissions.store') }}" enctype="multipart/form-data" id="modalCreateSubmissionForm" novalidate>
+        @csrf
+
+        {{-- 0. Mã số hồ sơ tự động sinh --}}
+        <div style="background: var(--color-bg-subtle); border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; font-size: 12.5px;">
+            <div>
+                <span style="color: var(--color-text-muted);">Mã số hồ sơ (Tự động sinh):</span>
+                <strong style="color: var(--color-primary); margin-left: 6px;">#HS-{{ now()->format('my') }}...</strong>
+            </div>
+            <span class="stu-badge stu-badge-info" style="font-size: 11px;">Chuẩn BR-01</span>
+        </div>
+
+        {{-- 1. Tiêu đề hồ sơ trình --}}
+        <div class="stu-form-group" style="margin-bottom: 14px;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Tiêu đề hồ sơ trình <span style="color: var(--color-danger);">*</span>
+            </label>
+            <input 
+                type="text" 
+                name="TieuDe" 
+                id="modalSubmissionTitle"
+                value="{{ old('TieuDe') }}" 
+                class="stu-form-control" 
+                placeholder="Ví dụ: Tờ trình về việc phê duyệt chủ trương đầu tư cơ sở vật chất năm 2026" 
+                required
+                minlength="5"
+                maxlength="255"
+                style="height: 38px; font-size: 13px;"
+            >
+            <div id="modalSubmissionTitleErr" style="display: none; color: var(--color-danger); font-size: 11.5px; margin-top: 4px;">Vui lòng nhập tiêu đề hồ sơ tối thiểu 5 ký tự.</div>
+        </div>
+
+        {{-- 2. Đơn vị trình & Lĩnh vực (2 cột) --}}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+            <div class="stu-form-group">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Đơn vị trình <span style="color: var(--color-danger);">*</span>
+                </label>
+                <select name="MaDonVi" class="stu-form-control" required style="height: 38px; font-size: 13px;">
+                    <option value="">-- Chọn đơn vị --</option>
+                    @foreach($departments as $dept)
+                        <option value="{{ $dept->MaDonVi }}" {{ (old('MaDonVi') == $dept->MaDonVi || ($role === 'UNIT_REP' && $userDeptId == $dept->MaDonVi)) ? 'selected' : '' }}>
+                            {{ $dept->TenDonVi }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="stu-form-group">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Lĩnh vực <span style="color: var(--color-danger);">*</span>
+                </label>
+                <select name="LinhVuc" class="stu-form-control" required style="height: 38px; font-size: 13px;">
+                    <option value="">-- Chọn lĩnh vực --</option>
+                    <option value="Đào tạo & Đảm bảo chất lượng">Đào tạo & Đảm bảo chất lượng</option>
+                    <option value="Khoa học công nghệ & Dự án">Khoa học công nghệ & Dự án</option>
+                    <option value="Cơ sở vật chất & Đầu tư xây dựng">Cơ sở vật chất & Đầu tư xây dựng</option>
+                    <option value="Tài chính & Kế hoạch ngân sách">Tài chính & Kế hoạch ngân sách</option>
+                    <option value="Tổ chức cán bộ & Nhân sự">Tổ chức cán bộ & Nhân sự</option>
+                    <option value="Hợp tác quốc tế & Doanh nghiệp">Hợp tác quốc tế & Doanh nghiệp</option>
+                    <option value="Khác">Khác</option>
+                </select>
+            </div>
+        </div>
+
+        {{-- 3. Nội dung tóm tắt --}}
+        <div class="stu-form-group" style="margin-bottom: 14px;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Nội dung tóm tắt <span style="color: var(--color-danger);">*</span>
+            </label>
+            <textarea 
+                name="NoiDungTomTat" 
+                id="modalSubmissionContent"
+                rows="3" 
+                class="stu-form-control" 
+                placeholder="Nhập nội dung tóm tắt của hồ sơ trình gửi Hội đồng trường..."
+                required
+                style="font-size: 13px;"
+            >{{ old('NoiDungTomTat') }}</textarea>
+            <div id="modalSubmissionContentErr" style="display: none; color: var(--color-danger); font-size: 11.5px; margin-top: 4px;">Vui lòng nhập nội dung tóm tắt hồ sơ.</div>
+        </div>
+
+        {{-- 4. Tài liệu đính kèm --}}
+        <div class="stu-form-group" style="margin-bottom: 14px;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Tài liệu tờ trình đính kèm (PDF, DOCX)
+            </label>
+            <input 
+                type="file" 
+                name="file_dinh_kem" 
+                class="stu-form-control" 
+                accept=".pdf,.doc,.docx"
+                style="height: 38px; font-size: 12px; padding: 6px 12px;"
+            >
+            <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px;">
+                Định dạng cho phép: .pdf, .docx, .doc (Tối đa 20MB)
+            </div>
+        </div>
+
+        <!-- Footer buttons -->
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--color-border);">
+            <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>
+                <span>Hủy bỏ</span>
+            </button>
+            <button type="submit" class="stu-btn stu-btn-primary" style="font-weight: 600;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <span>Gửi nộp hồ sơ trình</span>
+            </button>
+        </div>
+    </form>
+</x-hop-thoai>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        @if(request('create') || $errors->any())
+            window.STUModal?.open('createSubmissionModal');
+        @endif
+
+        const form = document.getElementById('modalCreateSubmissionForm');
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                const title = document.getElementById('modalSubmissionTitle');
+                const content = document.getElementById('modalSubmissionContent');
+                const titleErr = document.getElementById('modalSubmissionTitleErr');
+                const contentErr = document.getElementById('modalSubmissionContentErr');
+
+                if (titleErr) titleErr.style.display = 'none';
+                if (contentErr) contentErr.style.display = 'none';
+
+                let hasErr = false;
+                if (!title || !title.value.trim() || title.value.trim().length < 5) {
+                    if (titleErr) titleErr.style.display = 'block';
+                    hasErr = true;
+                }
+                if (!content || !content.value.trim() || content.value.trim().length < 5) {
+                    if (contentErr) contentErr.style.display = 'block';
+                    hasErr = true;
+                }
+                if (hasErr) {
+                    e.preventDefault();
+                }
+            });
+        }
+    });
+</script>
 @endsection

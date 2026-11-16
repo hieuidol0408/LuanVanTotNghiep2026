@@ -22,10 +22,10 @@
                 <span>Báo cáo tiến độ</span>
             </a>
             @if(Auth::user() && Auth::user()->role !== 'EXECUTING_UNIT')
-                <a href="{{ route('tasks.create') }}" class="stu-btn stu-btn-primary" style="height: 38px;">
+                <button type="button" class="stu-btn stu-btn-primary" style="height: 38px;" data-modal-open="createTaskModal">
                     <i class="bi bi-plus-circle"></i>
                     <span>Giao nhiệm vụ mới</span>
-                </a>
+                </button>
             @endif
         </div>
     </div>
@@ -233,4 +233,130 @@
     </div>
     </div>
 </div>
+
+<!-- MODAL FORM LƠ LỬNG: PHÂN CÔNG NHIỆM VỤ MỚI -->
+<x-hop-thoai id="createTaskModal" title="Phân Công Nhiệm Vụ Từ Nghị Quyết (BR-10)" size="lg">
+    <form method="POST" action="{{ route('tasks.store') }}" id="modalCreateTaskForm">
+        @csrf
+
+        {{-- 1. Căn cứ Nghị quyết --}}
+        <div class="stu-form-group" style="margin-bottom: 14px;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Nghị quyết căn cứ ban hành <span style="color: var(--color-danger);">*</span>
+            </label>
+            <select name="MaNghiQuyet" class="stu-form-control" required style="height: 38px; font-size: 13px;">
+                <option value="">-- Chọn Nghị quyết đã ban hành --</option>
+                @foreach($resolutions as $res)
+                    <option value="{{ $res->MaNghiQuyet }}">
+                        {{ $res->SoNghiQuyet }} - {{ \Illuminate\Support\Str::limit($res->TrichYeu, 70) }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        {{-- 2. Tên nhiệm vụ --}}
+        <div class="stu-form-group" style="margin-bottom: 14px;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Tên nhiệm vụ phân công <span style="color: var(--color-danger);">*</span>
+            </label>
+            <input 
+                type="text" 
+                name="TenNhiemVu" 
+                class="stu-form-control" 
+                placeholder="Ví dụ: Triển khai rà soát và nâng cấp hệ thống phần mềm quản lý..." 
+                required
+                style="height: 38px; font-size: 13px;"
+            >
+        </div>
+
+        {{-- 3. Đơn vị chủ trì & Đơn vị phối hợp --}}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+            <div class="stu-form-group">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Đơn vị chủ trì thực hiện <span style="color: var(--color-danger);">*</span>
+                </label>
+                <select name="DonViChuTri" class="stu-form-control" required style="height: 38px; font-size: 13px;">
+                    <option value="">-- Chọn đơn vị chủ trì --</option>
+                    @foreach($departments as $dept)
+                        <option value="{{ $dept->MaDonVi }}">{{ $dept->TenDonVi }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="stu-form-group">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Đơn vị phối hợp (Tùy chọn)
+                </label>
+                <select name="DonViPhoiHop[]" class="stu-form-control" style="height: 38px; font-size: 13px;">
+                    <option value="">-- Không có hoặc chọn đơn vị --</option>
+                    @foreach($departments as $dept)
+                        <option value="{{ $dept->MaDonVi }}">{{ $dept->TenDonVi }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        {{-- 4. Hạn hoàn thành & Ghi chú --}}
+        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 14px; margin-bottom: 14px;">
+            <div class="stu-form-group">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Thời hạn hoàn thành <span style="color: var(--color-danger);">*</span>
+                </label>
+                <input 
+                    type="date" 
+                    name="NgayHoanThanh" 
+                    class="stu-form-control" 
+                    required
+                    style="height: 38px; font-size: 13px;"
+                >
+            </div>
+
+            <div class="stu-form-group">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Ghi chú chỉ đạo
+                </label>
+                <input 
+                    type="text" 
+                    name="GhiChu" 
+                    class="stu-form-control" 
+                    placeholder="Chỉ đạo của Thường trực Hội đồng trường..."
+                    style="height: 38px; font-size: 13px;"
+                >
+            </div>
+        </div>
+
+        {{-- 5. Mô tả chi tiết --}}
+        <div class="stu-form-group" style="margin-bottom: 14px;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Mô tả chi tiết nội dung nhiệm vụ
+            </label>
+            <textarea 
+                name="MoTa" 
+                rows="3" 
+                class="stu-form-control" 
+                placeholder="Yêu cầu kết quả đầu ra, các mốc thời gian cụ thể..."
+                style="font-size: 13px;"
+            ></textarea>
+        </div>
+
+        <!-- Footer buttons -->
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--color-border);">
+            <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>
+                <span>Hủy bỏ</span>
+            </button>
+            <button type="submit" class="stu-btn stu-btn-primary" style="font-weight: 600;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <span>Xác nhận giao nhiệm vụ</span>
+            </button>
+        </div>
+    </form>
+</x-hop-thoai>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        @if(request('create') || $errors->any())
+            window.STUModal?.open('createTaskModal');
+        @endif
+    });
+</script>
 @endsection

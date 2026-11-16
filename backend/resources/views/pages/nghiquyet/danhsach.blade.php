@@ -19,10 +19,10 @@
         </div>
         <div>
             @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                <a href="{{ route('resolutions.create') }}" class="stu-btn stu-btn-primary stu-flex stu-items-center" style="gap: 8px;">
+                <button type="button" class="stu-btn stu-btn-primary stu-flex stu-items-center" style="gap: 8px;" data-modal-open="createResolutionModal">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     <span>Soạn thảo nghị quyết mới</span>
-                </a>
+                </button>
             @endif
         </div>
     </div>
@@ -240,4 +240,121 @@
         {{ $resolutions->links() }}
     </div>
 </div>
+
+<!-- MODAL FORM LƠ LỬNG: SOẠN THẢO NGHỊ QUYẾT MỚI -->
+<x-hop-thoai id="createResolutionModal" title="Soạn Thảo Nghị Quyết Hội Đồng Trường STU" size="lg">
+    <form method="POST" action="{{ route('resolutions.store') }}" enctype="multipart/form-data" id="modalCreateResolutionForm">
+        @csrf
+
+        <div style="display: grid; grid-template-columns: 1.2fr 1.5fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <div class="stu-form-group">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Số hiệu Nghị quyết <span style="color: var(--color-danger);">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    name="SoNghiQuyet" 
+                    id="modalSoNghiQuyet"
+                    value="{{ old('SoNghiQuyet', '0' . ($resolutions->total() + 1) . '/NQ-HĐT-' . date('Y')) }}" 
+                    class="stu-form-control" 
+                    placeholder="Ví dụ: 08/NQ-HĐT-2026" 
+                    required
+                    style="height: 38px; font-size: 13px;"
+                >
+            </div>
+
+            <div class="stu-form-group">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Kỳ họp ban hành <span style="color: var(--color-danger);">*</span>
+                </label>
+                <select name="MaPhienHop" class="stu-form-control" required style="height: 38px; font-size: 13px;">
+                    <option value="">-- Chọn phiên họp --</option>
+                    @foreach($meetings as $m)
+                        <option value="{{ $m->MaPhienHop }}">
+                            #{{ $m->MaPhienHop }} - {{ $m->TenPhienHop }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="stu-form-group">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Ngày ban hành <span style="color: var(--color-danger);">*</span>
+                </label>
+                <input 
+                    type="date" 
+                    name="NgayBanHanh" 
+                    value="{{ old('NgayBanHanh', date('Y-m-d')) }}" 
+                    class="stu-form-control" 
+                    required
+                    style="height: 38px; font-size: 13px;"
+                >
+            </div>
+        </div>
+
+        {{-- 2. Trích yếu nội dung --}}
+        <div class="stu-form-group" style="margin-bottom: 14px;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Trích yếu nội dung Nghị quyết <span style="color: var(--color-danger);">*</span>
+            </label>
+            <textarea 
+                name="TrichYeu" 
+                id="modalTrichYeu"
+                rows="2" 
+                class="stu-form-control" 
+                placeholder="Ví dụ: Về việc thông qua quy chế tài chính nội bộ và định mức chi tiêu năm học 2026-2027..." 
+                required
+                style="font-size: 13px;"
+            >{{ old('TrichYeu') }}</textarea>
+        </div>
+
+        {{-- 3. Toàn văn quyết nghị --}}
+        <div class="stu-form-group" style="margin-bottom: 14px;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Nội dung toàn văn quyết nghị <span style="color: var(--color-danger);">*</span>
+            </label>
+            <textarea 
+                name="NoiDung" 
+                rows="4" 
+                class="stu-form-control" 
+                placeholder="Điều 1: Hội đồng trường quyết nghị thông qua... Điều 2: Giao Hiệu trưởng tổ chức triển khai..." 
+                required
+                style="font-size: 13px;"
+            >{{ old('NoiDung') }}</textarea>
+        </div>
+
+        {{-- 4. Tập tin văn bản đính kèm --}}
+        <div class="stu-form-group" style="margin-bottom: 14px;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Tập tin văn bản ký số (.pdf, .docx)
+            </label>
+            <input 
+                type="file" 
+                name="file_dinh_kem" 
+                class="stu-form-control" 
+                accept=".pdf,.doc,.docx"
+                style="height: 38px; font-size: 12px; padding: 6px 12px;"
+            >
+        </div>
+
+        <!-- Footer buttons -->
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--color-border);">
+            <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>
+                <span>Hủy bỏ</span>
+            </button>
+            <button type="submit" class="stu-btn stu-btn-primary" style="font-weight: 600;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <span>Ban hành Nghị quyết</span>
+            </button>
+        </div>
+    </form>
+</x-hop-thoai>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        @if(request('create') || $errors->any())
+            window.STUModal?.open('createResolutionModal');
+        @endif
+    });
+</script>
 @endsection
