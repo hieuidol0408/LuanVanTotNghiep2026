@@ -14,8 +14,14 @@
     }
     .stu-card {
         border-radius: 8px !important;
-        margin-bottom: 0 !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    }
+    .dashboard-banner {
+        margin-bottom: 22px !important;
+    }
+    .dashboard-kpi-section {
+        margin-top: 20px !important;
+        margin-bottom: 14px !important;
     }
     .stu-card-header {
         padding: 6px 12px !important;
@@ -88,7 +94,7 @@
 
 @section('content')
 <!-- 1. BANNER CHÀO MỪNG & VAI TRÒ HIỆN TẠI (Nhỏ gọn, thanh lịch) -->
-<div class="stu-card" style="padding: 9px 16px; margin-bottom: 16px; background: linear-gradient(135deg, var(--stu-blue-700) 0%, var(--stu-blue-900) 100%); color: var(--stu-white); border: none;">
+<div class="stu-card dashboard-banner" style="padding: 9px 16px; margin-bottom: 22px !important; background: linear-gradient(135deg, var(--stu-blue-700) 0%, var(--stu-blue-900) 100%); color: var(--stu-white); border: none;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
         <div style="display: flex; align-items: center; gap: 10px;">
             <div style="width: 34px; height: 34px; border-radius: var(--radius-full); background: rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--stu-white); border: 1.5px solid rgba(255,255,255,0.35); flex-shrink: 0;">
@@ -124,7 +130,7 @@
 </div>
 
 <!-- 2. KHU VỰC THỐNG KÊ KPI CỐT LÕI (Nhỏ gọn, tinh giản) -->
-<section style="margin-bottom: 14px;">
+<section class="dashboard-kpi-section" style="margin-top: 20px !important; margin-bottom: 14px !important;">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px;">
         <h2 style="font-size: 11px; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin: 0;">
             Chỉ số hoạt động cốt lõi
