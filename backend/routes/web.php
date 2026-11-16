@@ -41,6 +41,7 @@ Route::get('/design-system', function () {
 // --- PHÂN HỆ QUẢN LÝ PHIÊN HỌP (MEETINGS) ---
 Route::prefix('meetings')->name('meetings.')->group(function () {
     Route::get('/', [PhienHopWebController::class, 'index'])->name('index');
+    Route::get('/history', [PhienHopWebController::class, 'history'])->name('history');
     Route::get('/create', [PhienHopWebController::class, 'create'])->name('create');
     Route::post('/', [PhienHopWebController::class, 'store'])->name('store');
     Route::get('/{id}', [PhienHopWebController::class, 'show'])->name('show');
@@ -55,6 +56,8 @@ Route::prefix('meetings')->name('meetings.')->group(function () {
     Route::post('/{id}/agenda', [PhienHopWebController::class, 'addAgendaItem'])->name('agenda.add');
     Route::post('/{id}/documents', [PhienHopWebController::class, 'uploadDocument'])->name('documents.upload');
 });
+
+Route::get('/lich-su-phien-hop', [PhienHopWebController::class, 'history'])->name('meetings.history.alias');
 
 // --- PHÂN HỆ QUẢN LÝ HỒ SƠ TRÌNH (SUBMISSIONS) ---
 Route::prefix('submissions')->name('submissions.')->group(function () {

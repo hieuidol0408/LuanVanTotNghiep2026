@@ -338,22 +338,22 @@ a:hover {
 .stu-sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 6px 6px;
+  padding: 4px 6px;
   scrollbar-width: thin;
 }
 
 .stu-nav-group {
-  margin-bottom: 5px;
+  margin-bottom: 3px;
 }
 
 .stu-nav-group-label {
-  padding: 2px 8px;
-  font-size: 10px;
+  padding: 1px 8px;
+  font-size: 9.5px;
   font-weight: 700;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .stu-sidebar.collapsed .stu-nav-group-label {
@@ -364,10 +364,10 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4.5px 8px;
+  padding: 3.5px 8px;
   border-radius: 6px;
   color: var(--color-text-body);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: var(--font-weight-medium);
   transition: all var(--transition-fast);
   text-decoration: none;

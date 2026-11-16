@@ -24,11 +24,17 @@
         <!-- Nhóm: Công tác phiên họp -->
         <div class="stu-nav-group">
             <div class="stu-nav-group-label">Phiên họp & Hồ sơ</div>
-            <a href="{{ url('/meetings') }}" class="stu-nav-link {{ request()->is('meetings*') ? 'active' : '' }}">
+            <a href="{{ url('/meetings') }}" class="stu-nav-link {{ (request()->is('meetings') || (request()->is('meetings/*') && !request()->is('meetings/history*'))) ? 'active' : '' }}">
                 <span class="stu-nav-icon">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 </span>
                 <span class="stu-nav-text">Quản lý phiên họp</span>
+            </a>
+            <a href="{{ route('meetings.history') }}" class="stu-nav-link {{ request()->is('meetings/history*') || request()->is('lich-su-phien-hop*') ? 'active' : '' }}">
+                <span class="stu-nav-icon">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </span>
+                <span class="stu-nav-text">Lịch sử phiên họp</span>
             </a>
             <a href="{{ url('/submissions') }}" class="stu-nav-link {{ request()->is('submissions*') ? 'active' : '' }}">
                 <span class="stu-nav-icon">

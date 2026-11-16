@@ -1,6 +1,6 @@
 ﻿-- MySQL dump 10.13  Distrib 9.1.0, for Win64 (x86_64)
 --
--- Host: 127.0.0.1    Database: hoi_dong_truong_stu
+-- Host: localhost    Database: hoi_dong_truong_stu
 -- ------------------------------------------------------
 -- Server version	9.1.0
 
@@ -14,14 +14,6 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
---
--- Current Database: `hoi_dong_truong_stu`
---
-
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `hoi_dong_truong_stu` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ ;
-
-USE `hoi_dong_truong_stu`;
 
 --
 -- Table structure for table `bao_cao`
@@ -299,7 +291,7 @@ CREATE TABLE `nghi_quyet` (
   UNIQUE KEY `nghi_quyet_songhiquyet_unique` (`SoNghiQuyet`),
   KEY `fk_nghi_quyet_phien_hop` (`MaPhienHop`),
   CONSTRAINT `fk_nghi_quyet_phien_hop` FOREIGN KEY (`MaPhienHop`) REFERENCES `phien_hop` (`MaPhienHop`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=98 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=99 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -308,7 +300,7 @@ CREATE TABLE `nghi_quyet` (
 
 LOCK TABLES `nghi_quyet` WRITE;
 /*!40000 ALTER TABLE `nghi_quyet` DISABLE KEYS */;
-INSERT INTO `nghi_quyet` VALUES (1,'01/NQ-HĐT-2026','2026-11-10','Về việc phê duyệt chủ trương mở ngành đào tạo Kỹ thuật Robot & Trí tuệ nhân tạo (AI)','Hội đồng trường Trường Đại học Công nghệ Sài Gòn quyết nghị thông qua chủ trương mở ngành đào tạo trình độ đại học Kỹ thuật Robot & Trí tuệ nhân tạo từ năm học 2026-2027.','Đã công bố hiệu lực',1,NULL),(2,'02/NQ-HĐT-2026','2026-10-22','Về việc ban hành Quy chế chi tiêu nội bộ và định mức tài chính năm 2026','Hội đồng trường thông qua dự thảo Quy chế chi tiêu nội bộ áp dụng thống nhất trong toàn trường từ ngày 01/01/2026.','Đã ký ban hành',1,NULL),(95,'03/NQ-HĐT-2026','2026-10-15','Về việc thông qua kế hoạch đầu tư phòng thí nghiệm Robot và cơ sở vật chất năm 2026','Hội đồng trường phê duyệt kế hoạch đầu tư nâng cấp cơ sở vật chất, trang bị hệ thống máy tính và robot đào tạo.','Đã công bố',1,NULL),(96,'04/NQ-HĐT-2026','2026-10-05','Về công tác kiểm định chất lượng 04 chương trình đào tạo đại học theo tiêu chuẩn Bộ GD&ĐT','Giao Hiệu trưởng chỉ đạo các Khoa hoàn tất hồ sơ tự đánh giá và đón đoàn đánh giá ngoài.','Đã công bố',1,NULL);
+INSERT INTO `nghi_quyet` VALUES (1,'01/NQ-HĐT-2026','2026-11-10','Về việc phê duyệt chủ trương mở ngành đào tạo Kỹ thuật Robot & Trí tuệ nhân tạo (AI)','Hội đồng trường Trường Đại học Công nghệ Sài Gòn quyết nghị thông qua chủ trương mở ngành đào tạo trình độ đại học Kỹ thuật Robot & Trí tuệ nhân tạo từ năm học 2026-2027.','Đã công bố hiệu lực',4,NULL),(2,'02/NQ-HĐT-2026','2026-10-22','Về việc ban hành Quy chế chi tiêu nội bộ và định mức tài chính năm 2026','Hội đồng trường thông qua dự thảo Quy chế chi tiêu nội bộ áp dụng thống nhất trong toàn trường từ ngày 01/01/2026.','Đã ký ban hành',4,NULL),(95,'03/NQ-HĐT-2026','2026-10-15','Về việc thông qua kế hoạch đầu tư phòng thí nghiệm Robot và cơ sở vật chất năm 2026','Hội đồng trường phê duyệt kế hoạch đầu tư nâng cấp cơ sở vật chất, trang bị hệ thống máy tính và robot đào tạo.','Đã công bố',1,NULL),(96,'04/NQ-HĐT-2026','2026-10-05','Về công tác kiểm định chất lượng 04 chương trình đào tạo đại học theo tiêu chuẩn Bộ GD&ĐT','Giao Hiệu trưởng chỉ đạo các Khoa hoàn tất hồ sơ tự đánh giá và đón đoàn đánh giá ngoài.','Đã công bố',1,NULL),(97,'05/NQ-HĐT-2026','2026-02-25','Về việc phê duyệt Kế hoạch công tác năm học và dự toán ngân sách 2026','Hội đồng trường quyết nghị thông qua kế hoạch công tác và định mức dự toán ngân sách toàn trường năm 2026.','Đã công bố hiệu lực',6,NULL),(98,'06/NQ-HĐT-2025','2025-12-20','Về việc kiện toàn nhân sự và quy hoạch cán bộ quản lý cấp Khoa, Phòng','Hội đồng trường thông qua danh sách nhân sự quy hoạch nhiệm kỳ 2020 - 2025.','Đã công bố hiệu lực',7,NULL);
 /*!40000 ALTER TABLE `nghi_quyet` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -563,7 +555,7 @@ CREATE TABLE `phien_hop` (
   PRIMARY KEY (`MaPhienHop`),
   KEY `phien_hop_manguoidung_foreign` (`MaNguoiDung`),
   CONSTRAINT `phien_hop_manguoidung_foreign` FOREIGN KEY (`MaNguoiDung`) REFERENCES `nguoi_dung` (`MaNguoiDung`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -572,7 +564,7 @@ CREATE TABLE `phien_hop` (
 
 LOCK TABLES `phien_hop` WRITE;
 /*!40000 ALTER TABLE `phien_hop` DISABLE KEYS */;
-INSERT INTO `phien_hop` VALUES (1,'Phiên họp lần thứ 5 Hội đồng trường STU (Khóa IV)','2026-11-15 08:30:00','2026-11-15 11:45:00','2026-11-15','Phòng họp A101, Nhà A - Trụ sở chính STU','Trực tiếp','Sắp diễn ra','A, B, C',3,NULL),(2,'Phiên họp bất thường Hội đồng trường STU tháng 12/2026','2026-12-20 09:00:00','2026-12-20 11:30:00','2026-12-20','Phòng họp Hội đồng trường A202','Trực tiếp','Đang chuẩn bị','A, B, C',3,NULL),(3,'Phiên họp chuyên đề Hội đồng trường Quý IV/2026','2026-11-25 08:30:00','2026-11-25 11:30:00','2026-11-25','Phòng họp Hội đồng trường - Lầu 2 Khu A','Trực tiếp','Đang chuẩn bị','A, B, C',1,NULL);
+INSERT INTO `phien_hop` VALUES (1,'Phiên họp lần thứ 5 Hội đồng trường STU (Khóa IV)','2026-11-15 08:30:00','2026-11-15 11:45:00','2026-11-15','Phòng họp A101, Nhà A - Trụ sở chính STU','Trực tiếp','Sắp diễn ra','A, B, C',3,NULL),(2,'Phiên họp bất thường Hội đồng trường STU tháng 12/2026','2026-12-20 09:00:00','2026-12-20 11:30:00','2026-12-20','Phòng họp Hội đồng trường A202','Trực tiếp','Đang chuẩn bị','A, B, C',3,NULL),(3,'Phiên họp chuyên đề Hội đồng trường Quý IV/2026','2026-11-25 08:30:00','2026-11-25 11:30:00','2026-11-25','Phòng họp Hội đồng trường - Lầu 2 Khu A','Trực tiếp','Đang chuẩn bị','A, B, C',1,NULL),(4,'Phiên họp lần thứ 4 Hội đồng trường STU (Khóa IV)','2026-08-25 08:30:00','2026-08-25 11:45:00','2026-08-25','Phòng họp A101, Nhà A - Trụ sở chính STU','Trực tiếp','Đã kết thúc','Đã hoàn tất biểu quyết, thông qua 02 Nghị quyết trọng điểm.',3,NULL),(5,'Phiên họp chuyên đề Hội đồng trường Quý II/2026','2026-05-18 09:00:00','2026-05-18 11:30:00','2026-05-18','Phòng họp Hội đồng trường A202','Kết hợp','Đã kết thúc','Phiên họp trực tiếp kết hợp trực tuyến qua MS Teams.',3,NULL),(6,'Phiên họp lần thứ 3 Hội đồng trường STU (Khóa IV)','2026-02-20 08:30:00','2026-02-20 11:30:00','2026-02-20','Phòng họp A101, Nhà A - Trụ sở chính STU','Trực tiếp','Đã kết thúc','Thông qua phương hướng hoạt động năm tài chính 2026.',1,NULL),(7,'Phiên họp thường kỳ Hội đồng trường cuối năm 2025','2025-12-15 08:30:00','2025-12-15 11:45:00','2025-12-15','Phòng họp Hội đồng trường - Lầu 2 Khu A','Trực tiếp','Đã kết thúc','Tổng kết công tác nhiệm kỳ giai đoạn 2020 - 2025.',3,NULL);
 /*!40000 ALTER TABLE `phien_hop` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -857,4 +849,5 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-11-16 13:35:13
+-- Dump completed on 2026-11-16 19:57:47
+
