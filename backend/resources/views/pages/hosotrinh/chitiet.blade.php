@@ -22,6 +22,12 @@
             </h1>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
+            @if(in_array($role, ['SECRETARY', 'CHAIR', 'ADMIN']))
+                <button type="button" class="stu-btn stu-btn-success stu-btn-sm" data-modal-open="reviewSubmissionModal" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Kiểm tra hồ sơ vào phiên họp</span>
+                </button>
+            @endif
             @if(in_array($role, ['UNIT_REP', 'SECRETARY', 'CHAIR', 'ADMIN']))
                 <button type="button" class="stu-btn stu-btn-primary stu-btn-sm" data-modal-open="editSubmissionModal" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -254,12 +260,90 @@
     </x-hop-thoai>
 @endif
 
+@if(in_array($role, ['SECRETARY', 'CHAIR', 'ADMIN']))
+    {{-- Modal Kiểm tra và Thẩm định hồ sơ vào phiên họp --}}
+    <x-hop-thoai id="reviewSubmissionModal" title="Kiểm Tra & Thẩm Định Hồ Sơ Vào Phiên Họp" size="md">
+        <form method="POST" action="{{ route('submissions.review', $dossier->MaHoSo) }}">
+            @csrf
+
+            <div style="background: var(--color-bg-subtle); border: 1px solid var(--color-border); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px;">
+                <div style="margin-bottom: 4px;">
+                    <span style="color: var(--color-text-muted);">Mã hồ sơ:</span>
+                    <strong style="color: var(--color-primary); margin-left: 4px;">{{ $dossier->ma_ho_so_hien_thi }}</strong>
+                </div>
+                <div style="margin-bottom: 4px;">
+                    <span style="color: var(--color-text-muted);">Tên hồ sơ:</span>
+                    <strong>{{ $dossier->TieuDe }}</strong>
+                </div>
+                <div style="margin-bottom: 4px;">
+                    <span style="color: var(--color-text-muted);">Đơn vị trình:</span>
+                    <span>{{ $dossier->donVi?->TenDonVi ?? 'Chưa xác định' }}</span>
+                </div>
+                <div>
+                    <span style="color: var(--color-text-muted);">Số lượng tài liệu đính kèm:</span>
+                    <strong style="color: var(--color-accent);">{{ $dossier->taiLieu->count() }} tệp văn bản</strong>
+                </div>
+            </div>
+
+            <div class="stu-form-group stu-mb-4">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
+                    Kết luận kiểm tra / Thẩm định hồ sơ <span style="color: var(--color-danger);">*</span>
+                </label>
+                <div class="stu-flex stu-flex-col stu-gap-2" style="margin-top: 6px;">
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px solid #bbf7d0; background: #f0fdf4; border-radius: 8px; cursor: pointer;">
+                        <input type="radio" name="decision" value="ELIGIBLE" required {{ in_array($dossier->TrangThai, ['Đủ điều kiện', 'Đầy đủ']) ? 'checked' : '' }} style="accent-color: var(--color-success); width: 16px; height: 16px;">
+                        <div>
+                            <strong style="color: #166534; font-size: 13px;">✓ ĐỦ ĐIỀU KIỆN VÀO PHIÊN HỌP (ELIGIBLE)</strong>
+                            <div style="font-size: 11.5px; color: #15803d;">Hồ sơ đầy đủ tính pháp lý, hợp lệ để xếp lịch nghị sự trong phiên họp HĐT.</div>
+                        </div>
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px solid #fde68a; background: #fffbeb; border-radius: 8px; cursor: pointer;">
+                        <input type="radio" name="decision" value="REVISE" {{ $dossier->TrangThai === 'Chờ bổ sung' ? 'checked' : '' }} style="accent-color: #d97706; width: 16px; height: 16px;">
+                        <div>
+                            <strong style="color: #92400e; font-size: 13px;">⚠️ YÊU CẦU BỔ SUNG HỒ SƠ (REVISE)</strong>
+                            <div style="font-size: 11.5px; color: #b45309;">Hồ sơ thiếu tờ trình, dự thảo quy chế hoặc tài liệu minh chứng cần hoàn thiện lại.</div>
+                        </div>
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px solid var(--color-border); background: #ffffff; border-radius: 8px; cursor: pointer;">
+                        <input type="radio" name="decision" value="COMPLETE" {{ $dossier->TrangThai === 'Mới tạo' ? 'checked' : '' }} style="accent-color: var(--color-primary); width: 16px; height: 16px;">
+                        <div>
+                            <strong style="color: var(--color-primary); font-size: 13px;">📄 HỒ SƠ ĐÃ TIẾP NHẬN ĐẦY ĐỦ (COMPLETE)</strong>
+                            <div style="font-size: 11.5px; color: var(--color-text-muted);">Đã tiếp nhận hồ sơ từ đơn vị, chuyển giao thường trực thẩm tra nội dung.</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="stu-form-group stu-mb-4">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
+                    Ý kiến kiểm tra &amp; Thẩm định của Thư ký / HĐT
+                </label>
+                <textarea name="GhiChu" rows="3" class="stu-form-control" placeholder="Ghi nhận xét đánh giá tính pháp lý, nội dung cần bổ sung hoặc ý kiến chỉ đạo của Thường trực HĐT...">{{ old('GhiChu', $dossier->GhiChu) }}</textarea>
+            </div>
+
+            <div class="stu-flex stu-items-center stu-justify-between" style="border-top: 1px solid var(--color-border); padding-top: 16px;">
+                <button type="button" class="stu-btn stu-btn-ghost" data-modal-close>Đóng</button>
+                <button type="submit" class="stu-btn stu-btn-primary" style="padding: 10px 24px;">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Lưu kết quả kiểm tra</span>
+                </button>
+            </div>
+        </form>
+    </x-hop-thoai>
+@endif
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('edit') === '1' || urlParams.get('chinh_sua') === '1') {
             if (window.STUModal) {
                 window.STUModal.open('editSubmissionModal');
+            }
+        } else if (urlParams.get('review') === '1' || urlParams.get('kiem_tra') === '1') {
+            if (window.STUModal) {
+                window.STUModal.open('reviewSubmissionModal');
             }
         }
     });
