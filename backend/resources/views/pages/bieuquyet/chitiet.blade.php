@@ -78,7 +78,7 @@
                     </form>
                 @endif
 
-                <button type="button" class="stu-btn stu-btn-outline" style="height: 38px;" onclick="document.getElementById('delegationModal').classList.add('stu-modal-open');">
+                <button type="button" class="stu-btn stu-btn-outline" style="height: 38px;" data-modal-open="delegationModal">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                     <span>Ủy quyền biểu quyết (BR-04)</span>
                 </button>
@@ -343,59 +343,62 @@
 </div>
 
 {{-- Modal Đăng ký Ủy quyền Biểu quyết (BR-04) --}}
-<div class="stu-modal-backdrop" id="delegationModal" role="dialog" aria-modal="true">
-    <div class="stu-modal" style="max-width: 600px;">
-        <div class="stu-modal-header">
-            <h3 class="stu-modal-title">Đăng ký Văn bản Ủy quyền Biểu quyết (BR-04)</h3>
-            <button type="button" class="stu-modal-close" onclick="document.getElementById('delegationModal').classList.remove('stu-modal-open');">&times;</button>
+<x-hop-thoai id="delegationModal" title="Đăng ký Văn bản Ủy quyền Biểu quyết (BR-04)" size="md">
+    <form method="POST" action="{{ route('votes.delegations.store') }}" enctype="multipart/form-data">
+        @csrf
+        <input type="hidden" name="MaPhienHop" value="{{ $meeting?->MaPhienHop ?? 1 }}">
+
+        <div class="stu-form-group stu-mb-4">
+            <label class="stu-form-label" style="font-size: 12px; font-weight: 700;">Thành viên ủy quyền (Vắng mặt) <span style="color: var(--color-danger);">*</span></label>
+            <select name="MaThanhVienUyQuyen" class="stu-form-control" required>
+                <option value="">-- Chọn thành viên ủy quyền --</option>
+                @foreach($officialMembers as $m)
+                    <option value="{{ $m->MaThanhVien }}">{{ $m->nguoiDung?->HoTen }} ({{ $m->ChucVu }})</option>
+                @endforeach
+            </select>
         </div>
-        <div class="stu-modal-body">
-            <form method="POST" action="{{ route('votes.delegations.store') }}" enctype="multipart/form-data">
-                @csrf
-                <input type="hidden" name="MaPhienHop" value="{{ $meeting?->MaPhienHop ?? 1 }}">
 
-                <div class="stu-form-group stu-mb-4">
-                    <label class="stu-form-label" style="font-size: 12px; font-weight: 700;">Thành viên ủy quyền (Vắng mặt) <span style="color: var(--color-danger);">*</span></label>
-                    <select name="MaThanhVienUyQuyen" class="stu-form-control" required>
-                        <option value="">-- Chọn thành viên ủy quyền --</option>
-                        @foreach($officialMembers as $m)
-                            <option value="{{ $m->MaThanhVien }}">{{ $m->nguoiDung?->HoTen }} ({{ $m->ChucVu }})</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="stu-form-group stu-mb-4">
-                    <label class="stu-form-label" style="font-size: 12px; font-weight: 700;">Thành viên nhận ủy quyền (Đại diện) <span style="color: var(--color-danger);">*</span></label>
-                    <select name="MaThanhVienNhanUyQuyen" class="stu-form-control" required>
-                        <option value="">-- Chọn người nhận ủy quyền --</option>
-                        @foreach($officialMembers as $m)
-                            <option value="{{ $m->MaThanhVien }}">{{ $m->nguoiDung?->HoTen }} ({{ $m->ChucVu }})</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="stu-form-group stu-mb-4">
-                    <label class="stu-form-label" style="font-size: 12px; font-weight: 700;">Phạm vi ủy quyền <span style="color: var(--color-danger);">*</span></label>
-                    <input type="text" name="PhamViUyQuyen" value="Toàn bộ các nội dung biểu quyết tại phiên họp" class="stu-form-control" required>
-                </div>
-
-                <div class="stu-grid stu-grid-cols-2 stu-gap-3 stu-mb-4">
-                    <div class="stu-form-group" style="margin-bottom: 0;">
-                        <label class="stu-form-label" style="font-size: 12px; font-weight: 700;">Ngày lập giấy <span style="color: var(--color-danger);">*</span></label>
-                        <input type="date" name="NgayUyQuyen" value="{{ date('Y-m-d') }}" class="stu-form-control" required>
-                    </div>
-                    <div class="stu-form-group" style="margin-bottom: 0;">
-                        <label class="stu-form-label" style="font-size: 12px; font-weight: 700;">Tập tin đính kèm (nếu có)</label>
-                        <input type="file" name="file" class="stu-form-control" accept=".pdf,.doc,.docx">
-                    </div>
-                </div>
-
-                <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: 20px; border-top: 1px solid var(--color-border); padding-top: 16px;">
-                    <button type="button" class="stu-btn stu-btn-secondary" onclick="document.getElementById('delegationModal').classList.remove('stu-modal-open');">Hủy</button>
-                    <button type="submit" class="stu-btn stu-btn-primary">Lưu văn bản ủy quyền</button>
-                </div>
-            </form>
+        <div class="stu-form-group stu-mb-4">
+            <label class="stu-form-label" style="font-size: 12px; font-weight: 700;">Thành viên nhận ủy quyền (Đại diện) <span style="color: var(--color-danger);">*</span></label>
+            <select name="MaThanhVienNhanUyQuyen" class="stu-form-control" required>
+                <option value="">-- Chọn người nhận ủy quyền --</option>
+                @foreach($officialMembers as $m)
+                    <option value="{{ $m->MaThanhVien }}">{{ $m->nguoiDung?->HoTen }} ({{ $m->ChucVu }})</option>
+                @endforeach
+            </select>
         </div>
-    </div>
-</div>
+
+        <div class="stu-form-group stu-mb-4">
+            <label class="stu-form-label" style="font-size: 12px; font-weight: 700;">Phạm vi ủy quyền <span style="color: var(--color-danger);">*</span></label>
+            <input type="text" name="PhamViUyQuyen" value="Toàn bộ các nội dung biểu quyết tại phiên họp" class="stu-form-control" required>
+        </div>
+
+        <div class="stu-grid stu-grid-cols-2 stu-gap-3 stu-mb-4">
+            <div class="stu-form-group" style="margin-bottom: 0;">
+                <label class="stu-form-label" style="font-size: 12px; font-weight: 700;">Ngày lập giấy <span style="color: var(--color-danger);">*</span></label>
+                <input type="date" name="NgayUyQuyen" value="{{ date('Y-m-d') }}" class="stu-form-control" required>
+            </div>
+            <div class="stu-form-group" style="margin-bottom: 0;">
+                <label class="stu-form-label" style="font-size: 12px; font-weight: 700;">Tập tin đính kèm (nếu có)</label>
+                <input type="file" name="file" class="stu-form-control" accept=".pdf,.doc,.docx">
+            </div>
+        </div>
+
+        <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: 20px; border-top: 1px solid var(--color-border); padding-top: 16px;">
+            <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>Hủy</button>
+            <button type="submit" class="stu-btn stu-btn-primary">Lưu văn bản ủy quyền</button>
+        </div>
+    </form>
+</x-hop-thoai>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('delegation') === '1' || urlParams.get('modal') === '1') {
+            if (window.STUModal) {
+                window.STUModal.open('delegationModal');
+            }
+        }
+    });
+</script>
 @endsection

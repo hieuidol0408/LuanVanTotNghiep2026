@@ -26,7 +26,23 @@
         </x-canh-bao>
     @endif
 
-    <div class="stu-card" style="max-width: 960px; padding: 28px;">
+    <div style="display: flex; justify-content: center; padding: 10px 0 30px 0;">
+        <div class="stu-card" style="width: 100%; max-width: 860px; padding: 32px 36px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.06); background: #ffffff;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="width: 36px; height: 36px; border-radius: 8px; background: rgba(0, 58, 140, 0.1); display: flex; align-items: center; justify-content: center; color: var(--color-primary);">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </span>
+                    <div>
+                        <h2 style="font-size: 18px; font-weight: 700; color: var(--color-text-main); margin: 0;">Chỉnh sửa Nghị quyết {{ $resolution->SoNghiQuyet }}</h2>
+                        <p style="font-size: 12px; color: var(--color-text-muted); margin: 2px 0 0 0;">Cập nhật dự thảo nghị quyết Hội đồng trường</p>
+                    </div>
+                </div>
+                <a href="{{ route('resolutions.show', $resolution->MaNghiQuyet) }}" class="stu-btn stu-btn-ghost stu-btn-sm" style="font-size: 12px;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <span>Đóng</span>
+                </a>
+            </div>
         <form method="POST" action="{{ route('resolutions.update', $resolution->MaNghiQuyet) }}">
             @csrf
             @method('PUT')
@@ -80,6 +96,7 @@
                 <button type="submit" class="stu-btn stu-btn-primary" style="padding: 10px 24px;">Lưu cập nhật</button>
             </div>
         </form>
+        </div>
     </div>
 </div>
 @endsection

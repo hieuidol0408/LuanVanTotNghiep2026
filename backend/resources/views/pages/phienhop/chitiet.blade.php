@@ -656,4 +656,24 @@
         </x-hop-thoai>
     @endforeach
 @endif
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const modal = urlParams.get('modal');
+        if (modal && window.STUModal) {
+            window.STUModal.open(modal);
+        } else if (urlParams.get('add_member') === '1') {
+            window.STUModal && window.STUModal.open('addMemberModal');
+        } else if (urlParams.get('add_guest') === '1') {
+            window.STUModal && window.STUModal.open('addGuestModal');
+        } else if (urlParams.get('add_agenda') === '1') {
+            window.STUModal && window.STUModal.open('addAgendaModal');
+        } else if (urlParams.get('upload_doc') === '1') {
+            window.STUModal && window.STUModal.open('uploadDocModal');
+        } else if (urlParams.get('add_voting') === '1') {
+            window.STUModal && window.STUModal.open('addVotingModal');
+        }
+    });
+</script>
 @endsection

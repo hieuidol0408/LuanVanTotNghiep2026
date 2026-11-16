@@ -262,6 +262,17 @@
                 </div>
             </form>
         </x-hop-thoai>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('create') === '1' @if($errors->any()) || true @endif) {
+                    if (window.STUModal) {
+                        window.STUModal.open('createVoteModal');
+                    }
+                }
+            });
+        </script>
     @endif
 </div>
 @endsection

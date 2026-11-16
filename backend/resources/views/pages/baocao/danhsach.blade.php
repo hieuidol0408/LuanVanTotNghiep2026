@@ -17,10 +17,10 @@
             </p>
         </div>
         <div>
-            <a href="{{ route('task-reports.create') }}" class="stu-btn stu-btn-primary" style="height: 38px;">
+            <button type="button" class="stu-btn stu-btn-primary" style="height: 38px;" data-modal-open="createReportModal">
                 <i class="bi bi-journal-plus"></i>
                 <span>Nộp báo cáo tiến độ</span>
-            </a>
+            </button>
         </div>
     </div>
 
@@ -178,4 +178,108 @@
     </div>
     </div>
 </div>
+
+<!-- MODAL FORM LƠ LỬNG: NỘP BÁO CÁO TIẾN ĐỘ -->
+<x-hop-thoai id="createReportModal" title="Nộp Báo Cáo Tiến Độ Nhiệm Vụ (BR-10)" size="lg">
+    <form method="POST" action="{{ route('task-reports.store') }}" enctype="multipart/form-data" id="modalCreateReportForm">
+        @csrf
+
+        {{-- 1. Chọn Nhiệm vụ --}}
+        <div class="stu-form-group" style="margin-bottom: 14px;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Nhiệm vụ được phân công <span style="color: var(--color-danger);">*</span>
+            </label>
+            <select name="MaPhanCong" class="stu-form-control" required style="height: 38px; font-size: 13px;">
+                <option value="">-- Chọn nhiệm vụ cần nộp báo cáo --</option>
+                @foreach($assignments as $assign)
+                    <option value="{{ $assign->MaPhanCong }}">
+                        #{{ $assign->MaNhiemVu }} - {{ $assign->nhiemVu?->TenNhiemVu }} ({{ $assign->donVi?->TenDonVi }})
+                    </option>
+                @endforeach
+            </select>
+            <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px;">Chỉ hiển thị các nhiệm vụ đang thực hiện mà đơn vị được phân công phụ trách.</div>
+        </div>
+
+        {{-- 2. Tỷ lệ tiến độ & Tệp đính kèm --}}
+        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 14px; margin-bottom: 14px;">
+            <div class="stu-form-group">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Tỷ lệ tiến độ đạt được (%) <span style="color: var(--color-danger);">*</span>
+                </label>
+                <input 
+                    type="number" 
+                    name="TienDo" 
+                    min="0" 
+                    max="100" 
+                    value="50" 
+                    class="stu-form-control" 
+                    required 
+                    style="height: 38px; font-size: 13px; font-weight: 700; color: var(--color-primary);"
+                >
+                <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px;">Quy định BR-10: Tiến độ từ 0% đến 100%.</div>
+            </div>
+
+            <div class="stu-form-group">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Minh chứng đính kèm (.pdf, .docx, .zip)
+                </label>
+                <input 
+                    type="file" 
+                    name="file" 
+                    class="stu-form-control" 
+                    accept=".pdf,.doc,.docx,.zip,.rar"
+                    style="height: 38px; font-size: 12px; padding: 6px 12px;"
+                >
+            </div>
+        </div>
+
+        {{-- 3. Nội dung báo cáo --}}
+        <div class="stu-form-group" style="margin-bottom: 14px;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Nội dung kết quả thực hiện <span style="color: var(--color-danger);">*</span>
+            </label>
+            <textarea 
+                name="NoiDungBaoCao" 
+                rows="3" 
+                class="stu-form-control" 
+                placeholder="Mô tả cụ thể các hạng mục công việc đã triển khai, kết quả đạt được..."
+                required
+                style="font-size: 13px;"
+            ></textarea>
+        </div>
+
+        {{-- 4. Khó khăn vướng mắc --}}
+        <div class="stu-form-group" style="margin-bottom: 14px;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Khó khăn & Kiến nghị (Nếu có)
+            </label>
+            <textarea 
+                name="KhoKhanVuongMac" 
+                rows="2" 
+                class="stu-form-control" 
+                placeholder="Nêu rõ các vướng mắc phát sinh cần Hội đồng trường tháo gỡ..."
+                style="font-size: 13px;"
+            ></textarea>
+        </div>
+
+        <!-- Footer buttons -->
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--color-border);">
+            <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>
+                <span>Hủy bỏ</span>
+            </button>
+            <button type="submit" class="stu-btn stu-btn-primary" style="font-weight: 600;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <span>Gửi báo cáo tiến độ</span>
+            </button>
+        </div>
+    </form>
+</x-hop-thoai>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        @if(request('create') || $errors->any())
+            window.STUModal?.open('createReportModal');
+        @endif
+    });
+</script>
 @endsection

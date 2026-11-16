@@ -365,4 +365,15 @@
     @endforeach
 @endif
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('create') === '1' || urlParams.get('add') === '1' @if($errors->any()) || true @endif) {
+            if (window.STUModal) {
+                window.STUModal.open('createAgendaModal');
+            }
+        }
+    });
+</script>
+
 @endsection

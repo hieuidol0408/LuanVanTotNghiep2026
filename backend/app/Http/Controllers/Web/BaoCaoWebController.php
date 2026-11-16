@@ -65,8 +65,12 @@ class BaoCaoWebController extends Controller
 
         $reports = $query->orderByDesc('MaBaoCao')->paginate($perPage)->withQueryString();
         $departments = DonVi::orderBy('TenDonVi')->get(['MaDonVi', 'TenDonVi']);
+        $assignments = PhanCongNhiemVu::with(['nhiemVu.nghiQuyet', 'donVi'])
+            ->whereHas('nhiemVu', function ($q) {
+                $q->where('TrangThai', '!=', 'COMPLETED');
+            })->get();
 
-        return view('pages.baocao.danhsach', compact('reports', 'departments'));
+        return view('pages.baocao.danhsach', compact('reports', 'departments', 'assignments'));
     }
 
     /**
