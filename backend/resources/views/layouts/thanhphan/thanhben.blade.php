@@ -102,15 +102,15 @@
         </div>
     </div>
 
-    <!-- Sidebar Footer -->
-    <div class="stu-sidebar-footer">
-        <div class="stu-nav-link" style="margin: 0; cursor: default; background: var(--color-bg-subtle);">
-            <span class="stu-nav-icon" style="color: var(--color-success);">
-                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>
+    <!-- Sidebar Footer (Nhỏ gọn, vừa vặn khung màn hình) -->
+    <div class="stu-sidebar-footer" style="padding: 5px 8px;">
+        <div class="stu-nav-link" style="margin: 0; padding: 3px 6px; cursor: default; background: var(--color-bg-subtle); border-radius: 6px;">
+            <span class="stu-nav-icon" style="color: var(--color-success); width: 14px; height: 14px;">
+                <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>
             </span>
-            <div class="stu-nav-text" style="line-height: 1.2;">
-                <div style="font-size: var(--font-size-xs); font-weight: var(--font-weight-bold); color: var(--color-text-main);">Khóa IV (2020-2025)</div>
-                <div style="font-size: 11px; color: var(--color-text-muted);">Trực tuyến • WampServer</div>
+            <div class="stu-nav-text" style="line-height: 1.15;">
+                <div style="font-size: 11px; font-weight: 700; color: var(--color-text-main);">Khóa IV (2020-2025)</div>
+                <div style="font-size: 9.5px; color: var(--color-text-muted);">Trực tuyến • WampServer</div>
             </div>
         </div>
     </div>
