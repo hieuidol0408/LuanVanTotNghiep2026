@@ -21,7 +21,7 @@
             @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
                 <button type="button" class="stu-btn stu-btn-primary stu-flex stu-items-center" style="gap: 8px;" data-modal-open="createResolutionModal">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    <span>Soạn thảo nghị quyết mới</span>
+                    <span>Ghi nhận & Ban hành nghị quyết</span>
                 </button>
             @endif
         </div>
@@ -248,8 +248,8 @@
     </div>
 </div>
 
-<!-- MODAL FORM LƠ LỬNG: SOẠN THẢO NGHỊ QUYẾT MỚI -->
-<x-hop-thoai id="createResolutionModal" title="Soạn Thảo Nghị Quyết Hội Đồng Trường STU" size="lg">
+<!-- MODAL FORM LƠ LỬNG: GHI NHẬN SỐ & NGÀY BAN HÀNH NGHỊ QUYẾT -->
+<x-hop-thoai id="createResolutionModal" title="Ghi Nhận Số & Ngày Ban Hành Nghị Quyết Hội Đồng Trường" size="lg">
     <form method="POST" action="{{ route('resolutions.store') }}" enctype="multipart/form-data" id="modalCreateResolutionForm">
         @csrf
 
@@ -309,7 +309,7 @@
                 id="modalTrichYeu"
                 rows="2" 
                 class="stu-form-control" 
-                placeholder="Ví dụ: Về việc thông qua quy chế tài chính nội bộ và định mức chi tiêu năm học 2026-2027..." 
+                placeholder="Ví dụ: Về việc thông qua đề án thành lập Viện Nghiên cứu Ứng dụng Trí tuệ Nhân tạo STU..." 
                 required
                 style="font-size: 13px;"
             >{{ old('TrichYeu') }}</textarea>
@@ -324,7 +324,7 @@
                 name="NoiDung" 
                 rows="4" 
                 class="stu-form-control" 
-                placeholder="Điều 1: Hội đồng trường quyết nghị thông qua... Điều 2: Giao Hiệu trưởng tổ chức triển khai..." 
+                placeholder="Điều 1: Hội đồng trường quyết nghị thông qua đề án... Điều 2: Giao Hiệu trưởng ban hành quyết định thành lập và bổ nhiệm nhân sự..." 
                 required
                 style="font-size: 13px;"
             >{{ old('NoiDung') }}</textarea>
@@ -333,15 +333,20 @@
         {{-- 4. Tập tin văn bản đính kèm --}}
         <div class="stu-form-group" style="margin-bottom: 14px;">
             <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
-                Tập tin văn bản ký số (.pdf, .docx)
+                Tập tin văn bản ký số / scan (.pdf, .docx)
             </label>
             <input 
                 type="file" 
-                name="file_dinh_kem" 
+                name="file" 
                 class="stu-form-control" 
                 accept=".pdf,.doc,.docx"
                 style="height: 38px; font-size: 12px; padding: 6px 12px;"
             >
+        </div>
+
+        {{-- 5. Quy tắc nghiệp vụ tự động --}}
+        <div style="padding: 12px 14px; background: #f0f9ff; border: 1px dashed #bae6fd; border-radius: 8px; font-size: 12px; color: #0369a1; line-height: 1.5; margin-bottom: 16px;">
+            <strong>Quy tắc nghiệp vụ tự động (Yêu cầu chức năng 15 & BR-10):</strong> Hệ thống tự động ghi nhận số hiệu và ngày ban hành chính thức của Nghị quyết gắn liền với phiên họp Hội đồng trường, tạo căn cứ pháp lý để kích hoạt quy trình phân rã nhiệm vụ thi hành.
         </div>
 
         <!-- Footer buttons -->
@@ -351,7 +356,7 @@
             </button>
             <button type="submit" class="stu-btn stu-btn-primary" style="font-weight: 600;">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                <span>Ban hành Nghị quyết</span>
+                <span>Xác nhận ghi nhận & Ban hành</span>
             </button>
         </div>
     </form>
@@ -359,9 +364,12 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        @if(request('create') || $errors->any())
-            window.STUModal?.open('createResolutionModal');
-        @endif
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('create') === '1' || urlParams.get('modal') === '1' || {{ $errors->any() ? 'true' : 'false' }}) {
+            if (window.STUModal) {
+                window.STUModal.open('createResolutionModal');
+            }
+        }
     });
 </script>
 @endsection

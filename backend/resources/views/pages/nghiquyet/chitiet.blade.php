@@ -294,8 +294,8 @@
 </div>
 
 @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-    {{-- Modal Chỉnh sửa Nghị quyết --}}
-    <x-hop-thoai id="editResolutionModal" title="Chỉnh sửa Dự thảo Nghị quyết: {{ $resolution->SoNghiQuyet }}" size="lg">
+    {{-- Modal Chỉnh sửa / Ghi nhận Nghị quyết --}}
+    <x-hop-thoai id="editResolutionModal" title="Ghi Nhận & Cập Nhật Số, Ngày Ban Hành Nghị Quyết: {{ $resolution->SoNghiQuyet }}" size="lg">
         <form method="POST" action="{{ route('resolutions.update', $resolution->MaNghiQuyet) }}">
             @csrf
             @method('PUT')
@@ -339,9 +339,14 @@
                 </div>
             </div>
 
-            <div class="stu-form-group stu-mb-5" style="margin-top: 12px;">
+            <div class="stu-form-group stu-mb-4" style="margin-top: 12px;">
                 <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Toàn văn nội dung Nghị quyết <span style="color: var(--color-danger);">*</span></label>
-                <textarea name="NoiDung" rows="7" class="stu-form-control" required>{{ old('NoiDung', $resolution->NoiDung) }}</textarea>
+                <textarea name="NoiDung" rows="6" class="stu-form-control" required>{{ old('NoiDung', $resolution->NoiDung) }}</textarea>
+            </div>
+
+            {{-- Hộp Quy tắc Nghiệp vụ tự động (Yêu cầu chức năng 15 & BR-10) --}}
+            <div style="padding: 12px 14px; background: #f0f9ff; border: 1px dashed #bae6fd; border-radius: 8px; font-size: 12px; color: #0369a1; line-height: 1.5; margin-bottom: 16px;">
+                <strong>Quy tắc nghiệp vụ tự động (Yêu cầu chức năng 15 & BR-10):</strong> Hệ thống tự động ghi nhận số hiệu và ngày ban hành chính thức của Nghị quyết gắn liền với phiên họp Hội đồng trường, tạo căn cứ pháp lý để kích hoạt quy trình phân rã nhiệm vụ thi hành.
             </div>
 
             <div class="stu-flex stu-items-center stu-justify-between" style="border-top: 1px solid var(--color-border); padding-top: 16px;">

@@ -9,7 +9,7 @@
 
     <div class="stu-page-header stu-mb-6">
         <h1 class="stu-page-title" style="font-size: 24px; font-weight: 800; color: var(--color-primary); margin: 0;">
-            Soạn thảo Dự thảo Nghị quyết Hội đồng trường
+            Ghi Nhận Số, Ngày Ban Hành & Soạn Thảo Nghị Quyết
         </h1>
         <p style="font-size: 13px; color: var(--color-text-muted); margin: 4px 0 0 0;">
             Khởi tạo nghị quyết căn cứ trên kết quả phiên họp, hồ sơ tờ trình và kết quả biểu quyết đã được thông qua.
@@ -35,7 +35,7 @@
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
                     </span>
                     <div>
-                        <h2 style="font-size: 18px; font-weight: 700; color: var(--color-text-main); margin: 0;">Soạn thảo Dự thảo Nghị quyết Hội đồng trường</h2>
+                        <h2 style="font-size: 18px; font-weight: 700; color: var(--color-text-main); margin: 0;">Ghi Nhận Số, Ngày Ban Hành & Soạn Thảo Nghị Quyết</h2>
                         <p style="font-size: 12px; color: var(--color-text-muted); margin: 2px 0 0 0;">Căn cứ kết quả phiên họp và biểu quyết</p>
                     </div>
                 </div>
@@ -174,6 +174,11 @@
                 <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px;">
                     Tập tin đính kèm tối đa 20MB, được lưu trữ an toàn trong kho dữ liệu nghị quyết HĐT.
                 </div>
+            </div>
+
+            {{-- 6. Hộp Quy tắc Nghiệp vụ tự động (Yêu cầu chức năng 15 & BR-10) --}}
+            <div style="padding: 12px 16px; background: #f0f9ff; border: 1px dashed #bae6fd; border-radius: 8px; font-size: 12px; color: #0369a1; line-height: 1.5; margin-bottom: 20px;">
+                <strong>Quy tắc nghiệp vụ tự động (Yêu cầu chức năng 15 & BR-10):</strong> Hệ thống tự động ghi nhận số hiệu và ngày ban hành chính thức của Nghị quyết gắn liền với phiên họp Hội đồng trường, tạo căn cứ pháp lý để kích hoạt quy trình phân rã nhiệm vụ thi hành.
             </div>
 
             {{-- Nút hành động --}}

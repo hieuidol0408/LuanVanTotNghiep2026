@@ -134,6 +134,7 @@ class NghiQuyetWebController extends Controller
             'voting_ids' => ['nullable', 'array'],
             'voting_ids.*' => ['integer', 'exists:noi_dung_bieu_quyet,MaNoiDung'],
             'file' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx'],
+            'file_dinh_kem' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx'],
         ], [
             'SoNghiQuyet.required' => 'Vui lòng nhập số hiệu nghị quyết (ví dụ: 15/NQ-HĐT).',
             'SoNghiQuyet.unique' => 'Số hiệu nghị quyết này đã tồn tại trong hệ thống.',
@@ -174,8 +175,8 @@ class NghiQuyetWebController extends Controller
             }
 
             // Xử lý tệp đính kèm văn bản nếu có
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
+            $file = $request->file('file') ?? $request->file('file_dinh_kem');
+            if ($file) {
                 $fileName = 'NQ_' . time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
                 $path = $file->storeAs('documents/resolutions', $fileName, 'public');
 
