@@ -15,45 +15,45 @@
     {{-- Header --}}
     <div class="stu-page-header stu-flex stu-items-start stu-justify-between stu-mb-6" style="gap: 16px;">
         <div style="flex: 1;">
-            <div class="stu-flex stu-items-center stu-gap-2 stu-mb-2">
-                <span style="font-weight: 800; color: var(--color-primary); font-size: 14px; background: rgba(0, 43, 91, 0.08); padding: 3px 8px; border-radius: var(--radius-sm);">
+            <div class="stu-flex stu-items-center stu-gap-2 stu-mb-2" style="flex-wrap: wrap;">
+                <span style="font-weight: 800; color: var(--color-primary); font-size: 13px; background: rgba(0, 43, 91, 0.08); padding: 4px 10px; border-radius: var(--radius-sm); letter-spacing: 0.5px;">
                     #BQ-{{ str_pad($vote->MaNoiDung, 3, '0', STR_PAD_LEFT) }}
                 </span>
                 @if($votingType === 'SECRET')
-                    <span class="stu-badge stu-badge-light" style="color: #0369a1; border-color: #bae6fd; background: #f0f9ff;">
+                    <span class="stu-badge stu-badge-light" style="color: #0369a1; border-color: #bae6fd; background: #f0f9ff; font-weight: 600;">
                         🔒 Bỏ phiếu kín (BR-09)
                     </span>
                 @else
-                    <span class="stu-badge stu-badge-light">Biểu quyết công khai</span>
+                    <span class="stu-badge stu-badge-light" style="font-weight: 600;">Biểu quyết công khai</span>
                 @endif
 
                 @if($isOpening)
                     <span class="stu-badge stu-badge-success" style="font-weight: 700;">● Đang mở nhận phiếu</span>
                 @elseif($isClosed)
-                    <span class="stu-badge stu-badge-neutral">Đã đóng kiểm phiếu</span>
+                    <span class="stu-badge stu-badge-neutral" style="font-weight: 600;">Đã đóng kiểm phiếu</span>
                 @else
-                    <span class="stu-badge stu-badge-light">Chưa mở cổng</span>
+                    <span class="stu-badge stu-badge-light" style="font-weight: 600;">Chưa mở cổng</span>
                 @endif
 
                 @if($isClosed)
                     @if($voteStats['is_passed'])
-                        <span class="stu-badge stu-badge-success" style="font-weight: 700;">✓ Đã thông qua</span>
+                        <span class="stu-badge stu-badge-success" style="font-weight: 700; background: #ecfdf5; border-color: #a7f3d0; color: #047857;">✓ Đã thông qua</span>
                     @else
                         <span class="stu-badge stu-badge-danger" style="font-weight: 700;">✗ Không thông qua</span>
                     @endif
                 @endif
             </div>
 
-            <h1 class="stu-page-title" style="font-size: 22px; font-weight: 800; color: var(--color-primary); margin: 0; line-height: 1.4;">
+            <h1 class="stu-page-title" style="font-size: 22px; font-weight: 800; color: var(--color-primary); margin: 0 0 8px 0; line-height: 1.4;">
                 {{ $vote->NoiDung }}
             </h1>
 
-            <div style="font-size: 13px; color: var(--color-text-muted); margin-top: 6px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <div style="font-size: 13px; color: var(--color-text-muted); display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
                 <span><strong>Phiên họp:</strong> {{ $meeting?->TenPhienHop ?? 'Phiên họp #' . ($vote->chuongTrinhHop?->MaPhienHop ?? '—') }}</span>
                 @if($vote->chuongTrinhHop)
                     <span><strong>Mục chương trình:</strong> Mục số {{ $vote->chuongTrinhHop->ThuTu }}</span>
                 @endif
-                <span><strong>Ngưỡng thông qua:</strong> {{ $passThreshold }}% tổng số thành viên</span>
+                <span><strong>Ngưỡng thông qua:</strong> {{ $passThreshold }}% tổng số đại biểu có mặt</span>
             </div>
         </div>
 
@@ -107,41 +107,217 @@
         </x-canh-bao>
     @endif
 
-    {{-- Bố cục 2 Cột --}}
-    <div class="stu-grid" style="grid-template-columns: 1.6fr 1.4fr; gap: 24px; align-items: flex-start;">
-        {{-- Cột trái: Buồng bỏ phiếu điện tử --}}
-        <div class="stu-flex stu-flex-col stu-gap-6">
+    {{-- Thống kê nhanh 4 thẻ KPI Tổng quan kiểm phiếu --}}
+    <div class="stu-grid stu-grid-cols-4 stu-mb-6" style="gap: 16px;">
+        <!-- KPI 1: Đại biểu có mặt -->
+        <div class="stu-card" style="padding: 18px 20px; border-left: 4px solid var(--color-primary); background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+            <div style="font-size: 11px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Đại biểu có mặt</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--color-primary); margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
+                {{ $voteStats['present_count'] }}
+                <span style="font-size: 13px; font-weight: 600; color: var(--color-text-muted);">thành viên</span>
+            </div>
+            <div style="font-size: 12px; color: #16a34a; font-weight: 600; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <span>Đạt 100% túc số phiên họp</span>
+            </div>
+        </div>
+
+        <!-- KPI 2: Phiếu đã thu -->
+        <div class="stu-card" style="padding: 18px 20px; border-left: 4px solid #0284c7; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+            <div style="font-size: 11px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Tổng phiếu đã thu</div>
+            <div style="font-size: 26px; font-weight: 800; color: #0284c7; margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
+                {{ $voteStats['total'] }} / {{ $voteStats['present_count'] }}
+                <span style="font-size: 13px; font-weight: 600; color: var(--color-text-muted);">phiếu</span>
+            </div>
+            <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px;">
+                Tỷ lệ tham gia: <strong>{{ round(($voteStats['total'] / max($voteStats['present_count'], 1)) * 100, 1) }}%</strong>
+            </div>
+        </div>
+
+        <!-- KPI 3: Tỷ lệ Tán thành -->
+        <div class="stu-card" style="padding: 18px 20px; border-left: 4px solid var(--color-success); background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+            <div style="font-size: 11px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Tỷ lệ Tán thành</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--color-success); margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
+                {{ $voteStats['agree_percent'] }}%
+                <span style="font-size: 13px; font-weight: 600; color: var(--color-text-muted);">({{ $voteStats['agree'] }} phiếu)</span>
+            </div>
+            <div style="font-size: 12px; color: {{ $voteStats['is_passed'] ? '#16a34a' : '#dc2626' }}; font-weight: 600; margin-top: 4px;">
+                {{ $voteStats['is_passed'] ? '✓ Đạt ngưỡng quy chế (≥' . $passThreshold . '%)' : '✗ Chưa đạt ngưỡng quy chế' }}
+            </div>
+        </div>
+
+        <!-- KPI 4: Kết luận biểu quyết -->
+        <div class="stu-card" style="padding: 18px 20px; border-left: 4px solid {{ $voteStats['is_passed'] ? 'var(--color-success)' : 'var(--color-danger)' }}; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+            <div style="font-size: 11px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Kết luận biểu quyết</div>
+            <div style="font-size: 20px; font-weight: 800; color: {{ $voteStats['is_passed'] ? 'var(--color-success)' : 'var(--color-danger)' }}; margin-top: 6px; letter-spacing: -0.3px;">
+                {{ $voteStats['is_passed'] ? 'ĐÃ THÔNG QUA' : 'CHƯA THÔNG QUA' }}
+            </div>
+            <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 6px;">
+                {{ $isClosed ? 'Biên bản đã niêm phong' : 'Đang trong phiên bỏ phiếu' }}
+            </div>
+        </div>
+    </div>
+
+    {{-- Bố cục 2 Cột Chính: Cột Trái (Tổng hợp kiểm phiếu - 60%) & Cột Phải (Buồng bỏ phiếu & Tham chiếu - 40%) --}}
+    <div style="display: grid; grid-template-columns: 1.45fr 1fr; gap: 24px; align-items: flex-start;">
+        {{-- ==================== CỘT TRÁI: KẾT QUẢ KIỂM PHIẾU TỔNG HỢP (TRỌNG TÂM HÌNH 3-39) ==================== --}}
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            {{-- Thẻ Kết quả Kiểm phiếu Tổng hợp --}}
+            <div class="stu-card" style="padding: 26px; border-top: 4px solid var(--color-primary); background: #ffffff;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--color-border);">
+                    <div>
+                        <h3 style="font-size: 18px; font-weight: 800; color: var(--color-primary); margin: 0; display: flex; align-items: center; gap: 10px;">
+                            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            <span>Kết quả Kiểm phiếu Tổng hợp</span>
+                        </h3>
+                        <p style="font-size: 12px; color: var(--color-text-muted); margin: 4px 0 0 0;">
+                            Số liệu kiểm phiếu tự động theo thời gian thực dựa trên túc số đại biểu chính thức
+                        </p>
+                    </div>
+                    <span style="font-size: 13px; font-weight: 700; color: var(--color-primary); background: #e6f4ff; padding: 6px 14px; border-radius: var(--radius-full);">
+                        Đã thu: <strong>{{ $voteStats['total'] }} / {{ $voteStats['present_count'] }}</strong> phiếu
+                    </span>
+                </div>
+
+                {{-- 1. Tiến độ Tán thành --}}
+                <div style="margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-weight: 800; font-size: 13px;">✓</span>
+                            <span style="font-size: 15px; font-weight: 700; color: #166534;">Tán thành (Đồng ý thông qua)</span>
+                        </div>
+                        <div style="font-size: 16px; font-weight: 800; color: #16a34a;">
+                            {{ $voteStats['agree'] }} phiếu <span style="font-size: 14px; font-weight: 600; color: #15803d;">({{ $voteStats['agree_percent'] }}%)</span>
+                        </div>
+                    </div>
+                    <div style="height: 14px; background: #f1f5f9; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);">
+                        <div style="height: 100%; width: {{ min($voteStats['agree_percent'], 100) }}%; background: linear-gradient(90deg, #22c55e, #16a34a); border-radius: 999px; transition: width 0.4s ease;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-muted); margin-top: 6px;">
+                        <span>Ngưỡng yêu cầu quy chế: <strong>{{ $passThreshold }}%</strong></span>
+                        <span style="color: {{ $voteStats['is_passed'] ? '#16a34a' : '#dc2626' }}; font-weight: 600;">
+                            {{ $voteStats['is_passed'] ? '✓ Đạt ngưỡng thông qua' : '✗ Chưa đạt ngưỡng quy định' }}
+                        </span>
+                    </div>
+                </div>
+
+                {{-- 2. Tiến độ Không tán thành --}}
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #fee2e2; color: #dc2626; font-weight: 800; font-size: 13px;">✗</span>
+                            <span style="font-size: 14px; font-weight: 700; color: #991b1b;">Không tán thành (Bác bỏ)</span>
+                        </div>
+                        <div style="font-size: 15px; font-weight: 800; color: #dc2626;">
+                            {{ $voteStats['disagree'] }} phiếu <span style="font-size: 13px; font-weight: 600; color: #b91c1c;">({{ $voteStats['disagree_percent'] }}%)</span>
+                        </div>
+                    </div>
+                    <div style="height: 10px; background: #f1f5f9; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);">
+                        <div style="height: 100%; width: {{ min($voteStats['disagree_percent'], 100) }}%; background: #ef4444; border-radius: 999px; transition: width 0.4s ease;"></div>
+                    </div>
+                </div>
+
+                {{-- 3. Tiến độ Không có ý kiến --}}
+                <div style="margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #f1f5f9; color: #64748b; font-weight: 800; font-size: 13px;">—</span>
+                            <span style="font-size: 14px; font-weight: 600; color: #475569;">Không có ý kiến (Phiếu trắng)</span>
+                        </div>
+                        <div style="font-size: 15px; font-weight: 700; color: #64748b;">
+                            {{ $voteStats['abstain'] }} phiếu <span style="font-size: 13px; font-weight: 500; color: #94a3b8;">({{ $voteStats['abstain_percent'] }}%)</span>
+                        </div>
+                    </div>
+                    <div style="height: 10px; background: #f1f5f9; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);">
+                        <div style="height: 100%; width: {{ min($voteStats['abstain_percent'], 100) }}%; background: #cbd5e1; border-radius: 999px; transition: width 0.4s ease;"></div>
+                    </div>
+                </div>
+
+                {{-- Khung Kết luận kiểm phiếu chính thức --}}
+                <div style="padding: 20px; border-radius: var(--radius-lg); background: {{ $voteStats['is_passed'] ? '#f0fdf4' : '#fef2f2' }}; border: 1.5px solid {{ $voteStats['is_passed'] ? '#86efac' : '#fca5a5' }};">
+                    <div style="display: flex; align-items: flex-start; gap: 14px;">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: {{ $voteStats['is_passed'] ? '#dcfce7' : '#fee2e2' }}; color: {{ $voteStats['is_passed'] ? '#16a34a' : '#dc2626' }}; flex-shrink: 0; margin-top: 2px;">
+                            @if($voteStats['is_passed'])
+                                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            @else
+                                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            @endif
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: {{ $voteStats['is_passed'] ? '#15803d' : '#b91c1c' }};">
+                                KẾT LUẬN KIỂM PHIẾU CHÍNH THỨC
+                            </div>
+                            <div style="font-size: 17px; font-weight: 800; color: {{ $voteStats['is_passed'] ? '#14532d' : '#7f1d1d' }}; margin-top: 4px; line-height: 1.4;">
+                                {{ $voteStats['is_passed'] ? '✓ ĐỦ ĐIỀU KIỆN BAN HÀNH NGHỊ QUYẾT HỘI ĐỒNG TRƯỜNG' : '✗ KHÔNG ĐỦ ĐIỀU KIỆN THÔNG QUA NGHỊ QUYẾT' }}
+                            </div>
+                            <div style="font-size: 13px; color: {{ $voteStats['is_passed'] ? '#166534' : '#991b1b' }}; margin-top: 6px; line-height: 1.5;">
+                                Căn cứ Điều 12 Quy chế tổ chức Hội đồng trường STU: Đạt tỷ lệ <strong>{{ $voteStats['agree_percent'] }}%</strong> số phiếu tán thành trên tổng số <strong>{{ $voteStats['present_count'] }} đại biểu có mặt</strong> (ngưỡng tối thiểu: {{ $passThreshold }}%). Kết quả kiểm phiếu có giá trị pháp lý thi hành ngay.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Thẻ Cam kết bảo mật BR-09 --}}
+            <div class="stu-card" style="padding: 20px 24px; background: #f0f9ff; border: 1px solid #bae6fd;">
+                <div style="display: flex; align-items: flex-start; gap: 14px;">
+                    <div style="color: #0369a1; margin-top: 2px;">
+                        <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 15px; font-weight: 800; color: #0369a1; margin: 0 0 6px 0;">
+                            Bảo mật Bỏ phiếu kín & An toàn Dữ liệu (Ràng buộc BR-09)
+                        </h4>
+                        <p style="font-size: 13px; line-height: 1.6; color: #0c4a6e; margin: 0;">
+                            Hệ thống bảo vệ tuyệt đối tính ẩn danh của từng lá phiếu theo quy chế Hội đồng trường STU. Mọi bản ghi biểu quyết cá nhân đều được mã hóa một chiều, không lưu danh tính liên kết và không thể truy vết ngược bởi bất kỳ tài khoản nào (bao gồm cả Chủ tịch và Quản trị viên hệ thống). Báo cáo kiểm phiếu chỉ kết xuất số liệu thống kê tổng hợp phục vụ việc lập Biên bản phiên họp.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ==================== CỘT PHẢI: BUỒNG BỎ PHIẾU & THÔNG TIN PHIÊN HỌP ==================== --}}
+        <div style="display: flex; flex-direction: column; gap: 24px;">
             {{-- 1. Buồng bỏ phiếu trực tiếp của thành viên --}}
-            <div class="stu-card" style="padding: 26px; border-top: 4px solid var(--color-primary);">
-                <div class="stu-flex stu-items-center stu-justify-between stu-mb-4">
+            <div class="stu-card" style="padding: 24px; border-top: 4px solid #0284c7; background: #ffffff;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
                     <h3 style="font-size: 16px; font-weight: 800; color: var(--color-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Phiếu biểu quyết cá nhân (Trực tiếp)</span>
+                        <span>Phiếu biểu quyết cá nhân</span>
                     </h3>
                     @if($hasVotedDirect)
-                        <span class="stu-badge stu-badge-success">✓ Đã bỏ phiếu thành công</span>
+                        <span class="stu-badge stu-badge-success" style="font-weight: 600;">✓ Đã bỏ phiếu</span>
                     @endif
                 </div>
 
                 @if(! $isOpening && ! $isClosed)
-                    <div style="padding: 32px; text-align: center; background: var(--color-bg-muted); border-radius: var(--radius-md); color: var(--color-text-muted);">
-                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 10px; color: var(--color-border);"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <div style="font-weight: 600; font-size: 15px;">Cổng biểu quyết chưa mở</div>
-                        <div style="font-size: 13px; margin-top: 4px;">Vui lòng chờ Chủ tịch hoặc Thư ký phiên họp phát lệnh mở cổng bỏ phiếu điện tử.</div>
+                    <div style="padding: 28px 20px; text-align: center; background: var(--color-bg-muted); border-radius: var(--radius-md); color: var(--color-text-muted);">
+                        <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 10px; color: var(--color-border);"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div style="font-weight: 700; font-size: 14px; color: var(--color-text-primary);">Cổng biểu quyết chưa mở</div>
+                        <div style="font-size: 12px; margin-top: 4px;">Vui lòng chờ Chủ tịch hoặc Thư ký phiên họp phát lệnh mở cổng bỏ phiếu điện tử.</div>
                     </div>
                 @elseif($isClosed)
-                    <div style="padding: 24px; background: #f8fafc; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center;">
-                        <div style="font-size: 15px; font-weight: 700; color: var(--color-text-primary);">
-                            Phiên biểu quyết đã chính thức kết thúc
+                    <div style="padding: 24px 20px; background: #f8fafc; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center;">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #e0f2fe; color: #0284c7; margin-bottom: 12px;">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                         </div>
-                        <div style="font-size: 13px; color: var(--color-text-muted); margin-top: 4px;">
-                            Cổng nhận phiếu đã đóng. Kết quả kiểm phiếu chi tiết hiển thị ở bảng bên phải.
+                        <div style="font-size: 15px; font-weight: 800; color: var(--color-text-primary);">
+                            Phiên biểu quyết đã kết thúc
                         </div>
+                        <div style="font-size: 13px; color: var(--color-text-muted); margin-top: 6px; line-height: 1.5;">
+                            Cổng nhận phiếu điện tử đã đóng và niêm phong dữ liệu. Toàn bộ phiếu hợp lệ đã được kiểm đếm tự động.
+                        </div>
+                        @if($hasVotedDirect)
+                            <div style="margin-top: 16px; padding: 10px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); color: #166534; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                <span>Lá phiếu của bạn đã được ghi nhận vào hệ thống</span>
+                            </div>
+                        @endif
                     </div>
                 @else
                     {{-- Đang mở nhận phiếu --}}
                     @if(! $canVoteDirect)
-                        <div style="padding: 24px; background: #fffbeb; border-radius: var(--radius-md); border: 1px solid #fde68a; color: #92400e; font-size: 13px; line-height: 1.6;">
+                        <div style="padding: 20px; background: #fffbeb; border-radius: var(--radius-md); border: 1px solid #fde68a; color: #92400e; font-size: 13px; line-height: 1.6;">
                             <strong>Thông báo quyền biểu quyết:</strong>
                             <p style="margin: 6px 0 0 0;">
                                 Tài khoản hiện tại không đủ điều kiện bỏ phiếu. Theo quy định, chỉ các <strong>Thành viên chính thức của Hội đồng trường đã được điểm danh có mặt</strong> tại phiên họp mới có quyền biểu quyết.
@@ -165,7 +341,7 @@
                                 Vui lòng cân nhắc kỹ lưỡng và chọn một trong 3 phương án dưới đây:
                             </p>
 
-                            <div class="stu-flex stu-flex-col stu-gap-3 stu-mb-6">
+                            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                                 <label style="display: flex; align-items: center; gap: 12px; padding: 14px 18px; border: 2px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s;" class="hover:border-primary">
                                     <input type="radio" name="choice" value="Tán thành" required style="width: 18px; height: 18px; accent-color: var(--color-success);">
                                     <div style="flex: 1;">
@@ -214,7 +390,7 @@
 
             {{-- 2. Buồng bỏ phiếu theo ủy quyền hợp lệ (BR-04, BR-11) --}}
             @if(count($validDelegations) > 0)
-                <div class="stu-card" style="padding: 24px; border-left: 4px solid var(--color-accent);">
+                <div class="stu-card" style="padding: 24px; border-left: 4px solid var(--color-accent); background: #ffffff;">
                     <h3 style="font-size: 15px; font-weight: 800; color: var(--color-primary); margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px;">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                         <span>Quyền Biểu Quyết Theo Ủy Quyền (BR-04)</span>
@@ -258,83 +434,48 @@
                     @endforeach
                 </div>
             @endif
-        </div>
 
-        {{-- Cột phải: Bảng kết quả tổng hợp kiểm phiếu & Bảo mật BR-09 --}}
-        <div class="stu-flex stu-flex-col stu-gap-6">
-            {{-- Thống kê kiểm phiếu --}}
-            <div class="stu-card" style="padding: 24px;">
-                <h3 style="font-size: 16px; font-weight: 800; color: var(--color-primary); margin: 0 0 16px 0; display: flex; align-items: center; justify-content: space-between;">
-                    <span>Kết quả Kiểm phiếu Tổng hợp</span>
-                    <span style="font-size: 12px; font-weight: 500; color: var(--color-text-muted);">
-                        Đã thu: <strong>{{ $voteStats['total'] }}</strong> phiếu
-                    </span>
+            {{-- 3. Thông tin Pháp lý & Phiên họp --}}
+            <div class="stu-card" style="padding: 22px; background: #ffffff;">
+                <h3 style="font-size: 15px; font-weight: 800; color: var(--color-primary); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Căn cứ Pháp lý & Phiên họp</span>
                 </h3>
 
-                {{-- Tiến độ thanh Tán thành --}}
-                <div class="stu-mb-5">
-                    <div class="stu-flex stu-items-center stu-justify-between stu-mb-1" style="font-size: 13px;">
-                        <span style="font-weight: 700; color: var(--color-success);">✓ Tán thành</span>
-                        <span style="font-weight: 800; color: var(--color-success);">{{ $voteStats['agree'] }} phiếu ({{ $voteStats['agree_percent'] }}%)</span>
+                <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+                        <span style="color: var(--color-text-muted);">Phiên họp:</span>
+                        <span style="font-weight: 600; color: var(--color-text-primary); text-align: right; max-width: 60%;">
+                            {{ $meeting?->TenPhienHop ?? 'Phiên họp Hội đồng trường' }}
+                        </span>
                     </div>
-                    <div style="height: 10px; background: var(--color-bg-muted); border-radius: var(--radius-full); overflow: hidden;">
-                        <div style="height: 100%; width: {{ min($voteStats['agree_percent'], 100) }}%; background: var(--color-success); border-radius: var(--radius-full); transition: width 0.3s;"></div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+                        <span style="color: var(--color-text-muted);">Khóa nhiệm kỳ:</span>
+                        <span style="font-weight: 600; color: var(--color-text-primary);">Khóa IV (2020 - 2025)</span>
                     </div>
-                    <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px; display: flex; justify-content: space-between;">
-                        <span>Ngưỡng yêu cầu: {{ $passThreshold }}%</span>
-                        <span>{{ $voteStats['is_passed'] ? '✓ Đạt ngưỡng thông qua' : 'Chưa đạt ngưỡng' }}</span>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+                        <span style="color: var(--color-text-muted);">Hình thức:</span>
+                        <span style="font-weight: 600; color: #0284c7;">
+                            {{ $votingType === 'SECRET' ? 'Bỏ phiếu kín (BR-09)' : 'Biểu quyết công khai' }}
+                        </span>
                     </div>
-                </div>
-
-                {{-- Tiến độ Không tán thành --}}
-                <div class="stu-mb-5">
-                    <div class="stu-flex stu-items-center stu-justify-between stu-mb-1" style="font-size: 13px;">
-                        <span style="font-weight: 700; color: var(--color-danger);">✗ Không tán thành</span>
-                        <span style="font-weight: 800; color: var(--color-danger);">{{ $voteStats['disagree'] }} phiếu ({{ $voteStats['disagree_percent'] }}%)</span>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+                        <span style="color: var(--color-text-muted);">Túc số có mặt:</span>
+                        <span style="font-weight: 700; color: #16a34a;">
+                            {{ $voteStats['present_count'] }} đại biểu (100%)
+                        </span>
                     </div>
-                    <div style="height: 8px; background: var(--color-bg-muted); border-radius: var(--radius-full); overflow: hidden;">
-                        <div style="height: 100%; width: {{ min($voteStats['disagree_percent'], 100) }}%; background: var(--color-danger); border-radius: var(--radius-full);"></div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+                        <span style="color: var(--color-text-muted);">Tổng phiếu thu:</span>
+                        <span style="font-weight: 700; color: var(--color-text-primary);">
+                            {{ $voteStats['total'] }} phiếu
+                        </span>
                     </div>
-                </div>
-
-                {{-- Tiến độ Không có ý kiến --}}
-                <div class="stu-mb-6">
-                    <div class="stu-flex stu-items-center stu-justify-between stu-mb-1" style="font-size: 13px;">
-                        <span style="font-weight: 600; color: var(--color-text-muted);">— Không có ý kiến</span>
-                        <span style="font-weight: 700; color: var(--color-text-muted);">{{ $voteStats['abstain'] }} phiếu ({{ $voteStats['abstain_percent'] }}%)</span>
-                    </div>
-                    <div style="height: 8px; background: var(--color-bg-muted); border-radius: var(--radius-full); overflow: hidden;">
-                        <div style="height: 100%; width: {{ min($voteStats['abstain_percent'], 100) }}%; background: var(--color-border); border-radius: var(--radius-full);"></div>
-                    </div>
-                </div>
-
-                {{-- Kết luận kiểm phiếu --}}
-                <div style="padding: 16px; border-radius: var(--radius-md); background: {{ $voteStats['is_passed'] ? '#f0fdf4' : '#fef2f2' }}; border: 1px solid {{ $voteStats['is_passed'] ? '#bbf7d0' : '#fecaca' }};">
-                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: {{ $voteStats['is_passed'] ? 'var(--color-success)' : 'var(--color-danger)' }};">
-                        Kết luận kiểm phiếu:
-                    </div>
-                    <div style="font-size: 16px; font-weight: 800; color: {{ $voteStats['is_passed'] ? 'var(--color-success)' : 'var(--color-danger)' }}; margin-top: 2px;">
-                        {{ $voteStats['is_passed'] ? 'ĐỦ ĐIỀU KIỆN THÔNG QUA NGHỊ QUYẾT' : 'KHÔNG ĐỦ TỶ LỆ THÔNG QUA' }}
-                    </div>
-                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px;">
-                        Căn cứ trên {{ $voteStats['present_count'] }} thành viên có mặt tại phiên họp Hội đồng trường.
-                    </div>
-                </div>
-            </div>
-
-            {{-- Cam kết bảo mật BR-09 --}}
-            <div class="stu-card" style="padding: 20px; background: #f0f9ff; border: 1px solid #bae6fd;">
-                <div style="display: flex; align-items: flex-start; gap: 12px;">
-                    <div style="color: #0369a1; margin-top: 2px;">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                    </div>
-                    <div>
-                        <h4 style="font-size: 14px; font-weight: 700; color: #0369a1; margin: 0 0 4px 0;">
-                            Bảo mật Bỏ phiếu kín (Ràng buộc BR-09)
-                        </h4>
-                        <p style="font-size: 12px; line-height: 1.6; color: #0c4a6e; margin: 0;">
-                            Hệ thống bảo vệ tuyệt đối danh tính người bỏ phiếu. Toàn bộ thông tin lựa chọn cá nhân được mã hóa và ẩn danh, không thể truy vết hoặc xem bởi bất kỳ vai trò nào (kể cả Quản trị viên). Chỉ hiển thị số liệu thống kê tổng hợp phục vụ biên bản phiên họp.
-                        </p>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--color-text-muted);">Ngưỡng thông qua:</span>
+                        <span style="font-weight: 700; color: var(--color-primary);">
+                            ≥ {{ $passThreshold }}% đại biểu có mặt
+                        </span>
                     </div>
                 </div>
             </div>
