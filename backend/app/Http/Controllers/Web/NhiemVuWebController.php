@@ -84,7 +84,7 @@ class NhiemVuWebController extends Controller
             $perPage = 10;
         }
 
-        $tasks = $query->orderByDesc('MaNhiemVu')->paginate($perPage)->withQueryString();
+        $tasks = $query->orderBy('MaNhiemVu', 'asc')->paginate($perPage)->withQueryString();
         $resolutions = NghiQuyet::orderByDesc('MaNghiQuyet')->get(['MaNghiQuyet', 'SoNghiQuyet', 'TrichYeu']);
         $departments = DonVi::orderBy('TenDonVi')->get(['MaDonVi', 'TenDonVi']);
 
