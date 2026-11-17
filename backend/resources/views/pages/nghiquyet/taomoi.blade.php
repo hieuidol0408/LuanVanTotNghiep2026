@@ -115,7 +115,7 @@
             {{-- 3. Toàn văn nội dung Nghị quyết --}}
             <div class="stu-form-group stu-mb-5">
                 <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
-                    Toàn văn Quyết nghị / Các điều khoản <span style="color: var(--color-danger);">*</span>
+                    Nội dung toàn văn nghị quyết <span style="color: var(--color-danger);">*</span>
                 </label>
                 <textarea 
                     name="NoiDung" 

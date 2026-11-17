@@ -340,7 +340,7 @@
             </div>
 
             <div class="stu-form-group stu-mb-4" style="margin-top: 12px;">
-                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Toàn văn nội dung Nghị quyết <span style="color: var(--color-danger);">*</span></label>
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Nội dung toàn văn nghị quyết <span style="color: var(--color-danger);">*</span></label>
                 <textarea name="NoiDung" rows="6" class="stu-form-control" required>{{ old('NoiDung', $resolution->NoiDung) }}</textarea>
             </div>
 
