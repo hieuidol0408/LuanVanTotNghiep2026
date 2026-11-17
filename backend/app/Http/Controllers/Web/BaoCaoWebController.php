@@ -63,7 +63,7 @@ class BaoCaoWebController extends Controller
             $perPage = 10;
         }
 
-        $reports = $query->orderByDesc('MaBaoCao')->paginate($perPage)->withQueryString();
+        $reports = $query->orderBy('MaBaoCao', 'asc')->paginate($perPage)->withQueryString();
         $departments = DonVi::orderBy('TenDonVi')->get(['MaDonVi', 'TenDonVi']);
         $assignments = PhanCongNhiemVu::with(['nhiemVu.nghiQuyet', 'donVi'])
             ->whereHas('nhiemVu', function ($q) {
