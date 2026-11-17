@@ -53,7 +53,7 @@
         <!-- Nhóm: Quyết nghị & Biểu quyết -->
         <div class="stu-nav-group">
             <div class="stu-nav-group-label">Quyết nghị & Biểu quyết</div>
-            <a href="{{ url('/voting') }}" class="stu-nav-link {{ request()->is('voting*') ? 'active' : '' }}">
+            <a href="{{ route('votes.index') }}" class="stu-nav-link {{ request()->is('votes*') || request()->is('voting*') || request()->routeIs('votes.*') ? 'active' : '' }}">
                 <span class="stu-nav-icon">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </span>
