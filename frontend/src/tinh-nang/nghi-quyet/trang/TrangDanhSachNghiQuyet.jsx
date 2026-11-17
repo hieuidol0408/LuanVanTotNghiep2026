@@ -437,7 +437,7 @@ export default function ResolutionListPage() {
                 <tr style={{ backgroundColor: "var(--color-bg-muted)", borderBottom: "1px solid var(--color-border)" }}>
                   <th style={{ padding: "var(--space-3) var(--space-4)", width: "180px", textAlign: "left", fontSize: "12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>Số hiệu</th>
                   <th style={{ padding: "var(--space-3) var(--space-4)", minWidth: "300px", maxWidth: "450px", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Trích yếu nội dung</th>
-                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "220px", maxWidth: "250px", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Phiên họp & Ngày</th>
+                  <th style={{ padding: "var(--space-3) var(--space-4)", width: "220px", maxWidth: "250px", textAlign: "left", fontSize: "12px", textTransform: "uppercase" }}>Phiên họp và Ngày</th>
                   <th style={{ padding: "var(--space-3) var(--space-4)", width: "150px", textAlign: "center", fontSize: "12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>Trạng thái</th>
                   <th style={{ padding: "var(--space-3) var(--space-4)", width: "160px", textAlign: "center", fontSize: "12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>Tiến độ thực hiện</th>
                   <th style={{ padding: "var(--space-3) var(--space-4)", width: "200px", minWidth: "200px", textAlign: "right", fontSize: "12px", textTransform: "uppercase", whiteSpace: "nowrap" }}>Thao tác</th>

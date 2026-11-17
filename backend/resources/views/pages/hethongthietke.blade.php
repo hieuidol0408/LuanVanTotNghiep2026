@@ -67,7 +67,7 @@
 
     <x-bang-du-lieu 
         cardTitle="Danh sách Nghị quyết Hội đồng trường STU (Mẫu kiểm thử)"
-        :headers="['Số hiệu', 'Trích yếu nội dung', 'Phiên họp & Ngày', 'Trạng thái', 'Tiến độ thực hiện']" 
+        :headers="['Số hiệu', 'Trích yếu nội dung', 'Phiên họp và Ngày', 'Trạng thái', 'Tiến độ thực hiện']" 
         :hasActions="true"
         actionTitle="Thao tác"
     >

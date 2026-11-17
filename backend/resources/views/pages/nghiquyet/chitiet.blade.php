@@ -295,7 +295,7 @@
 
 @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
     {{-- Modal Chỉnh sửa / Ghi nhận Nghị quyết --}}
-    <x-hop-thoai id="editResolutionModal" title="Ghi Nhận & Cập Nhật Số, Ngày Ban Hành Nghị Quyết: {{ $resolution->SoNghiQuyet }}" size="lg">
+    <x-hop-thoai id="editResolutionModal" title="Ghi Nhận và Cập Nhật Số, Ngày Ban Hành Nghị Quyết: {{ $resolution->SoNghiQuyet }}" size="lg">
         <form method="POST" action="{{ route('resolutions.update', $resolution->MaNghiQuyet) }}">
             @csrf
             @method('PUT')

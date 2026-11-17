@@ -21,7 +21,7 @@
             @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
                 <button type="button" class="stu-btn stu-btn-primary stu-flex stu-items-center" style="gap: 8px;" data-modal-open="createResolutionModal">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    <span>Ghi nhận & Ban hành nghị quyết</span>
+                    <span>Ghi nhận và Ban hành nghị quyết</span>
                 </button>
             @endif
         </div>
@@ -127,7 +127,7 @@
     {{-- Bảng danh sách Nghị quyết (Áp dụng layout chống tràn) --}}
     <x-bang-du-lieu 
         cardTitle="Danh sách Nghị quyết Hội đồng trường (Tổng: {{ $resolutions->total() }})"
-        :headers="['Số hiệu', 'Trích yếu nội dung', 'Phiên họp & Ngày', 'Trạng thái', 'Tiến độ thực hiện']" 
+        :headers="['Số hiệu', 'Trích yếu nội dung', 'Phiên họp và Ngày', 'Trạng thái', 'Tiến độ thực hiện']" 
         :hasActions="true"
         actionTitle="Thao tác"
     >
@@ -247,8 +247,8 @@
     </div>
 </div>
 
-<!-- MODAL FORM LƠ LỬNG: GHI NHẬN SỐ & NGÀY BAN HÀNH NGHỊ QUYẾT -->
-<x-hop-thoai id="createResolutionModal" title="Ghi Nhận Số & Ngày Ban Hành Nghị Quyết Hội Đồng Trường" size="lg">
+<!-- MODAL FORM LƠ LỬNG: GHI NHẬN SỐ, NGÀY BAN HÀNH NGHỊ QUYẾT -->
+<x-hop-thoai id="createResolutionModal" title="Ghi Nhận Số, Ngày Ban Hành Nghị Quyết Hội Đồng Trường" size="lg">
     <form method="POST" action="{{ route('resolutions.store') }}" enctype="multipart/form-data" id="modalCreateResolutionForm">
         @csrf
 
@@ -355,7 +355,7 @@
             </button>
             <button type="submit" class="stu-btn stu-btn-primary" style="font-weight: 600;">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                <span>Xác nhận ghi nhận & Ban hành</span>
+                <span>Xác nhận ghi nhận và Ban hành</span>
             </button>
         </div>
     </form>
