@@ -27,6 +27,7 @@
     {{-- Bộ lọc & Tìm kiếm --}}
     <div class="stu-card stu-mb-6" style="padding: 20px 24px; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
         <form method="GET" action="{{ route('task-reports.index') }}" class="stu-grid" style="grid-template-columns: 2fr 2fr auto auto; gap: 14px; align-items: flex-end;">
+            <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
             <div class="stu-form-group" style="margin-bottom: 0;">
                 <label class="stu-form-label">
                     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

@@ -42,6 +42,7 @@
     {{-- Bộ lọc tìm kiếm đa tiêu chí --}}
     <div class="stu-card stu-mb-6" style="padding: 20px 24px; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
         <form method="GET" action="{{ route('resolutions.index') }}" class="stu-grid" style="grid-template-columns: 2fr 1.5fr 1fr 1fr auto auto; gap: 14px; align-items: flex-end;">
+            <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
             {{-- Từ khóa --}}
             <div class="stu-form-group" style="margin-bottom: 0;">
                 <label class="stu-form-label">

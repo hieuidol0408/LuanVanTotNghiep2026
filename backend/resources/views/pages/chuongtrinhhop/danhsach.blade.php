@@ -83,6 +83,7 @@
 <!-- BỘ LỌC ĐA TIÊU CHÍ -->
 <div class="stu-card" style="padding: 18px 24px; margin-bottom: var(--space-6); border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
     <form method="GET" action="{{ route('agendas.index') }}" style="display: grid; grid-template-columns: 2fr 2fr 1.5fr auto auto; gap: 12px; align-items: center;">
+        <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
         <!-- Ô tìm kiếm -->
         <div style="position: relative;">
             <svg width="15" height="15" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>

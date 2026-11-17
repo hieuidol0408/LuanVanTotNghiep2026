@@ -35,9 +35,9 @@ class TaiLieuWebController extends Controller
             }
         }
 
-        $perPage = (int) $request->input('per_page', 12);
-        if (!in_array($perPage, [6, 12, 24, 48, 96])) {
-            $perPage = 12;
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 20, 50, 100])) {
+            $perPage = 10;
         }
 
         $documents = $query->orderByDesc('NgayTaiLen')

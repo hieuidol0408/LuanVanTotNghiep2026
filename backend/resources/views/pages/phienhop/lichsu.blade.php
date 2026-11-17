@@ -76,6 +76,7 @@
 <!-- KHỐI TÌM KIẾM & BỘ LỌC ĐA TIÊU CHÍ (CHUẨN GIAO DIỆN HỆ THỐNG) -->
 <div class="stu-card" style="padding: 18px 24px; margin-bottom: var(--space-6); border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
     <form method="GET" action="{{ route('meetings.history') }}">
+        <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
         <!-- Hàng 1: Từ khóa, Khóa nhiệm kỳ, Năm, Loại phiên họp -->
         <div style="display: grid; grid-template-columns: 2.2fr 1.2fr 1.2fr 1.2fr; gap: 12px; margin-bottom: 12px;">
             <!-- Ô tìm kiếm từ khóa -->

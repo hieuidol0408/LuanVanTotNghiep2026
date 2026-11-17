@@ -78,7 +78,7 @@ class ChuongTrinhHopWebController extends Controller
 
         // 7. Phân trang
         $perPage = (int) $request->input('per_page', 10);
-        if (!in_array($perPage, [5, 10, 15, 20, 50, 100])) {
+        if (!in_array($perPage, [5, 10, 20, 50, 100])) {
             $perPage = 10;
         }
 
