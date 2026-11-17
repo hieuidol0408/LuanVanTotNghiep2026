@@ -42,7 +42,7 @@ class ThanhVienHdtWebController extends Controller
     }
 
     /**
-     * Xóa thành viên HĐT khỏi danh sách hiển thị (Soft Delete)
+     * Ẩn thành viên HĐT khỏi danh sách hiển thị (Soft Delete)
      */
     public function destroy(int|string $id): RedirectResponse
     {
@@ -55,6 +55,6 @@ class ThanhVienHdtWebController extends Controller
         $member->delete();
 
         return redirect()->route('members.index')
-            ->with('success', "Đã xóa thành viên #{$id} khỏi danh sách hiển thị.");
+            ->with('success', "Đã ẩn thành viên #{$id} khỏi danh sách hiển thị (dữ liệu được bảo toàn).");
     }
 }

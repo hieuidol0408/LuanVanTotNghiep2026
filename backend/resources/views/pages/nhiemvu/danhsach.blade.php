@@ -207,11 +207,11 @@
                                 @endif
                             </div>
                             @if(Auth::user() && in_array(Auth::user()->role, ['SECRETARY', 'CHAIR', 'ADMIN']))
-                                <form method="POST" action="{{ route('tasks.destroy', $t->MaNhiemVu) }}" style="display:inline-block; margin-left:4px;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa nhiệm vụ #{{ $t->MaNhiemVu }} không?');">
+                                <form method="POST" action="{{ route('tasks.destroy', $t->MaNhiemVu) }}" style="display:inline-block; margin-left:4px;" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn nhiệm vụ #{{ $t->MaNhiemVu }} khỏi giao diện? (Dữ liệu vẫn được bảo toàn trong hệ thống)');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa nhiệm vụ">
-                                        <i class="bi bi-trash"></i> Xóa
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="Ẩn nhiệm vụ (Bảo toàn dữ liệu)">
+                                        <i class="bi bi-eye-slash"></i> Ẩn
                                     </button>
                                 </form>
                             @endif

@@ -83,11 +83,11 @@
                         </td>
                         <td class="text-end">
                             @if(auth()->user() && in_array(auth()->user()->role, ['ADMIN', 'CHAIR', 'SECRETARY']))
-                                <form method="POST" action="{{ route('members.destroy', $m->MaThanhVien) }}" style="display:inline-block; margin:0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thành viên này khỏi danh sách không?');">
+                                <form method="POST" action="{{ route('members.destroy', $m->MaThanhVien) }}" style="display:inline-block; margin:0;" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn thành viên này khỏi danh sách không? (Dữ liệu vẫn được bảo toàn trong hệ thống)');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa thành viên">
-                                        <i class="bi bi-trash"></i> Xóa
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="Ẩn thành viên (Bảo toàn dữ liệu)">
+                                        <i class="bi bi-eye-slash"></i> Ẩn
                                     </button>
                                 </form>
                             @else

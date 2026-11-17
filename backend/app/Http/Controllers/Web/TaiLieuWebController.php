@@ -80,18 +80,18 @@ class TaiLieuWebController extends Controller
     }
 
     /**
-     * Xóa tài liệu (Soft Delete - ẩn dữ liệu trong CSDL)
+     * Ẩn tài liệu (Soft Delete - bảo toàn dữ liệu trong CSDL)
      */
     public function destroy(int|string $id): RedirectResponse
     {
         $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
         if (!in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
-            return back()->with('error', 'Bạn không có thẩm quyền xóa tài liệu.');
+            return back()->with('error', 'Bạn không có thẩm quyền ẩn tài liệu.');
         }
 
         $doc = TaiLieu::findOrFail($id);
         $doc->delete();
 
-        return back()->with('success', "Đã xóa tài liệu \"{$doc->TenTaiLieu}\" khỏi danh sách hiển thị.");
+        return back()->with('success', "Đã ẩn tài liệu \"{$doc->TenTaiLieu}\" khỏi danh sách hiển thị (dữ liệu được bảo toàn).");
     }
 }

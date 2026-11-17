@@ -193,7 +193,7 @@ class NguoiDungWebController extends Controller
     }
 
     /**
-     * Xóa tài khoản người dùng khỏi danh sách hiển thị (Soft Delete)
+     * Ẩn tài khoản người dùng khỏi danh sách hiển thị (Soft Delete)
      */
     public function destroy(int|string $id): RedirectResponse
     {
@@ -205,13 +205,13 @@ class NguoiDungWebController extends Controller
 
         $user = NguoiDung::findOrFail($id);
         if ($currentUser && $currentUser->MaNguoiDung == $user->MaNguoiDung) {
-            return back()->with('error', 'Không thể tự xóa tài khoản đang đăng nhập.');
+            return back()->with('error', 'Không thể tự ẩn tài khoản đang đăng nhập.');
         }
 
         $user->update(['TrangThai' => 'Đã ẩn']);
         $user->delete();
 
         return redirect()->route('users.index')
-            ->with('success', "Đã xóa tài khoản \"{$user->HoTen}\" khỏi danh sách hiển thị.");
+            ->with('success', "Đã ẩn tài khoản \"{$user->HoTen}\" khỏi danh sách hiển thị (dữ liệu được bảo toàn).");
     }
 }

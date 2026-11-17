@@ -466,7 +466,7 @@ class PhienHopWebController extends Controller
     {
         $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
         if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
-            return redirect()->route('meetings.index')->with('error', 'Bạn không có thẩm quyền xóa phiên họp.');
+            return redirect()->route('meetings.index')->with('error', 'Bạn không có thẩm quyền ẩn phiên họp.');
         }
 
         $meeting = PhienHop::findOrFail($id);

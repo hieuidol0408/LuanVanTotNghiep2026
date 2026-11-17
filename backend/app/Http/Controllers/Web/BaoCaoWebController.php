@@ -269,7 +269,7 @@ class BaoCaoWebController extends Controller
     }
 
     /**
-     * Xóa báo cáo tiến độ (Soft Delete - ẩn dữ liệu trong CSDL)
+     * Ẩn báo cáo tiến độ (Soft Delete - bảo toàn dữ liệu trong CSDL)
      */
     public function destroy(int|string $id): RedirectResponse
     {
@@ -283,6 +283,6 @@ class BaoCaoWebController extends Controller
         $report->delete();
 
         return redirect()->route('task-reports.index')
-            ->with('success', "Đã xóa báo cáo tiến độ #BC-{$id} khỏi danh sách hiển thị.");
+            ->with('success', "Đã ẩn báo cáo tiến độ #BC-{$id} khỏi danh sách hiển thị (dữ liệu được bảo toàn).");
     }
 }

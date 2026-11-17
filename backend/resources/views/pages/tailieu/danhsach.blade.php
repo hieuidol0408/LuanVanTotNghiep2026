@@ -95,11 +95,11 @@
                                 </button>
                             @endif
                             @if(auth()->user() && in_array(auth()->user()->role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                                <form method="POST" action="{{ route('documents.destroy', $doc->MaTaiLieu) }}" style="margin:0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài liệu này không?');">
+                                <form method="POST" action="{{ route('documents.destroy', $doc->MaTaiLieu) }}" style="margin:0;" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn tài liệu này khỏi giao diện không? (Dữ liệu vẫn được bảo toàn trong hệ thống)');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa tài liệu">
-                                        <i class="bi bi-trash"></i> Xóa
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="Ẩn tài liệu (Bảo toàn dữ liệu)">
+                                        <i class="bi bi-eye-slash"></i> Ẩn
                                     </button>
                                 </form>
                             @endif

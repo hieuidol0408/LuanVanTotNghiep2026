@@ -152,11 +152,11 @@
                                 <i class="bi bi-eye"></i> Xem
                             </a>
                             @if(Auth::user() && in_array(Auth::user()->role, ['SECRETARY', 'CHAIR', 'ADMIN']))
-                                <form method="POST" action="{{ route('task-reports.destroy', $rpt->MaBaoCao) }}" style="display:inline-block; margin-left:4px;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa báo cáo #BC-{{ $rpt->MaBaoCao }} không?');">
+                                <form method="POST" action="{{ route('task-reports.destroy', $rpt->MaBaoCao) }}" style="display:inline-block; margin-left:4px;" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn báo cáo #BC-{{ $rpt->MaBaoCao }} khỏi danh sách? (Dữ liệu vẫn được bảo toàn trong hệ thống)');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa báo cáo">
-                                        <i class="bi bi-trash"></i> Xóa
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="Ẩn báo cáo (Bảo toàn dữ liệu)">
+                                        <i class="bi bi-eye-slash"></i> Ẩn
                                     </button>
                                 </form>
                             @endif

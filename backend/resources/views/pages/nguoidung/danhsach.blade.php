@@ -143,11 +143,11 @@
                                     <i class="bi bi-pencil"></i> Sửa
                                 </button>
                                 @if(auth()->user()->MaNguoiDung !== $u->MaNguoiDung)
-                                    <form method="POST" action="{{ route('users.destroy', $u->MaNguoiDung) }}" style="display:inline-block; margin:0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản {{ $u->HoTen }} không?');">
+                                    <form method="POST" action="{{ route('users.destroy', $u->MaNguoiDung) }}" style="display:inline-block; margin:0;" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn tài khoản {{ $u->HoTen }} khỏi giao diện? (Dữ liệu vẫn được bảo toàn trong hệ thống)');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa người dùng">
-                                            <i class="bi bi-trash"></i> Xóa
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="Ẩn người dùng (Bảo toàn dữ liệu)">
+                                            <i class="bi bi-eye-slash"></i> Ẩn
                                         </button>
                                     </form>
                                 @endif
