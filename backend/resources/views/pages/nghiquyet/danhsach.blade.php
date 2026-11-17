@@ -21,7 +21,7 @@
             @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
                 <button type="button" class="stu-btn stu-btn-primary stu-flex stu-items-center" style="gap: 8px;" data-modal-open="createResolutionModal">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    <span>Ghi nhận và Ban hành nghị quyết</span>
+                    <span>Ghi nhận số ngày ban hành nghị quyết</span>
                 </button>
             @endif
         </div>
@@ -247,8 +247,8 @@
     </div>
 </div>
 
-<!-- MODAL FORM LƠ LỬNG: GHI NHẬN SỐ, NGÀY BAN HÀNH NGHỊ QUYẾT -->
-<x-hop-thoai id="createResolutionModal" title="Ghi Nhận Số, Ngày Ban Hành Nghị Quyết Hội Đồng Trường" size="lg">
+<!-- MODAL FORM LƠ LỬNG: GHI NHẬN SỐ NGÀY BAN HÀNH NGHỊ QUYẾT -->
+<x-hop-thoai id="createResolutionModal" title="Ghi Nhận Số Ngày Ban Hành Nghị Quyết" size="lg">
     <form method="POST" action="{{ route('resolutions.store') }}" enctype="multipart/form-data" id="modalCreateResolutionForm">
         @csrf
 
