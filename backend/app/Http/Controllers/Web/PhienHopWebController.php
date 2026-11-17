@@ -133,8 +133,7 @@ class PhienHopWebController extends Controller
             $perPage = 10;
         }
 
-        $meetings = $query->orderBy('NgayHop', 'desc')
-            ->orderBy('MaPhienHop', 'desc')
+        $meetings = $query->orderBy('MaPhienHop', 'asc')
             ->paginate($perPage)
             ->withQueryString();
 
