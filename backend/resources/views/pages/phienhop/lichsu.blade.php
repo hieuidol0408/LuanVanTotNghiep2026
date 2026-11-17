@@ -125,7 +125,7 @@
         </div>
 
         <!-- Hàng 2: Hình thức, Trạng thái, Khoảng ngày, Nút Tra cứu -->
-        <div style="display: grid; grid-template-columns: 1.2fr 1.3fr 1.2fr 1.2fr auto auto; gap: 12px; align-items: center;">
+        <div style="display: grid; grid-template-columns: 1.15fr 1.25fr 1.3fr 1.3fr auto auto; gap: 12px; align-items: center;">
             <!-- Hình thức -->
             <div>
                 <select name="format" class="stu-form-control" style="height: 38px;">
@@ -148,25 +148,29 @@
             </div>
 
             <!-- Từ ngày -->
-            <div>
+            <div style="display: flex; align-items: stretch; border: 1px solid var(--color-border); border-radius: 8px; background: #fff; height: 38px; overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s;" onfocusin="this.style.borderColor='var(--color-primary)'; this.style.boxShadow='0 0 0 3px rgba(0, 58, 140, 0.1)';" onfocusout="this.style.borderColor='var(--color-border)'; this.style.boxShadow='none';">
+                <span style="background: #f8fafc; border-right: 1px solid var(--color-border); padding: 0 10px; display: flex; align-items: center; font-size: 12px; font-weight: 700; color: #475569; white-space: nowrap; user-select: none;">
+                    Từ ngày
+                </span>
                 <input 
                     type="date" 
                     name="from_date" 
                     value="{{ request('from_date') }}" 
-                    class="stu-form-control"
-                    style="height: 38px;"
+                    style="border: none; outline: none; padding: 0 8px; width: 100%; font-size: 13px; color: var(--color-text-main); background: transparent; height: 100%; font-family: inherit;"
                     title="Từ ngày"
                 >
             </div>
 
             <!-- Đến ngày -->
-            <div>
+            <div style="display: flex; align-items: stretch; border: 1px solid var(--color-border); border-radius: 8px; background: #fff; height: 38px; overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s;" onfocusin="this.style.borderColor='var(--color-primary)'; this.style.boxShadow='0 0 0 3px rgba(0, 58, 140, 0.1)';" onfocusout="this.style.borderColor='var(--color-border)'; this.style.boxShadow='none';">
+                <span style="background: #f8fafc; border-right: 1px solid var(--color-border); padding: 0 10px; display: flex; align-items: center; font-size: 12px; font-weight: 700; color: #475569; white-space: nowrap; user-select: none;">
+                    Đến ngày
+                </span>
                 <input 
                     type="date" 
                     name="to_date" 
                     value="{{ request('to_date') }}" 
-                    class="stu-form-control"
-                    style="height: 38px;"
+                    style="border: none; outline: none; padding: 0 8px; width: 100%; font-size: 13px; color: var(--color-text-main); background: transparent; height: 100%; font-family: inherit;"
                     title="Đến ngày"
                 >
             </div>
