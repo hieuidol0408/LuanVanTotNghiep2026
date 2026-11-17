@@ -184,36 +184,34 @@
                     @endif
                 </td>
                 <td class="col-actions" style="text-align: right; white-space: nowrap;">
-                    <div class="stu-table-actions-group" style="justify-content: flex-end; gap: 6px;">
-                        <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" class="stu-btn stu-btn-outline stu-btn-sm" title="Xem chi tiết toàn văn">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    <div class="stu-actions-2x2">
+                        {{-- Hàng 1 (Trên): Xem & Sửa --}}
+                        <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" class="stu-btn-2x2 btn-view" title="Xem chi tiết toàn văn">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             <span>Xem</span>
                         </a>
 
                         @if($isDraft && in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                            <a href="{{ route('resolutions.edit', $res->MaNghiQuyet) }}" class="stu-btn stu-btn-secondary stu-btn-sm" title="Chỉnh sửa dự thảo">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            <a href="{{ route('resolutions.edit', $res->MaNghiQuyet) }}" class="stu-btn-2x2 btn-update" title="Chỉnh sửa dự thảo">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 <span>Sửa</span>
                             </a>
                         @endif
 
-                        {{-- Ký ban hành (Dành cho Chủ tịch) --}}
+                        {{-- Hàng 2 (Dưới): Ký / Công bố & Ẩn --}}
                         @if($isDraft && in_array($role, ['CHAIR', 'ADMIN']))
                             <form method="POST" action="{{ route('resolutions.sign', $res->MaNghiQuyet) }}" style="display: inline-block;">
                                 @csrf
-                                <button type="submit" class="stu-btn stu-btn-secondary stu-btn-sm" title="Chủ tịch ký ban hành">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                <button type="submit" class="stu-btn-2x2 btn-success" title="Chủ tịch ký ban hành">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     <span>Ký</span>
                                 </button>
                             </form>
-                        @endif
-
-                        {{-- Công bố hiệu lực (Thư ký / Chủ tịch) --}}
-                        @if($isSigned && in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                        @elseif($isSigned && in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
                             <form method="POST" action="{{ route('resolutions.publish', $res->MaNghiQuyet) }}" style="display: inline-block;">
                                 @csrf
-                                <button type="submit" class="stu-btn stu-btn-primary stu-btn-sm" title="Công bố hiệu lực toàn trường">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                <button type="submit" class="stu-btn-2x2 btn-primary" title="Công bố hiệu lực toàn trường">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                     <span>Công bố</span>
                                 </button>
                             </form>
@@ -223,8 +221,8 @@
                             <form method="POST" action="{{ route('resolutions.destroy', $res->MaNghiQuyet) }}" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn Nghị quyết {{ $res->SoNghiQuyet }} khỏi giao diện? (Dữ liệu vẫn được bảo toàn trong hệ thống)');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="stu-btn stu-btn-outline stu-btn-sm" style="color: var(--color-text-secondary);" title="Ẩn Nghị quyết (Bảo toàn dữ liệu)">
-                                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                                <button type="submit" class="stu-btn-2x2 btn-delete" title="Ẩn Nghị quyết (Bảo toàn dữ liệu)">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
                                     <span>Ẩn</span>
                                 </button>
                             </form>

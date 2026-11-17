@@ -166,27 +166,30 @@
                     {{ $item->NgayTrinh ? \Carbon\Carbon::parse($item->NgayTrinh)->format('d/m/Y') : 'Chưa gửi' }}
                 </td>
                 <td class="col-actions">
-                    <div class="stu-table-actions-group">
-                        <a href="{{ route('submissions.show', $item->MaHoSo) }}" class="stu-btn stu-btn-outline stu-btn-sm" title="Xem chi tiết hồ sơ trình">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    <div class="stu-actions-2x2">
+                        {{-- Hàng 1 (Trên): Xem & Kiểm tra --}}
+                        <a href="{{ route('submissions.show', $item->MaHoSo) }}" class="stu-btn-2x2 btn-view" title="Xem chi tiết hồ sơ trình">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             <span>Xem</span>
                         </a>
                         @if(in_array($role, ['SECRETARY', 'CHAIR', 'ADMIN']))
-                            <a href="{{ route('submissions.show', [$item->MaHoSo, 'review' => 1]) }}" class="stu-btn stu-btn-outline stu-btn-sm" style="color: var(--color-success); border-color: var(--color-success);" title="Kiểm tra & thẩm định hồ sơ vào phiên họp">
-                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <a href="{{ route('submissions.show', [$item->MaHoSo, 'review' => 1]) }}" class="stu-btn-2x2 btn-success" title="Kiểm tra & thẩm định hồ sơ vào phiên họp">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 <span>Kiểm tra</span>
                             </a>
                         @endif
+
+                        {{-- Hàng 2 (Dưới): Sửa & Ẩn --}}
                         @if(in_array($role, ['UNIT_REP', 'SECRETARY', 'CHAIR', 'ADMIN']))
-                            <a href="{{ route('submissions.edit', $item->MaHoSo) }}" class="stu-btn stu-btn-secondary stu-btn-sm" title="Chỉnh sửa hồ sơ trình">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            <a href="{{ route('submissions.edit', $item->MaHoSo) }}" class="stu-btn-2x2 btn-update" title="Chỉnh sửa hồ sơ trình">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 <span>Sửa</span>
                             </a>
                             <form method="POST" action="{{ route('submissions.destroy', $item->MaHoSo) }}" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn hồ sơ trình {{ $item->ma_ho_so_hien_thi }} khỏi danh sách hiển thị? (Dữ liệu vẫn được bảo toàn trong hệ thống)');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="stu-btn stu-btn-outline stu-btn-sm" style="color: var(--color-text-secondary);" title="Ẩn hồ sơ trình (Bảo toàn dữ liệu)">
-                                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                                <button type="submit" class="stu-btn-2x2 btn-delete" title="Ẩn hồ sơ trình (Bảo toàn dữ liệu)">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
                                     <span>Ẩn</span>
                                 </button>
                             </form>

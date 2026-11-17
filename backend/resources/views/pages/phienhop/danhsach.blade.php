@@ -147,21 +147,30 @@
                 <div style="color: var(--color-text-muted);"><strong>{{ $meeting->tham_du_count ?? 0 }}</strong> thành viên</div>
             </td>
             <td class="col-actions">
-                <div class="stu-table-actions-group">
-                    <x-nut-bam variant="outline" size="sm" href="{{ route('meetings.show', $meeting->MaPhienHop) }}">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <div class="stu-actions-2x2">
+                    {{-- Hàng 1 (Trên): Chi tiết & Sửa --}}
+                    <a href="{{ route('meetings.show', $meeting->MaPhienHop) }}" class="stu-btn-2x2 btn-view" title="Xem chi tiết phiên họp #{{ $meeting->MaPhienHop }}">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                         <span>Chi tiết</span>
-                    </x-nut-bam>
+                    </a>
                     @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                        <x-nut-bam variant="secondary" size="sm" href="{{ route('meetings.edit', $meeting->MaPhienHop) }}">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <a href="{{ route('meetings.edit', $meeting->MaPhienHop) }}" class="stu-btn-2x2 btn-update" title="Chỉnh sửa & dời lịch phiên họp">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             <span>Sửa</span>
-                        </x-nut-bam>
+                        </a>
+                    @endif
+
+                    {{-- Hàng 2 (Dưới): Chương trình họp & Ẩn --}}
+                    <a href="{{ route('agendas.index', ['meeting_id' => $meeting->MaPhienHop]) }}" class="stu-btn-2x2 btn-view" title="Xem chương trình họp & hồ sơ trình của phiên này">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                        <span>Ch.trình</span>
+                    </a>
+                    @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
                         <form method="POST" action="{{ route('meetings.destroy', $meeting->MaPhienHop) }}" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn phiên họp #{{ $meeting->MaPhienHop }} khỏi danh sách? (Dữ liệu vẫn được bảo toàn trong hệ thống)');">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="stu-btn stu-btn-outline stu-btn-sm" style="color: var(--color-text-secondary);" title="Ẩn phiên họp (Bảo toàn dữ liệu)">
-                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                            <button type="submit" class="stu-btn-2x2 btn-delete" title="Ẩn phiên họp (Bảo toàn dữ liệu)">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
                                 <span>Ẩn</span>
                             </button>
                         </form>

@@ -747,7 +747,7 @@ a:hover {
 /* Cột Actions liền mạch hoàn toàn với bảng, không tách rời */
 .stu-table th.col-actions,
 .stu-table td.col-actions {
-  text-align: right;
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -937,7 +937,7 @@ a:hover {
    ========================================================================== */
 .stu-actions-2x2 {
   display: inline-grid;
-  grid-template-columns: repeat(2, minmax(76px, 1fr));
+  grid-template-columns: repeat(2, minmax(68px, 1fr));
   gap: 4px 6px;
   width: auto;
   align-items: stretch;
@@ -956,9 +956,9 @@ a:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   height: 25px;
-  padding: 0 8px;
+  padding: 0 6px;
   font-family: var(--font-family);
   font-size: 11px;
   font-weight: 500;
@@ -1003,20 +1003,50 @@ a:hover {
   transform: translateY(-1px);
 }
 
-/* Nút Xóa */
-.stu-actions-2x2 .btn-delete,
-.stu-actions-2x2 form button {
-  border-color: #FECACA;
-  color: #DC2626;
-  background-color: #FEF2F2;
+/* Nút Chính / Phê duyệt / Công bố */
+.stu-actions-2x2 .btn-primary,
+.stu-actions-2x2 form button.btn-primary {
+  border-color: var(--color-primary);
+  color: #ffffff;
+  background-color: var(--color-primary);
 }
-.stu-actions-2x2 .btn-delete:hover,
-.stu-actions-2x2 form button:hover {
-  background-color: #DC2626;
-  border-color: #DC2626;
+.stu-actions-2x2 .btn-primary:hover,
+.stu-actions-2x2 form button.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
   color: #ffffff;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+/* Nút Thành công / Ký duyệt / Kiểm tra */
+.stu-actions-2x2 .btn-success,
+.stu-actions-2x2 form button.btn-success {
+  border-color: #86EFAC;
+  color: #15803D;
+  background-color: #F0FDF4;
+}
+.stu-actions-2x2 .btn-success:hover,
+.stu-actions-2x2 form button.btn-success:hover {
+  background-color: #15803D;
+  border-color: #15803D;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Nút Ẩn / Xóa an toàn */
+.stu-actions-2x2 .btn-delete,
+.stu-actions-2x2 form button:not(.btn-primary):not(.btn-success):not(.btn-update):not(.btn-view) {
+  border-color: #CBD5E1;
+  color: #64748B;
+  background-color: #F8FAFC;
+}
+.stu-actions-2x2 .btn-delete:hover,
+.stu-actions-2x2 form button:not(.btn-primary):not(.btn-success):not(.btn-update):not(.btn-view):hover {
+  background-color: #FEF2F2;
+  border-color: #FCA5A5;
+  color: #DC2626;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.15);
 }
 
 /* Empty State */
