@@ -314,10 +314,10 @@
             >{{ old('TrichYeu') }}</textarea>
         </div>
 
-        {{-- 3. Toàn văn nghị quyết --}}
+        {{-- 3. Nội dung nghị quyết --}}
         <div class="stu-form-group" style="margin-bottom: 14px;">
             <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
-                Nội dung toàn văn nghị quyết <span style="color: var(--color-danger);">*</span>
+                Nội dung nghị quyết <span style="color: var(--color-danger);">*</span>
             </label>
             <textarea 
                 name="NoiDung" 

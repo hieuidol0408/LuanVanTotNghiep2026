@@ -112,10 +112,10 @@
                 @enderror
             </div>
 
-            {{-- 3. Toàn văn nội dung Nghị quyết --}}
+            {{-- 3. Nội dung Nghị quyết --}}
             <div class="stu-form-group stu-mb-5">
                 <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
-                    Nội dung toàn văn nghị quyết <span style="color: var(--color-danger);">*</span>
+                    Nội dung nghị quyết <span style="color: var(--color-danger);">*</span>
                 </label>
                 <textarea 
                     name="NoiDung" 

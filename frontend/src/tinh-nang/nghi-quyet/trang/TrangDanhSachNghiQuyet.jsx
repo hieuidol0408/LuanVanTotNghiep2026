@@ -277,7 +277,7 @@ export default function ResolutionListPage() {
       return;
     }
     if (!formData.content.trim()) {
-      toast.error("Vui lòng nhập nội dung toàn văn nghị quyết");
+      toast.error("Vui lòng nhập nội dung nghị quyết");
       return;
     }
 
@@ -658,7 +658,7 @@ export default function ResolutionListPage() {
             {/* Toàn văn Quyết nghị */}
             <div>
               <div style={{ fontSize: "var(--font-size-sm)", fontWeight: "var(--font-weight-bold)", color: "var(--color-text-primary)", marginBottom: "var(--space-2)" }}>
-                NỘI DUNG TOÀN VĂN NGHỊ QUYẾT
+                NỘI DUNG NGHỊ QUYẾT
               </div>
               <div
                 style={{
@@ -908,7 +908,7 @@ export default function ResolutionListPage() {
               {/* Toàn văn quyết nghị */}
               <div>
                 <label className="form-label" style={{ display: "block", marginBottom: "4px", fontSize: "var(--font-size-sm)" }}>
-                  Nội dung toàn văn nghị quyết (Điều 1, Điều 2...) *
+                  Nội dung nghị quyết (Điều 1, Điều 2...) *
                 </label>
                 <textarea
                   className="form-control"
