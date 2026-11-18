@@ -9,8 +9,8 @@ echo ========================================================
 echo   KHOI DONG HE THONG QUAN LY HOI DONG TRUONG STU
 echo ========================================================
 echo.
-echo [1/3] Dang khoi dong Backend Laravel (Port 8000)...
-start "Backend Laravel (STU)" cmd /k "cd /d %PROJECT_DIR%backend && if exist D:\WAMP\bin\php\php8.3.14\php.exe (D:\WAMP\bin\php\php8.3.14\php.exe artisan serve --host=127.0.0.1 --port=8000) else (php artisan serve --host=127.0.0.1 --port=8000)"
+echo [1/3] Dang khoi dong Backend Laravel da luong (Port 8000)...
+start "Backend Laravel (STU)" cmd /k "set PHP_CLI_SERVER_WORKERS=4 && cd /d %PROJECT_DIR%backend && if exist D:\WAMP\bin\php\php8.3.14\php.exe (D:\WAMP\bin\php\php8.3.14\php.exe artisan serve --host=127.0.0.1 --port=8000) else (php artisan serve --host=127.0.0.1 --port=8000)"
 
 echo [2/3] Dang khoi dong Frontend React (Port 5173)...
 timeout /t 2 /nobreak >nul
