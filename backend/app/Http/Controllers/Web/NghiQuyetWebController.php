@@ -28,13 +28,35 @@ class NghiQuyetWebController extends Controller
             'taiLieu',
         ]);
 
-        // 1. Tìm kiếm theo số hiệu hoặc nội dung trích yếu
-        if ($search = $request->input('search')) {
+        // 1. Tìm kiếm theo từ khóa (tiêu đề, trích yếu, nội dung toàn văn, số hiệu)
+        if ($search = trim((string) $request->input('search'))) {
             $query->where(function ($q) use ($search) {
                 $q->where('SoNghiQuyet', 'like', "%{$search}%")
                     ->orWhere('TrichYeu', 'like', "%{$search}%")
                     ->orWhere('NoiDung', 'like', "%{$search}%");
+
+                // Hỗ trợ tìm kiếm thông minh theo từng từ khóa nếu chuỗi có nhiều từ
+                $words = array_filter(explode(' ', $search));
+                if (count($words) > 1) {
+                    $q->orWhere(function ($subQ) use ($words) {
+                        foreach ($words as $w) {
+                            $subQ->where(function ($wQ) use ($w) {
+                                $wQ->where('TrichYeu', 'like', "%{$w}%")
+                                    ->orWhere('NoiDung', 'like', "%{$w}%")
+                                    ->orWhere('SoNghiQuyet', 'like', "%{$w}%");
+                            });
+                        }
+                    });
+                }
             });
+        }
+
+        // 2. Tìm kiếm nâng cao: Lọc theo khoảng thời gian ban hành (Từ ngày - Đến ngày)
+        if ($fromDate = $request->input('from_date')) {
+            $query->whereDate('NgayBanHanh', '>=', $fromDate);
+        }
+        if ($toDate = $request->input('to_date')) {
+            $query->whereDate('NgayBanHanh', '<=', $toDate);
         }
 
         // 2. Lọc theo trạng thái

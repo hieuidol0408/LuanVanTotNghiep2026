@@ -71,7 +71,10 @@ class PhienHopWebController extends Controller
 
         $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
 
-        return view('pages.phienhop.danhsach', compact('meetings', 'years', 'role'));
+        $officialMembers = ThanhVienHdt::with(['nguoiDung.donVi'])->get();
+        $existingGuests = KhachMoi::orderBy('HoTen')->get();
+
+        return view('pages.phienhop.danhsach', compact('meetings', 'years', 'role', 'officialMembers', 'existingGuests'));
     }
 
     /**
@@ -181,11 +184,14 @@ class PhienHopWebController extends Controller
                 ->with('error', 'Bạn không có thẩm quyền tạo phiên họp mới.');
         }
 
-        return view('pages.phienhop.taomoi');
+        $officialMembers = ThanhVienHdt::with(['nguoiDung.donVi'])->get();
+        $existingGuests = KhachMoi::orderBy('HoTen')->get();
+
+        return view('pages.phienhop.taomoi', compact('officialMembers', 'existingGuests'));
     }
 
     /**
-     * Lưu phiên họp mới (kiểm tra BR-02, ràng buộc thời gian)
+     * Lưu phiên họp mới (kiểm tra BR-02, ràng buộc thời gian & người tham gia)
      */
     public function store(Request $request): RedirectResponse
     {
@@ -202,6 +208,10 @@ class PhienHopWebController extends Controller
             'DiaDiem' => ['required', 'string', 'min:3', 'max:255'],
             'HinhThuc' => ['required', 'string'],
             'GhiChu' => ['nullable', 'string', 'max:1000'],
+            'member_ids' => ['required', 'array', 'min:1'],
+            'member_ids.*' => ['integer', 'exists:thanh_vien_hdt,MaThanhVien'],
+            'guest_ids' => ['nullable', 'array'],
+            'guest_ids.*' => ['integer', 'exists:khach_moi,MaKhachMoi'],
         ], [
             'TenPhienHop.required' => 'Vui lòng nhập tên phiên họp.',
             'TenPhienHop.min' => 'Tên phiên họp phải có ít nhất 5 ký tự.',
@@ -213,12 +223,26 @@ class PhienHopWebController extends Controller
             'DiaDiem.required' => 'Vui lòng nhập địa điểm tổ chức.',
             'DiaDiem.min' => 'Địa điểm tổ chức phải có ít nhất 3 ký tự.',
             'HinhThuc.required' => 'Vui lòng chọn hình thức tổ chức họp.',
+            'member_ids.required' => 'Vui lòng chọn ít nhất một thành viên Hội đồng trường tham gia phiên họp để phân quyền biểu quyết.',
+            'member_ids.min' => 'Vui lòng chọn ít nhất một thành viên Hội đồng trường tham gia phiên họp.',
         ]);
 
         $startTimeStr = strlen($validated['GioBatDau']) === 5 ? "{$validated['GioBatDau']}:00" : $validated['GioBatDau'];
         $endTimeStr = strlen($validated['GioKetThuc']) === 5 ? "{$validated['GioKetThuc']}:00" : $validated['GioKetThuc'];
         $startDateTime = "{$validated['NgayHop']} {$startTimeStr}";
         $endDateTime = "{$validated['NgayHop']} {$endTimeStr}";
+
+        // [Bẫy lỗi nghiệp vụ]: Thời gian bắt đầu phiên họp không được nằm trong quá khứ so với thời điểm hiện tại
+        if (strtotime($startDateTime) < time()) {
+            $errMsg = 'Thời gian bắt đầu phiên họp không được nằm trong quá khứ so với thời điểm hiện tại.';
+            return back()
+                ->withInput()
+                ->with('error', $errMsg)
+                ->withErrors([
+                    'NgayHop' => $errMsg,
+                    'GioBatDau' => $errMsg,
+                ]);
+        }
 
         // Kiểm tra ràng buộc thời gian kết thúc phải lớn hơn thời gian bắt đầu
         if (strtotime($endDateTime) <= strtotime($startDateTime)) {
@@ -259,8 +283,10 @@ class PhienHopWebController extends Controller
         };
 
         $creatorId = Auth::user()?->MaNguoiDung ?? Auth::id() ?? session('user_id') ?? 1;
+        $memberIds = $validated['member_ids'];
+        $guestIds = $request->input('guest_ids', []);
 
-        $phienHop = DB::transaction(function () use ($validated, $startDateTime, $endDateTime, $hinhThucVi, $creatorId) {
+        $phienHop = DB::transaction(function () use ($validated, $startDateTime, $endDateTime, $hinhThucVi, $creatorId, $memberIds, $guestIds, $request) {
             $meeting = PhienHop::create([
                 'TenPhienHop' => $validated['TenPhienHop'],
                 'NgayHop' => $validated['NgayHop'],
@@ -273,12 +299,11 @@ class PhienHopWebController extends Controller
                 'MaNguoiDung' => $creatorId,
             ]);
 
-            // [BR-02] Tự động mời tất cả thành viên HĐT chính thức vào phiên (chống trùng lặp)
-            $officialMembers = ThanhVienHdt::all();
-            foreach ($officialMembers as $member) {
+            // [BR-02] Thêm danh sách thành viên HĐT được chọn vào phiên họp (Chỉ ai được chọn tham gia mới được phân quyền biểu quyết)
+            foreach ($memberIds as $memberId) {
                 ThamDu::firstOrCreate([
                     'MaPhienHop' => $meeting->MaPhienHop,
-                    'MaThanhVien' => $member->MaThanhVien,
+                    'MaThanhVien' => $memberId,
                 ], [
                     'TrangThaiThamDu' => 'Có mặt',
                     'ThoiDiemXacNhan' => null,
@@ -286,11 +311,54 @@ class PhienHopWebController extends Controller
                 ]);
             }
 
+            // [BR-03] Thêm khách mời từ danh bạ có sẵn (nếu có chọn)
+            if (!empty($guestIds) && is_array($guestIds)) {
+                foreach ($guestIds as $guestId) {
+                    KhachMoiPhienHop::firstOrCreate([
+                        'MaKhachMoi' => $guestId,
+                        'MaPhienHop' => $meeting->MaPhienHop,
+                    ], [
+                        'NoiDungMoi' => 'Mời tham dự phiên họp',
+                        'TrangThaiThamDu' => 'Đã gửi giấy mời',
+                    ]);
+                }
+            }
+
+            // [BR-03] Thêm khách mời mới nhập trực tiếp
+            $newGuestNames = $request->input('new_guest_names', []);
+            $newGuestDepts = $request->input('new_guest_depts', []);
+            $newGuestRoles = $request->input('new_guest_roles', []);
+            $newGuestEmails = $request->input('new_guest_emails', []);
+            $newGuestPurposes = $request->input('new_guest_purposes', []);
+
+            if (!empty($newGuestNames) && is_array($newGuestNames)) {
+                foreach ($newGuestNames as $idx => $name) {
+                    $name = trim($name);
+                    if ($name !== '') {
+                        $guest = KhachMoi::firstOrCreate([
+                            'HoTen' => $name,
+                            'DonViCongTac' => !empty($newGuestDepts[$idx]) ? trim($newGuestDepts[$idx]) : null,
+                        ], [
+                            'ChucVu' => !empty($newGuestRoles[$idx]) ? trim($newGuestRoles[$idx]) : null,
+                            'Email' => !empty($newGuestEmails[$idx]) ? trim($newGuestEmails[$idx]) : null,
+                        ]);
+
+                        KhachMoiPhienHop::create([
+                            'MaKhachMoi' => $guest->MaKhachMoi,
+                            'MaPhienHop' => $meeting->MaPhienHop,
+                            'NoiDungMoi' => !empty($newGuestPurposes[$idx]) ? trim($newGuestPurposes[$idx]) : 'Mời tham dự phiên họp',
+                            'TrangThaiThamDu' => 'Đã gửi giấy mời',
+                        ]);
+                    }
+                }
+            }
+
             return $meeting;
         });
 
+        $countMembers = count($memberIds);
         return redirect()->route('meetings.show', $phienHop->MaPhienHop)
-            ->with('success', 'Tạo phiên họp mới thành công! Đã tự động tạo danh sách mời thành viên Hội đồng.');
+            ->with('success', "Tạo phiên họp mới thành công! Đã thiết lập danh sách {$countMembers} thành viên tham gia để phân quyền biểu quyết.");
     }
 
     /**
