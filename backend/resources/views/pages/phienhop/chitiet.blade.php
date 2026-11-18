@@ -472,7 +472,7 @@
         </div>
 
         <x-bang-du-lieu 
-            :headers="['Số hiệu nghị quyết', 'Trích yếu nội dung', 'Ngày ban hành', 'Trạng thái hiệu lực']"
+            :headers="['Số hiệu nghị quyết', 'Trích yếu', 'Ngày ban hành', 'Trạng thái hiệu lực']"
             :hasActions="true"
             actionTitle="Thao tác"
             :empty="$resolutions->isEmpty()"

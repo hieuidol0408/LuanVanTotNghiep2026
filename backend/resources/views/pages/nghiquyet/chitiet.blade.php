@@ -325,7 +325,7 @@
 
             <div class="stu-grid stu-grid-cols-2 stu-gap-4 stu-mb-4" style="margin-top: 12px;">
                 <div class="stu-form-group" style="margin-bottom: 0;">
-                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Trích yếu nội dung <span style="color: var(--color-danger);">*</span></label>
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Trích yếu <span style="color: var(--color-danger);">*</span></label>
                     <input type="text" name="TrichYeu" value="{{ old('TrichYeu', $resolution->TrichYeu) }}" class="stu-form-control" required>
                 </div>
 

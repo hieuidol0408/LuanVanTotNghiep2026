@@ -160,7 +160,7 @@ class NghiQuyetWebController extends Controller
         ], [
             'SoNghiQuyet.required' => 'Vui lòng nhập số hiệu nghị quyết (ví dụ: 15/NQ-HĐT).',
             'SoNghiQuyet.unique' => 'Số hiệu nghị quyết này đã tồn tại trong hệ thống.',
-            'TrichYeu.required' => 'Vui lòng nhập trích yếu nội dung nghị quyết.',
+            'TrichYeu.required' => 'Vui lòng nhập trích yếu nghị quyết.',
             'NoiDung.required' => 'Vui lòng nhập toàn văn nội dung nghị quyết.',
             'MaPhienHop.required' => 'Vui lòng chọn phiên họp liên kết.',
             'NgayBanHanh.required' => 'Vui lòng chọn ngày ban hành.',

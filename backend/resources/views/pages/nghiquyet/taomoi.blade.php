@@ -94,10 +94,10 @@
                 </div>
             </div>
 
-            {{-- 2. Trích yếu nội dung --}}
+            {{-- 2. Trích yếu --}}
             <div class="stu-form-group stu-mb-5" style="margin-top: 14px;">
                 <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
-                    Trích yếu nội dung Nghị quyết <span style="color: var(--color-danger);">*</span>
+                    Trích yếu <span style="color: var(--color-danger);">*</span>
                 </label>
                 <input 
                     type="text" 

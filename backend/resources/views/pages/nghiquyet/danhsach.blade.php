@@ -170,7 +170,7 @@
     {{-- Bảng danh sách Nghị quyết (Áp dụng layout chống tràn) --}}
     <x-bang-du-lieu 
         cardTitle="Danh sách Nghị quyết Hội đồng trường (Tổng: {{ $resolutions->total() }})"
-        :headers="['Số hiệu', 'Trích yếu nội dung', 'Phiên họp và Ngày', 'Trạng thái', 'Tiến độ thực hiện']" 
+        :headers="['Số hiệu', 'Trích yếu', 'Phiên họp và Ngày', 'Trạng thái', 'Tiến độ thực hiện']" 
         :hasActions="true"
         actionTitle="Thao tác"
     >
@@ -341,10 +341,10 @@
             </div>
         </div>
 
-        {{-- 2. Trích yếu nội dung --}}
+        {{-- 2. Trích yếu --}}
         <div class="stu-form-group" style="margin-bottom: 14px;">
             <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
-                Trích yếu nội dung Nghị quyết <span style="color: var(--color-danger);">*</span>
+                Trích yếu <span style="color: var(--color-danger);">*</span>
             </label>
             <textarea 
                 name="TrichYeu" 
