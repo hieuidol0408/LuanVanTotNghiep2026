@@ -510,6 +510,36 @@ class MeetingWebTest extends TestCase
     }
 
     /**
+     * 15b. Đẩy tài liệu phiên họp: Tải lên file Word (.docx) thành công không bị từ chối.
+     */
+    public function test_meeting_upload_docx_document_succeeds(): void
+    {
+        Storage::fake('public');
+        $secretary = \App\Models\User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        $meeting = PhienHop::first();
+        if (! $meeting) {
+            $this->markTestSkipped('Chưa có phiên họp.');
+        }
+
+        $file = UploadedFile::fake()->create('18_11_HoiDongTruong.docx', 1200);
+
+        $response = $this->post(route('meetings.documents.upload', $meeting->MaPhienHop), [
+            'TenTaiLieu' => 'Báo cáo Word Hội đồng trường',
+            'LoaiTaiLieu' => 'Kịch bản họp',
+            'file' => $file,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $doc = \App\Models\TaiLieu::where('TenTaiLieu', 'Báo cáo Word Hội đồng trường')->first();
+        $this->assertNotNull($doc);
+        $this->assertEquals('docx', strtolower($doc->DinhDang));
+    }
+
+    /**
      * 16. Đẩy tài liệu phiên họp: Định dạng không hợp lệ (.exe, .php, .zip) xuất thông báo lỗi rõ ràng.
      */
     public function test_meeting_upload_document_invalid_format_fails_with_error_message(): void

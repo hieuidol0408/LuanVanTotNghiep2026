@@ -19,6 +19,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
 class PhienHopWebController extends Controller
@@ -202,6 +203,20 @@ class PhienHopWebController extends Controller
             return redirect()->route('meetings.index')->with('error', 'Từ chối quyền thao tác.');
         }
 
+        if ($request->hasFile('doc_file') && ! $request->file('doc_file')->isValid()) {
+            $errCode = $request->file('doc_file')->getError();
+            $errMsg = match ($errCode) {
+                UPLOAD_ERR_INI_SIZE => 'Tập tin tài liệu tải lên thất bại do dung lượng vượt quá giới hạn của máy chủ (upload_max_filesize trong PHP).',
+                UPLOAD_ERR_FORM_SIZE => 'Tập tin tài liệu tải lên vượt quá giới hạn dung lượng của biểu mẫu.',
+                UPLOAD_ERR_PARTIAL => 'Quá trình tải lên tập tin bị gián đoạn, chỉ tải lên được một phần.',
+                UPLOAD_ERR_NO_FILE => 'Chưa có tập tin nào được tải lên.',
+                UPLOAD_ERR_NO_TMP_DIR => 'Lỗi máy chủ: Thiếu thư mục tạm lưu trữ tập tin.',
+                UPLOAD_ERR_CANT_WRITE => 'Lỗi máy chủ: Không thể ghi tập tin tạm vào ổ đĩa.',
+                default => 'Tải lên tập tin tài liệu thất bại (Mã lỗi: ' . $errCode . '). Vui lòng thử lại.',
+            };
+            return back()->withInput()->with('error', $errMsg)->withErrors(['doc_file' => $errMsg]);
+        }
+
         $validated = $request->validate([
             'TenPhienHop' => ['required', 'string', 'min:5', 'max:255'],
             'NgayHop' => ['required', 'date'],
@@ -216,7 +231,7 @@ class PhienHopWebController extends Controller
             'guest_ids.*' => ['integer', 'exists:khach_moi,MaKhachMoi'],
             'doc_title' => ['nullable', 'string', 'max:255'],
             'doc_type' => ['nullable', 'string', 'max:100'],
-            'doc_file' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx'],
+            'doc_file' => ['nullable', 'file', 'max:20480', 'extensions:pdf,doc,docx,xls,xlsx,ppt,pptx'],
         ], [
             'TenPhienHop.required' => 'Vui lòng nhập tên phiên họp.',
             'TenPhienHop.min' => 'Tên phiên họp phải có ít nhất 5 ký tự.',
@@ -231,6 +246,8 @@ class PhienHopWebController extends Controller
             'member_ids.required' => 'Vui lòng chọn ít nhất một thành viên Hội đồng trường tham gia phiên họp để phân quyền biểu quyết.',
             'member_ids.min' => 'Vui lòng chọn ít nhất một thành viên Hội đồng trường tham gia phiên họp.',
             'doc_file.file' => 'Tập tin tài liệu đính kèm không hợp lệ.',
+            'doc_file.uploaded' => 'Tập tin tài liệu tải lên thất bại! Dung lượng tệp có thể vượt quá cấu hình của máy chủ hoặc đường truyền bị ngắt quãng.',
+            'doc_file.extensions' => 'Định dạng tập tin tài liệu không hợp lệ! Hệ thống chỉ hỗ trợ các tệp: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
             'doc_file.mimes' => 'Định dạng tập tin tài liệu không hợp lệ! Hệ thống chỉ hỗ trợ các tệp: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
             'doc_file.max' => 'Dung lượng tập tin tài liệu không được vượt quá 20MB.',
         ]);
@@ -823,18 +840,46 @@ class PhienHopWebController extends Controller
             return back()->with('error', 'Từ chối quyền thao tác.');
         }
 
-        $validated = $request->validate([
+        // Kiểm tra lỗi upload từ phía PHP trước khi validate
+        if ($request->hasFile('file') && ! $request->file('file')->isValid()) {
+            $errCode = $request->file('file')->getError();
+            $errMsg = match ($errCode) {
+                UPLOAD_ERR_INI_SIZE => 'Tập tin tải lên thất bại do dung lượng vượt quá giới hạn của máy chủ (upload_max_filesize trong PHP).',
+                UPLOAD_ERR_FORM_SIZE => 'Tập tin tải lên vượt quá giới hạn dung lượng của biểu mẫu.',
+                UPLOAD_ERR_PARTIAL => 'Quá trình tải lên tập tin bị gián đoạn, chỉ tải lên được một phần.',
+                UPLOAD_ERR_NO_FILE => 'Chưa có tập tin nào được tải lên.',
+                UPLOAD_ERR_NO_TMP_DIR => 'Lỗi máy chủ: Thiếu thư mục tạm lưu trữ tập tin.',
+                UPLOAD_ERR_CANT_WRITE => 'Lỗi máy chủ: Không thể ghi tập tin tạm vào ổ đĩa.',
+                default => 'Tải lên tập tin thất bại (Mã lỗi: ' . $errCode . '). Vui lòng thử lại.',
+            };
+            return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'docs', 'upload_doc' => 1])
+                ->withInput()
+                ->with('error', $errMsg)
+                ->withErrors(['file' => $errMsg]);
+        }
+
+        $validator = Validator::make($request->all(), [
             'TenTaiLieu' => ['required', 'string', 'max:255'],
             'LoaiTaiLieu' => ['required', 'string', 'max:100'],
-            'file' => ['required', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx'],
+            'file' => ['required', 'file', 'max:20480', 'extensions:pdf,doc,docx,xls,xlsx,ppt,pptx'],
         ], [
             'TenTaiLieu.required' => 'Vui lòng nhập tên tài liệu phiên họp.',
             'LoaiTaiLieu.required' => 'Vui lòng chọn phân loại tài liệu.',
             'file.required' => 'Vui lòng chọn tập tin tài liệu đính kèm.',
             'file.file' => 'Tập tin tải lên không hợp lệ.',
+            'file.uploaded' => 'Tập tin tải lên thất bại! Dung lượng tệp có thể vượt quá cấu hình của máy chủ hoặc đường truyền bị ngắt quãng.',
+            'file.extensions' => 'Định dạng tập tin không được hỗ trợ! Vui lòng chỉ tải lên các tệp tài liệu: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
             'file.mimes' => 'Định dạng tập tin không được hỗ trợ! Vui lòng chỉ tải lên các tệp tài liệu: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
             'file.max' => 'Dung lượng tập tin vượt quá giới hạn cho phép (Tối đa 20MB).',
         ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'docs', 'upload_doc' => 1])
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $validated = $validator->validated();
 
         $uploadedFile = $request->file('file');
         $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $uploadedFile->getClientOriginalName());
