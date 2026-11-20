@@ -192,6 +192,23 @@
                 </td>
                 <td class="col-actions">
                     <div class="stu-table-actions-group">
+                        @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                            @if(! $isOpening && ! in_array($v->TrangThai, ['CLOSED', 'Đã đóng']))
+                                <form method="POST" action="{{ route('votes.open', $v->MaNoiDung) }}" style="display: inline; margin: 0;">
+                                    @csrf
+                                    <button type="submit" class="stu-btn stu-btn-success stu-btn-sm" title="Mở cổng nhận phiếu biểu quyết">
+                                        <span>Mở BQ</span>
+                                    </button>
+                                </form>
+                            @elseif($isOpening)
+                                <form method="POST" action="{{ route('votes.close', $v->MaNoiDung) }}" style="display: inline; margin: 0;" onsubmit="return confirm('Bạn có chắc chắn muốn đóng và chốt kết quả biểu quyết này?');">
+                                    @csrf
+                                    <button type="submit" class="stu-btn stu-btn-danger stu-btn-sm" title="Đóng và chốt kết quả">
+                                        <span>Đóng BQ</span>
+                                    </button>
+                                </form>
+                            @endif
+                        @endif
                         <a href="{{ route('votes.show', $v->MaNoiDung) }}" class="stu-btn {{ $isOpening ? 'stu-btn-primary' : 'stu-btn-outline' }} stu-btn-sm" title="{{ $isOpening ? 'Vào phòng bỏ phiếu trực tuyến' : 'Xem kết quả biểu quyết' }}">
                             <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span>{{ $isOpening ? 'Bỏ phiếu' : 'Xem kết quả' }}</span>

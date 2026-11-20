@@ -452,9 +452,32 @@
                             </div>
                         </div>
 
-                        <div style="margin-top: var(--space-3); display: flex; justify-content: flex-end;">
-                            <a href="{{ route('votes.show', $vote->MaNoiDung) }}" class="stu-btn stu-btn-outline stu-btn-sm">
-                                <span>Mở phòng bỏ phiếu &amp; Chi tiết kiểm phiếu &rarr;</span>
+                        <div style="margin-top: var(--space-3); display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            @php
+                                $isVoteOpening = in_array($vote->TrangThai, ['OPENING', 'Đang mở biểu quyết', 'Đang mở']);
+                                $isVoteClosed = in_array($vote->TrangThai, ['CLOSED', 'Đã đóng']);
+                            @endphp
+                            @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                                @if(! $isVoteOpening && ! $isVoteClosed)
+                                    <form method="POST" action="{{ route('votes.open', $vote->MaNoiDung) }}" style="display: inline; margin: 0;">
+                                        @csrf
+                                        <button type="submit" class="stu-btn stu-btn-success stu-btn-sm" style="display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span>Mở biểu quyết</span>
+                                        </button>
+                                    </form>
+                                @elseif($isVoteOpening)
+                                    <form method="POST" action="{{ route('votes.close', $vote->MaNoiDung) }}" style="display: inline; margin: 0;" onsubmit="return confirm('Bạn có chắc muốn đóng và chốt kết quả biểu quyết này?');">
+                                        @csrf
+                                        <button type="submit" class="stu-btn stu-btn-danger stu-btn-sm" style="display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
+                                            <span>Đóng biểu quyết</span>
+                                        </button>
+                                    </form>
+                                @endif
+                            @endif
+                            <a href="{{ route('votes.show', $vote->MaNoiDung) }}" class="stu-btn {{ $isVoteOpening ? 'stu-btn-primary' : 'stu-btn-outline' }} stu-btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+                                <span>{{ $isVoteOpening ? 'Vào phòng bỏ phiếu &rarr;' : 'Xem chi tiết kiểm phiếu &rarr;' }}</span>
                             </a>
                         </div>
                     </div>
