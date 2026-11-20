@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\ChuongTrinhHop;
 use App\Models\HoSoTrinh;
+use App\Models\KetQuaBieuQuyet;
 use App\Models\KhachMoi;
 use App\Models\KhachMoiPhienHop;
 use App\Models\NghiQuyet;
@@ -13,6 +14,7 @@ use App\Models\PhienHop;
 use App\Models\TaiLieu;
 use App\Models\ThamDu;
 use App\Models\ThanhVienHdt;
+use App\Models\UyQuyenBieuQuyet;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -384,6 +386,12 @@ class PhienHopWebController extends Controller
             ->whereNotIn('MaThanhVien', $existingMemberIds)
             ->get();
 
+        // Danh sách khách mời chưa được thêm vào phiên họp (BR-03)
+        $existingGuestIds = $meeting->khachMoiPhienHop->pluck('MaKhachMoi')->toArray();
+        $availableGuests = KhachMoi::whereNotIn('MaKhachMoi', $existingGuestIds)
+            ->orderBy('HoTen')
+            ->get();
+
         // Danh sách hồ sơ trình có thể đưa vào chương trình họp (dựa trên khóa ngoại MaHoSo chưa gắn vào phiên này)
         $existingDossierIds = $meeting->chuongTrinhHop->pluck('MaHoSo')->toArray();
         $availableDossiers = HoSoTrinh::with('donVi')
@@ -415,6 +423,7 @@ class PhienHopWebController extends Controller
             'meeting',
             'resolutions',
             'availableMembers',
+            'availableGuests',
             'availableDossiers',
             'votingSummaries',
             'role'
@@ -549,10 +558,18 @@ class PhienHopWebController extends Controller
      */
     public function addMember(Request $request, int|string $id): RedirectResponse
     {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Từ chối quyền thao tác.');
+        }
+
         $validated = $request->validate([
             'MaThanhVien' => ['required', 'integer', 'exists:thanh_vien_hdt,MaThanhVien'],
             'TrangThaiThamDu' => ['required', 'string'],
             'GhiChu' => ['nullable', 'string'],
+        ], [
+            'MaThanhVien.required' => 'Vui lòng chọn thành viên Hội đồng trường.',
+            'TrangThaiThamDu.required' => 'Vui lòng chọn trạng thái tham dự ban đầu.',
         ]);
 
         // Chống tạo trùng lặp theo ràng buộc BR-02
@@ -572,7 +589,45 @@ class PhienHopWebController extends Controller
             'GhiChu' => $validated['GhiChu'] ?? null,
         ]);
 
-        return back()->with('success', 'Đã thêm thành viên vào danh sách tham dự.');
+        return back()->with('success', 'Đã thêm thành viên vào danh sách tham dự phiên họp thành công.');
+    }
+
+    /**
+     * Bớt thành viên khỏi danh sách tham dự phiên họp
+     */
+    public function removeMember(int|string $id, int|string $attendeeId): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Từ chối quyền thao tác.');
+        }
+
+        $attendee = ThamDu::with('thanhVienHdt.nguoiDung')
+            ->where('MaPhienHop', $id)
+            ->where('MaThamDu', $attendeeId)
+            ->firstOrFail();
+
+        // 1. Ràng buộc bảo toàn kết quả biểu quyết (BR-09): Không thể bớt thành viên đã biểu quyết trong phiên
+        $hasVotes = KetQuaBieuQuyet::where('MaThamDu', $attendeeId)->exists();
+        if ($hasVotes) {
+            return back()->with('error', 'Không thể bớt thành viên này khỏi phiên họp vì thành viên đã thực hiện biểu quyết (nhằm bảo toàn dữ liệu kết quả bỏ phiếu).');
+        }
+
+        // 2. Ràng buộc ủy quyền: Không thể bớt thành viên có giấy ủy quyền liên quan đến phiên họp này
+        $hasDelegation = UyQuyenBieuQuyet::where('MaPhienHop', $id)
+            ->where(function ($q) use ($attendee) {
+                $q->where('MaThanhVienUyQuyen', $attendee->MaThanhVien)
+                  ->orWhere('MaThanhVienNhanUyQuyen', $attendee->MaThanhVien);
+            })->exists();
+
+        if ($hasDelegation) {
+            return back()->with('error', 'Không thể bớt thành viên này khỏi phiên họp vì đang có giấy ủy quyền biểu quyết liên quan trong phiên.');
+        }
+
+        $memberName = $attendee->thanhVienHdt?->nguoiDung?->HoTen ?? "Thành viên #{$attendee->MaThanhVien}";
+        $attendee->delete();
+
+        return back()->with('success', "Đã bớt thành viên \"{$memberName}\" khỏi danh sách tham dự phiên họp thành công.");
     }
 
     /**
@@ -598,23 +653,37 @@ class PhienHopWebController extends Controller
      */
     public function addGuest(Request $request, int|string $id): RedirectResponse
     {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Từ chối quyền thao tác.');
+        }
+
         $validated = $request->validate([
-            'HoTen' => ['required', 'string', 'max:255'],
+            'MaKhachMoi' => ['nullable', 'integer', 'exists:khach_moi,MaKhachMoi'],
+            'HoTen' => ['required_without:MaKhachMoi', 'nullable', 'string', 'max:255'],
             'DonViCongTac' => ['nullable', 'string', 'max:255'],
             'ChucVu' => ['nullable', 'string', 'max:255'],
             'Email' => ['nullable', 'email', 'max:191'],
-            'NoiDungMoi' => ['required', 'string'],
-            'TrangThaiThamDu' => ['required', 'string'],
+            'NoiDungMoi' => ['required', 'string', 'max:500'],
+            'TrangThaiThamDu' => ['required', 'string', 'max:100'],
+        ], [
+            'HoTen.required_without' => 'Vui lòng chọn khách mời có sẵn hoặc nhập họ tên khách mời mới.',
+            'NoiDungMoi.required' => 'Vui lòng nhập nội dung mời tham gia.',
+            'TrangThaiThamDu.required' => 'Vui lòng chọn trạng thái tham dự ban đầu.',
         ]);
 
-        // Tạo khách mời nếu chưa có trong danh bạ
-        $guest = KhachMoi::firstOrCreate([
-            'HoTen' => $validated['HoTen'],
-            'DonViCongTac' => $validated['DonViCongTac'] ?? null,
-        ], [
-            'ChucVu' => $validated['ChucVu'] ?? null,
-            'Email' => $validated['Email'] ?? null,
-        ]);
+        if (!empty($validated['MaKhachMoi'])) {
+            $guest = KhachMoi::findOrFail($validated['MaKhachMoi']);
+        } else {
+            // Tạo khách mời nếu chưa có trong danh bạ
+            $guest = KhachMoi::firstOrCreate([
+                'HoTen' => trim($validated['HoTen']),
+                'DonViCongTac' => !empty($validated['DonViCongTac']) ? trim($validated['DonViCongTac']) : null,
+            ], [
+                'ChucVu' => !empty($validated['ChucVu']) ? trim($validated['ChucVu']) : null,
+                'Email' => !empty($validated['Email']) ? trim($validated['Email']) : null,
+            ]);
+        }
 
         // Kiểm tra chống trùng khách mời trong phiên (BR-03)
         $exists = KhachMoiPhienHop::where('MaPhienHop', $id)
@@ -632,7 +701,28 @@ class PhienHopWebController extends Controller
             'TrangThaiThamDu' => $validated['TrangThaiThamDu'],
         ]);
 
-        return back()->with('success', 'Đã thêm khách mời vào phiên họp.');
+        return back()->with('success', "Đã thêm khách mời \"{$guest->HoTen}\" vào phiên họp thành công.");
+    }
+
+    /**
+     * Hủy lời mời / Bớt khách mời khỏi phiên họp
+     */
+    public function removeGuest(int|string $id, int|string $inviteId): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Từ chối quyền thao tác.');
+        }
+
+        $invite = KhachMoiPhienHop::with('khachMoi')
+            ->where('MaPhienHop', $id)
+            ->where('MaMoi', $inviteId)
+            ->firstOrFail();
+
+        $guestName = $invite->khachMoi?->HoTen ?? 'Khách mời';
+        $invite->delete();
+
+        return back()->with('success', "Đã hủy lời mời và bớt khách mời \"{$guestName}\" khỏi phiên họp thành công.");
     }
 
     /**

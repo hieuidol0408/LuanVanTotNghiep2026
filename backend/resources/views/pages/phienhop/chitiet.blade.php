@@ -144,7 +144,7 @@
         <x-bang-du-lieu 
             :headers="['Họ và tên', 'Chức danh HĐT', 'Đơn vị', 'Quyền biểu quyết', 'Trạng thái điểm danh', 'Thời điểm xác nhận', 'Ghi chú']"
             :hasActions="in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])"
-            actionTitle="Điểm danh"
+            actionTitle="Thao tác"
             :empty="$meeting->thamDu->isEmpty()"
             emptyTitle="Chưa có thành viên nào"
             emptyMessage="Danh sách mời thành viên đang trống."
@@ -187,15 +187,25 @@
                     </td>
                     @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
                         <td class="col-actions">
-                            <form method="POST" action="{{ route('meetings.attendance', [$meeting->MaPhienHop, $attendee->MaThamDu]) }}" style="display: inline-flex; gap: 4px;">
-                                @csrf
-                                <select name="TrangThaiThamDu" onchange="this.form.submit()" class="stu-select" style="padding: 3px 8px; font-size: 11px; width: auto;">
-                                    <option value="Có mặt" {{ $attendee->TrangThaiThamDu == 'Có mặt' ? 'selected' : '' }}>Có mặt</option>
-                                    <option value="Vắng" {{ $attendee->TrangThaiThamDu == 'Vắng' ? 'selected' : '' }}>Vắng</option>
-                                    <option value="Có xin phép" {{ $attendee->TrangThaiThamDu == 'Có xin phép' ? 'selected' : '' }}>Có xin phép</option>
-                                    <option value="Không xin phép" {{ $attendee->TrangThaiThamDu == 'Không xin phép' ? 'selected' : '' }}>Không xin phép</option>
-                                </select>
-                            </form>
+                            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
+                                <form method="POST" action="{{ route('meetings.attendance', [$meeting->MaPhienHop, $attendee->MaThamDu]) }}" style="display: inline-flex; gap: 4px;">
+                                    @csrf
+                                    <select name="TrangThaiThamDu" onchange="this.form.submit()" class="stu-select" style="padding: 3px 8px; font-size: 11px; width: auto;" title="Cập nhật điểm danh">
+                                        <option value="Có mặt" {{ $attendee->TrangThaiThamDu == 'Có mặt' ? 'selected' : '' }}>Có mặt</option>
+                                        <option value="Vắng" {{ $attendee->TrangThaiThamDu == 'Vắng' ? 'selected' : '' }}>Vắng</option>
+                                        <option value="Có xin phép" {{ $attendee->TrangThaiThamDu == 'Có xin phép' ? 'selected' : '' }}>Có xin phép</option>
+                                        <option value="Không xin phép" {{ $attendee->TrangThaiThamDu == 'Không xin phép' ? 'selected' : '' }}>Không xin phép</option>
+                                    </select>
+                                </form>
+                                <form method="POST" action="{{ route('meetings.members.remove', [$meeting->MaPhienHop, $attendee->MaThamDu]) }}" onsubmit="return confirm('Bạn có chắc chắn muốn bớt thành viên {{ addslashes($mUser?->HoTen ?? 'này') }} khỏi danh sách tham dự phiên họp?');" style="display: inline-block;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="stu-btn stu-btn-danger stu-btn-xs" style="padding: 3px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 3px;" title="Bớt thành viên khỏi phiên họp">
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <span>Bớt</span>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     @endif
                 </tr>
@@ -224,7 +234,8 @@
 
         <x-bang-du-lieu 
             :headers="['Họ và tên khách mời', 'Cơ quan / Đơn vị', 'Chức vụ', 'Nội dung mời tham gia', 'Trạng thái']"
-            :hasActions="false"
+            :hasActions="in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])"
+            actionTitle="Thao tác"
             :empty="$meeting->khachMoiPhienHop->isEmpty()"
             emptyTitle="Chưa có khách mời nào"
             emptyMessage="Phiên họp này hiện chưa gửi giấy mời cho khách ngoài Hội đồng trường."
@@ -246,6 +257,18 @@
                     <td>
                         <x-nhan-trang-thai :status="$invite->TrangThaiThamDu" />
                     </td>
+                    @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                        <td class="col-actions">
+                            <form method="POST" action="{{ route('meetings.guests.remove', [$meeting->MaPhienHop, $invite->MaMoi]) }}" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lời mời và bớt khách mời {{ addslashes($guest?->HoTen ?? 'này') }} khỏi phiên họp?');" style="display: inline-block;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="stu-btn stu-btn-danger stu-btn-xs" style="padding: 3px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 3px;" title="Hủy lời mời / Bớt khách">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    <span>Hủy mời</span>
+                                </button>
+                            </form>
+                        </td>
+                    @endif
                 </tr>
             @endforeach
         </x-bang-du-lieu>
@@ -572,14 +595,43 @@
 <x-hop-thoai id="addGuestModal" title="Mời Khách tham dự Phiên họp" size="md">
     <form method="POST" action="{{ route('meetings.guests.add', $meeting->MaPhienHop) }}">
         @csrf
-        <x-bieu-mau.o-nhap name="HoTen" label="Họ và tên khách mời" placeholder="Ví dụ: GS. TS. Nguyễn Văn Chuyên Gia" required />
-        <div class="stu-grid stu-grid-cols-2">
-            <x-bieu-mau.o-nhap name="DonViCongTac" label="Cơ quan / Đơn vị" placeholder="Đại học Quốc gia..." />
-            <x-bieu-mau.o-nhap name="ChucVu" label="Chức vụ" placeholder="Trưởng ban..." />
+        @if(isset($availableGuests) && $availableGuests->isNotEmpty())
+            <div style="background: var(--color-bg-subtle, #f8fafc); border: 1px solid var(--color-border, #e2e8f0); border-radius: var(--radius-md, 6px); padding: 12px; margin-bottom: var(--space-4);">
+                <div style="font-weight: 600; font-size: var(--font-size-sm); color: var(--color-primary); margin-bottom: 6px;">
+                    Cách 1: Chọn khách mời đã có trong danh bạ
+                </div>
+                <select name="MaKhachMoi" id="select_available_guest" class="stu-select" onchange="handleSelectExistingGuest(this)">
+                    <option value="">-- Hoặc nhập mới thông tin bên dưới --</option>
+                    @foreach($availableGuests as $g)
+                        <option value="{{ $g->MaKhachMoi }}"
+                            data-hoten="{{ $g->HoTen }}"
+                            data-donvi="{{ $g->DonViCongTac }}"
+                            data-chucvu="{{ $g->ChucVu }}"
+                            data-email="{{ $g->Email }}">
+                            {{ $g->HoTen }} {{ $g->DonViCongTac ? ' - ' . $g->DonViCongTac : '' }} {{ $g->ChucVu ? "({$g->ChucVu})" : '' }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div style="display: flex; align-items: center; margin: 12px 0; color: var(--color-text-muted); font-size: 11px;">
+                <hr style="flex: 1; border: none; border-top: 1px dashed var(--color-border);">
+                <span style="padding: 0 8px; font-weight: 600; text-transform: uppercase;">Cách 2: Nhập thông tin khách mời mới</span>
+                <hr style="flex: 1; border: none; border-top: 1px dashed var(--color-border);">
+            </div>
+        @endif
+
+        <div id="new_guest_fields_wrap">
+            <x-bieu-mau.o-nhap name="HoTen" id="guest_hoten" label="Họ và tên khách mời" placeholder="Ví dụ: GS. TS. Nguyễn Văn Chuyên Gia" />
+            <div class="stu-grid stu-grid-cols-2">
+                <x-bieu-mau.o-nhap name="DonViCongTac" id="guest_donvi" label="Cơ quan / Đơn vị" placeholder="Đại học Quốc gia..." />
+                <x-bieu-mau.o-nhap name="ChucVu" id="guest_chucvu" label="Chức vụ" placeholder="Trưởng ban..." />
+            </div>
+            <x-bieu-mau.o-nhap type="email" name="Email" id="guest_email" label="Email liên hệ" placeholder="expert@domain.com" />
         </div>
-        <x-bieu-mau.o-nhap type="email" name="Email" label="Email liên hệ" placeholder="expert@domain.com" />
+
         <x-bieu-mau.vung-van-ban name="NoiDungMoi" label="Nội dung mời tham gia" placeholder="Tham gia đóng góp ý kiến về đề án..." required rows="2" />
         <x-bieu-mau.o-chon name="TrangThaiThamDu" label="Trạng thái tham dự" required>
+            <option value="Đã gửi giấy mời">Đã gửi giấy mời</option>
             <option value="Xác nhận">Đã gửi giấy mời / Xác nhận</option>
             <option value="Có mặt">Có mặt</option>
             <option value="Vắng">Vắng</option>
@@ -771,6 +823,25 @@
 @endif
 
 <script>
+    function handleSelectExistingGuest(selectElem) {
+        const selectedOption = selectElem.options[selectElem.selectedIndex];
+        const hoTenInput = document.getElementById('guest_hoten');
+        const donViInput = document.getElementById('guest_donvi');
+        const chucVuInput = document.getElementById('guest_chucvu');
+        const emailInput = document.getElementById('guest_email');
+        if (selectElem.value && selectedOption) {
+            if (hoTenInput) hoTenInput.value = selectedOption.getAttribute('data-hoten') || '';
+            if (donViInput) donViInput.value = selectedOption.getAttribute('data-donvi') || '';
+            if (chucVuInput) chucVuInput.value = selectedOption.getAttribute('data-chucvu') || '';
+            if (emailInput) emailInput.value = selectedOption.getAttribute('data-email') || '';
+        } else {
+            if (hoTenInput) hoTenInput.value = '';
+            if (donViInput) donViInput.value = '';
+            if (chucVuInput) chucVuInput.value = '';
+            if (emailInput) emailInput.value = '';
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         const urlParams = new URLSearchParams(window.location.search);
         const modal = urlParams.get('modal');

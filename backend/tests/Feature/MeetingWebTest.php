@@ -48,7 +48,7 @@ class MeetingWebTest extends TestCase
         $response->assertSee('Giờ bắt đầu');
         $response->assertSee('Giờ kết thúc');
         $response->assertSee('Địa điểm tổ chức');
-        $response->assertSee('Quy tắc nghiệp vụ tự động (BR-02)');
+        $response->assertSee('Thành viên Hội đồng trường tham gia');
     }
 
     /**
@@ -56,6 +56,8 @@ class MeetingWebTest extends TestCase
      */
     public function test_meeting_store_validates_end_time_after_start_time(): void
     {
+        $memberIds = ThanhVienHdt::pluck('MaThanhVien')->take(3)->toArray();
+
         $response = $this->post(route('meetings.store'), [
             'TenPhienHop' => 'Phiên họp kiểm thử thời gian lỗi',
             'NgayHop' => Carbon::now()->addDays(2)->toDateString(),
@@ -63,6 +65,7 @@ class MeetingWebTest extends TestCase
             'GioKetThuc' => '10:00', // Kết thúc trước khi bắt đầu
             'DiaDiem' => 'Phòng họp A1',
             'HinhThuc' => 'Trực tiếp',
+            'member_ids' => $memberIds,
         ]);
 
         $response->assertSessionHasErrors(['GioKetThuc']);
@@ -73,16 +76,20 @@ class MeetingWebTest extends TestCase
      */
     public function test_meeting_store_creates_meeting_and_auto_invites_active_members(): void
     {
+        $memberIds = ThanhVienHdt::pluck('MaThanhVien')->take(3)->toArray();
+
         $response = $this->post(route('meetings.store'), [
             'TenPhienHop' => 'Phiên họp kiểm thử tự động mời thành viên BR-02 ' . uniqid(),
-            'NgayHop' => Carbon::now()->addDays(5)->toDateString(),
+            'NgayHop' => Carbon::now()->addDays(20)->toDateString(),
             'GioBatDau' => '08:30',
             'GioKetThuc' => '11:30',
             'DiaDiem' => 'Phòng họp Tân Triều STU',
             'HinhThuc' => 'Trực tiếp',
             'GhiChu' => 'Phiên họp định kỳ khóa IV',
+            'member_ids' => $memberIds,
         ]);
 
+        $response->assertSessionHasNoErrors();
         $response->assertRedirect();
 
         // Kiểm tra phiên họp có trong CSDL
@@ -196,6 +203,8 @@ class MeetingWebTest extends TestCase
         ]);
 
         // Cố tình tạo phiên họp thứ 2 trùng giờ: 10:15 - 11:00
+        $memberIds = ThanhVienHdt::pluck('MaThanhVien')->take(3)->toArray();
+
         $response = $this->post(route('meetings.store'), [
             'TenPhienHop' => 'Phiên họp kiểm thử xung đột trùng lịch',
             'NgayHop' => $testDate,
@@ -203,6 +212,7 @@ class MeetingWebTest extends TestCase
             'GioKetThuc' => '11:00',
             'DiaDiem' => 'Phòng họp B',
             'HinhThuc' => 'IN_PERSON',
+            'member_ids' => $memberIds,
         ]);
 
         $response->assertSessionHasErrors('GioBatDau');
@@ -215,6 +225,7 @@ class MeetingWebTest extends TestCase
             'GioKetThuc' => '11:30',
             'DiaDiem' => 'Phòng họp A',
             'HinhThuc' => 'IN_PERSON',
+            'member_ids' => $memberIds,
         ]);
 
         $responseValid->assertSessionHasNoErrors();
@@ -242,6 +253,7 @@ class MeetingWebTest extends TestCase
             'GhiChu' => 'Đã thảo luận và nhất trí thông qua tại phiên họp.',
         ]);
 
+        $response->assertSessionHasNoErrors();
         $response->assertRedirect();
         $response->assertSessionHas('success');
 
@@ -315,5 +327,147 @@ class MeetingWebTest extends TestCase
 
         $response->assertSessionHas('error');
         $response->assertSessionHasErrors(['ThuTu']);
+    }
+
+    /**
+     * 12. Quản lý thành phần tham dự: Thêm và bớt thành viên Hội đồng trường (BR-02 & Quyền biểu quyết).
+     */
+    public function test_meeting_add_and_remove_member_works(): void
+    {
+        $secretary = \App\Models\User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        $meeting = PhienHop::first();
+        if (! $meeting) {
+            $this->markTestSkipped('Chưa có phiên họp.');
+        }
+
+        // Lấy thành viên HĐT chưa tham gia phiên
+        $existingMemberIds = \App\Models\ThamDu::where('MaPhienHop', $meeting->MaPhienHop)->pluck('MaThanhVien')->toArray();
+        $newMember = \App\Models\ThanhVienHdt::whereNotIn('MaThanhVien', $existingMemberIds)->first();
+
+        if (! $newMember) {
+            $user = \App\Models\NguoiDung::create([
+                'HoTen' => 'Thành Viên Test ' . uniqid(),
+                'email' => 'member_test_' . uniqid() . '@stu.edu.vn',
+                'MatKhau' => bcrypt('password'),
+                'TrangThai' => 'Hoạt động',
+                'MaVaiTro' => 2,
+                'MaDonVi' => 1,
+            ]);
+            $newMember = \App\Models\ThanhVienHdt::create([
+                'ChucDanh' => 'Ủy viên HĐT',
+                'NhiemKy' => '2020-2025',
+                'NgayBatDauThamGia' => '2020-01-01',
+                'CoQuyenBieuQuyet' => 1,
+                'MaNguoiDung' => $user->MaNguoiDung,
+            ]);
+        }
+
+        // Thêm thành viên
+        $addResponse = $this->post(route('meetings.members.add', $meeting->MaPhienHop), [
+            'MaThanhVien' => $newMember->MaThanhVien,
+            'TrangThaiThamDu' => 'Có mặt',
+            'GhiChu' => 'Thêm phục vụ kiểm thử',
+        ]);
+
+        $addResponse->assertRedirect();
+        $addResponse->assertSessionHas('success');
+
+        $attendee = \App\Models\ThamDu::where('MaPhienHop', $meeting->MaPhienHop)
+            ->where('MaThanhVien', $newMember->MaThanhVien)
+            ->first();
+        $this->assertNotNull($attendee);
+
+        // Chống thêm trùng (BR-02)
+        $dupResponse = $this->post(route('meetings.members.add', $meeting->MaPhienHop), [
+            'MaThanhVien' => $newMember->MaThanhVien,
+            'TrangThaiThamDu' => 'Có mặt',
+        ]);
+        $dupResponse->assertSessionHas('warning');
+
+        // Bớt thành viên
+        $removeResponse = $this->delete(route('meetings.members.remove', [$meeting->MaPhienHop, $attendee->MaThamDu]));
+        $removeResponse->assertRedirect();
+        $removeResponse->assertSessionHas('success');
+
+        $this->assertSoftDeleted('tham_du', ['MaThamDu' => $attendee->MaThamDu]);
+    }
+
+    /**
+     * 13. Quản lý thành phần tham dự: Thêm và bớt khách mời phiên họp (BR-03).
+     */
+    public function test_meeting_add_and_remove_guest_works(): void
+    {
+        $secretary = \App\Models\User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        $meeting = PhienHop::first();
+        if (! $meeting) {
+            $this->markTestSkipped('Chưa có phiên họp.');
+        }
+
+        $uniqueName = 'Khách Mời Test ' . uniqid();
+
+        // Thêm khách mời mới
+        $addResponse = $this->post(route('meetings.guests.add', $meeting->MaPhienHop), [
+            'HoTen' => $uniqueName,
+            'DonViCongTac' => 'Đơn vị Kiểm thử STU',
+            'ChucVu' => 'Chuyên gia tư vấn',
+            'Email' => 'guest_test@stu.edu.vn',
+            'NoiDungMoi' => 'Tham vấn ý kiến chuyên môn',
+            'TrangThaiThamDu' => 'Đã gửi giấy mời',
+        ]);
+
+        $addResponse->assertRedirect();
+        $addResponse->assertSessionHas('success');
+
+        $guest = \App\Models\KhachMoi::where('HoTen', $uniqueName)->first();
+        $this->assertNotNull($guest);
+
+        $invite = \App\Models\KhachMoiPhienHop::where('MaPhienHop', $meeting->MaPhienHop)
+            ->where('MaKhachMoi', $guest->MaKhachMoi)
+            ->first();
+        $this->assertNotNull($invite);
+
+        // Chống thêm trùng (BR-03)
+        $dupResponse = $this->post(route('meetings.guests.add', $meeting->MaPhienHop), [
+            'MaKhachMoi' => $guest->MaKhachMoi,
+            'NoiDungMoi' => 'Tham vấn ý kiến',
+            'TrangThaiThamDu' => 'Đã gửi giấy mời',
+        ]);
+        $dupResponse->assertSessionHas('warning');
+
+        // Bớt khách mời (Hủy lời mời)
+        $removeResponse = $this->delete(route('meetings.guests.remove', [$meeting->MaPhienHop, $invite->MaMoi]));
+        $removeResponse->assertRedirect();
+        $removeResponse->assertSessionHas('success');
+
+        $this->assertSoftDeleted('khach_moi_phien_hop', ['MaMoi' => $invite->MaMoi]);
+    }
+
+    /**
+     * 14. Quản lý thành phần tham dự: Không cho phép bớt thành viên đã tham gia biểu quyết trong phiên (bảo toàn dữ liệu).
+     */
+    public function test_meeting_remove_member_blocked_if_voted(): void
+    {
+        $secretary = \App\Models\User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        // Tìm 1 người đã có phiếu biểu quyết trong hệ thống
+        $vote = \App\Models\KetQuaBieuQuyet::whereNotNull('MaThamDu')->first();
+        if (! $vote || ! $vote->thamDu) {
+            $this->markTestSkipped('Chưa có phiếu biểu quyết liên kết MaThamDu để kiểm thử.');
+        }
+
+        $attendee = $vote->thamDu;
+        $response = $this->delete(route('meetings.members.remove', [$attendee->MaPhienHop, $attendee->MaThamDu]));
+
+        $response->assertSessionHas('error');
+        // Đảm bảo không bị xóa mềm
+        $this->assertDatabaseHas('tham_du', [
+            'MaThamDu' => $attendee->MaThamDu,
+            'deleted_at' => null,
+        ]);
     }
 }

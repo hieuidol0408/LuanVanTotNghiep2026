@@ -51,8 +51,10 @@ Route::prefix('meetings')->name('meetings.')->group(function () {
 
     // Thao tác nghiệp vụ phiên họp (7 Tabs & BR-02, BR-03, BR-05, BR-08)
     Route::post('/{id}/members', [PhienHopWebController::class, 'addMember'])->name('members.add');
+    Route::delete('/{id}/members/{attendeeId}', [PhienHopWebController::class, 'removeMember'])->name('members.remove');
     Route::post('/{id}/attendance/{attendeeId}', [PhienHopWebController::class, 'updateAttendance'])->name('attendance');
     Route::post('/{id}/guests', [PhienHopWebController::class, 'addGuest'])->name('guests.add');
+    Route::delete('/{id}/guests/{inviteId}', [PhienHopWebController::class, 'removeGuest'])->name('guests.remove');
     Route::post('/{id}/agenda', [PhienHopWebController::class, 'addAgendaItem'])->name('agenda.add');
     Route::post('/{id}/documents', [PhienHopWebController::class, 'uploadDocument'])->name('documents.upload');
 });
