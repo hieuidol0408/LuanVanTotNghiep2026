@@ -6,7 +6,9 @@ use App\Models\PhienHop;
 use App\Models\ThanhVienHDT;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class MeetingWebTest extends TestCase
@@ -14,6 +16,7 @@ class MeetingWebTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
         $secretary = User::where('email', 'thuky_hdt@stu.edu.vn')->first();
         if ($secretary) {
             $this->actingAs($secretary);
@@ -468,6 +471,139 @@ class MeetingWebTest extends TestCase
         $this->assertDatabaseHas('tham_du', [
             'MaThamDu' => $attendee->MaThamDu,
             'deleted_at' => null,
+        ]);
+    }
+
+    /**
+     * 15. Đẩy tài liệu phiên họp: Định dạng hợp lệ (.pdf, .docx, .xlsx, .pptx) thành công (BR-05).
+     */
+    public function test_meeting_upload_document_valid_format_succeeds(): void
+    {
+        Storage::fake('public');
+        $secretary = \App\Models\User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        $meeting = PhienHop::first();
+        if (! $meeting) {
+            $this->markTestSkipped('Chưa có phiên họp.');
+        }
+
+        $file = UploadedFile::fake()->create('kich_ban_phien_hop.pdf', 500, 'application/pdf');
+
+        $response = $this->post(route('meetings.documents.upload', $meeting->MaPhienHop), [
+            'TenTaiLieu' => 'Kịch bản điều hành phiên họp kiểm thử',
+            'LoaiTaiLieu' => 'Kịch bản họp',
+            'file' => $file,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $doc = \App\Models\TaiLieu::where('TenTaiLieu', 'Kịch bản điều hành phiên họp kiểm thử')->first();
+        $this->assertNotNull($doc);
+        $this->assertEquals('pdf', strtolower($doc->DinhDang));
+
+        $this->assertDatabaseHas('tai_lieu_phien_hop', [
+            'MaTaiLieu' => $doc->MaTaiLieu,
+            'MaPhienHop' => $meeting->MaPhienHop,
+        ]);
+    }
+
+    /**
+     * 16. Đẩy tài liệu phiên họp: Định dạng không hợp lệ (.exe, .php, .zip) xuất thông báo lỗi rõ ràng.
+     */
+    public function test_meeting_upload_document_invalid_format_fails_with_error_message(): void
+    {
+        Storage::fake('public');
+        $secretary = \App\Models\User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        $meeting = PhienHop::first();
+        if (! $meeting) {
+            $this->markTestSkipped('Chưa có phiên họp.');
+        }
+
+        // Tạo file có định dạng không được phép (.exe)
+        $invalidFile = UploadedFile::fake()->create('virus_script.exe', 100);
+
+        $response = $this->post(route('meetings.documents.upload', $meeting->MaPhienHop), [
+            'TenTaiLieu' => 'Tệp không hợp lệ',
+            'LoaiTaiLieu' => 'Tài liệu chung',
+            'file' => $invalidFile,
+        ]);
+
+        $response->assertSessionHasErrors(['file']);
+        $errorMsg = session('errors')->first('file');
+        $this->assertStringContainsString('Định dạng tập tin không được hỗ trợ', $errorMsg);
+    }
+
+    /**
+     * 17. Tạo phiên họp mới kèm tài liệu định dạng không hợp lệ xuất thông báo lỗi.
+     */
+    public function test_meeting_store_with_invalid_document_format_fails(): void
+    {
+        Storage::fake('public');
+        $secretary = \App\Models\User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        $memberIds = ThanhVienHDT::pluck('MaThanhVien')->take(3)->toArray();
+        $invalidFile = UploadedFile::fake()->create('archive.zip', 200);
+
+        $response = $this->post(route('meetings.store'), [
+            'TenPhienHop' => 'Phiên họp kiểm thử định dạng file ' . uniqid(),
+            'NgayHop' => Carbon::now()->addDays(35)->toDateString(),
+            'GioBatDau' => '09:00',
+            'GioKetThuc' => '11:00',
+            'DiaDiem' => 'Phòng họp Tân Triều',
+            'HinhThuc' => 'Trực tiếp',
+            'member_ids' => $memberIds,
+            'doc_title' => 'Tệp đính kèm nén',
+            'doc_type' => 'Tài liệu chung',
+            'doc_file' => $invalidFile,
+        ]);
+
+        $response->assertSessionHasErrors(['doc_file']);
+        $errorMsg = session('errors')->first('doc_file');
+        $this->assertStringContainsString('Định dạng tập tin tài liệu không hợp lệ', $errorMsg);
+    }
+
+    /**
+     * 18. Xóa tài liệu khỏi phiên họp thành công.
+     */
+    public function test_meeting_remove_document_succeeds(): void
+    {
+        $secretary = \App\Models\User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        $meeting = PhienHop::first();
+        if (! $meeting) {
+            $this->markTestSkipped('Chưa có phiên họp.');
+        }
+
+        // Tạo tài liệu tạm thời
+        $doc = \App\Models\TaiLieu::create([
+            'TenTaiLieu' => 'Tài liệu test xóa ' . uniqid(),
+            'LoaiTaiLieu' => 'Tài liệu chung',
+            'DuongDan' => '/storage/test.pdf',
+            'DinhDang' => 'pdf',
+            'DungLuong' => 1024,
+            'NgayTaiLen' => now(),
+            'MaNguoiDung' => $secretary->MaNguoiDung ?? 1,
+        ]);
+
+        DB::table('tai_lieu_phien_hop')->insert([
+            'MaTaiLieu' => $doc->MaTaiLieu,
+            'MaPhienHop' => $meeting->MaPhienHop,
+        ]);
+
+        $response = $this->delete(route('meetings.documents.remove', [$meeting->MaPhienHop, $doc->MaTaiLieu]));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('tai_lieu_phien_hop', [
+            'MaTaiLieu' => $doc->MaTaiLieu,
+            'MaPhienHop' => $meeting->MaPhienHop,
         ]);
     }
 }

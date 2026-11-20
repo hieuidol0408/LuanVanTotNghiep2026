@@ -214,6 +214,9 @@ class PhienHopWebController extends Controller
             'member_ids.*' => ['integer', 'exists:thanh_vien_hdt,MaThanhVien'],
             'guest_ids' => ['nullable', 'array'],
             'guest_ids.*' => ['integer', 'exists:khach_moi,MaKhachMoi'],
+            'doc_title' => ['nullable', 'string', 'max:255'],
+            'doc_type' => ['nullable', 'string', 'max:100'],
+            'doc_file' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx'],
         ], [
             'TenPhienHop.required' => 'Vui lòng nhập tên phiên họp.',
             'TenPhienHop.min' => 'Tên phiên họp phải có ít nhất 5 ký tự.',
@@ -227,6 +230,9 @@ class PhienHopWebController extends Controller
             'HinhThuc.required' => 'Vui lòng chọn hình thức tổ chức họp.',
             'member_ids.required' => 'Vui lòng chọn ít nhất một thành viên Hội đồng trường tham gia phiên họp để phân quyền biểu quyết.',
             'member_ids.min' => 'Vui lòng chọn ít nhất một thành viên Hội đồng trường tham gia phiên họp.',
+            'doc_file.file' => 'Tập tin tài liệu đính kèm không hợp lệ.',
+            'doc_file.mimes' => 'Định dạng tập tin tài liệu không hợp lệ! Hệ thống chỉ hỗ trợ các tệp: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
+            'doc_file.max' => 'Dung lượng tập tin tài liệu không được vượt quá 20MB.',
         ]);
 
         $startTimeStr = strlen($validated['GioBatDau']) === 5 ? "{$validated['GioBatDau']}:00" : $validated['GioBatDau'];
@@ -355,12 +361,39 @@ class PhienHopWebController extends Controller
                 }
             }
 
+            // [BR-05] Đính kèm tài liệu phiên họp nếu có tải lên ngay lúc tạo
+            if ($request->hasFile('doc_file')) {
+                $docFile = $request->file('doc_file');
+                $docFileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $docFile->getClientOriginalName());
+                $docPath = $docFile->storeAs('documents/meetings', $docFileName, 'public');
+
+                $taiLieu = TaiLieu::create([
+                    'TenTaiLieu' => $request->input('doc_title') ?: pathinfo($docFile->getClientOriginalName(), PATHINFO_FILENAME),
+                    'LoaiTaiLieu' => $request->input('doc_type') ?: 'Kịch bản họp',
+                    'DuongDan' => '/storage/' . $docPath,
+                    'DinhDang' => $docFile->getClientOriginalExtension(),
+                    'DungLuong' => $docFile->getSize(),
+                    'NgayTaiLen' => now(),
+                    'MaNguoiDung' => $creatorId,
+                ]);
+
+                DB::table('tai_lieu_phien_hop')->insertOrIgnore([
+                    'MaTaiLieu' => $taiLieu->MaTaiLieu,
+                    'MaPhienHop' => $meeting->MaPhienHop,
+                ]);
+            }
+
             return $meeting;
         });
 
         $countMembers = count($memberIds);
-        return redirect()->route('meetings.show', $phienHop->MaPhienHop)
-            ->with('success', "Tạo phiên họp mới thành công! Đã thiết lập danh sách {$countMembers} thành viên tham gia để phân quyền biểu quyết.");
+        if ($request->hasFile('doc_file')) {
+            return redirect()->route('meetings.show', ['id' => $phienHop->MaPhienHop, 'tab' => 'docs'])
+                ->with('success', "Tạo phiên họp mới thành công! Đã thiết lập danh sách {$countMembers} thành viên và tải lên tài liệu phiên họp.");
+        }
+
+        return redirect()->route('meetings.show', ['id' => $phienHop->MaPhienHop, 'tab' => 'docs', 'upload_doc' => 1])
+            ->with('success', "Tạo phiên họp mới thành công! Bạn có thể tiếp tục đẩy kịch bản, dự thảo tài liệu cho phiên họp ngay tại đây.");
     }
 
     /**
@@ -785,14 +818,22 @@ class PhienHopWebController extends Controller
      */
     public function uploadDocument(Request $request, int|string $id): RedirectResponse
     {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Từ chối quyền thao tác.');
+        }
+
         $validated = $request->validate([
             'TenTaiLieu' => ['required', 'string', 'max:255'],
-            'LoaiTaiLieu' => ['required', 'string'],
+            'LoaiTaiLieu' => ['required', 'string', 'max:100'],
             'file' => ['required', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx'],
         ], [
-            'TenTaiLieu.required' => 'Vui lòng nhập tên tài liệu.',
+            'TenTaiLieu.required' => 'Vui lòng nhập tên tài liệu phiên họp.',
+            'LoaiTaiLieu.required' => 'Vui lòng chọn phân loại tài liệu.',
             'file.required' => 'Vui lòng chọn tập tin tài liệu đính kèm.',
-            'file.max' => 'Dung lượng tập tin không được vượt quá 20MB.',
+            'file.file' => 'Tập tin tải lên không hợp lệ.',
+            'file.mimes' => 'Định dạng tập tin không được hỗ trợ! Vui lòng chỉ tải lên các tệp tài liệu: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
+            'file.max' => 'Dung lượng tập tin vượt quá giới hạn cho phép (Tối đa 20MB).',
         ]);
 
         $uploadedFile = $request->file('file');
@@ -817,6 +858,31 @@ class PhienHopWebController extends Controller
             'MaPhienHop' => $id,
         ]);
 
-        return back()->with('success', 'Tải lên tài liệu phiên họp thành công (Tuân thủ BR-05).');
+        return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'docs'])
+            ->with('success', "Tải lên tài liệu \"{$taiLieu->TenTaiLieu}\" cho phiên họp thành công (Tuân thủ BR-05).");
+    }
+
+    /**
+     * Xóa tài liệu khỏi phiên họp
+     */
+    public function removeDocument(int|string $id, int|string $docId): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Từ chối quyền thao tác.');
+        }
+
+        DB::table('tai_lieu_phien_hop')
+            ->where('MaPhienHop', $id)
+            ->where('MaTaiLieu', $docId)
+            ->delete();
+
+        $taiLieu = TaiLieu::find($docId);
+        if ($taiLieu) {
+            $taiLieu->delete();
+        }
+
+        return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'docs'])
+            ->with('success', 'Đã xóa tài liệu khỏi phiên họp thành công.');
     }
 }

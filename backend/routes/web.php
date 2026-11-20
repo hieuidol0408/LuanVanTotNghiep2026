@@ -57,6 +57,7 @@ Route::prefix('meetings')->name('meetings.')->group(function () {
     Route::delete('/{id}/guests/{inviteId}', [PhienHopWebController::class, 'removeGuest'])->name('guests.remove');
     Route::post('/{id}/agenda', [PhienHopWebController::class, 'addAgendaItem'])->name('agenda.add');
     Route::post('/{id}/documents', [PhienHopWebController::class, 'uploadDocument'])->name('documents.upload');
+    Route::delete('/{id}/documents/{docId}', [PhienHopWebController::class, 'removeDocument'])->name('documents.remove');
 });
 
 Route::get('/lich-su-phien-hop', [PhienHopWebController::class, 'history'])->name('meetings.history.alias');

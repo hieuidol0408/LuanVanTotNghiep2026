@@ -376,7 +376,7 @@
         <x-bang-du-lieu 
             :headers="['Tên tài liệu', 'Phân loại', 'Định dạng / Dung lượng', 'Ngày tải lên']"
             :hasActions="true"
-            actionTitle="Tải xuống"
+            actionTitle="Thao tác"
             :empty="$meeting->taiLieu->isEmpty()"
             emptyTitle="Chưa có tài liệu đính kèm"
             emptyMessage="Chưa có văn bản hay kịch bản họp nào được đính kèm vào phiên này."
@@ -399,10 +399,22 @@
                         {{ $doc->NgayTaiLen ? date('d/m/Y H:i', strtotime($doc->NgayTaiLen)) : '' }}
                     </td>
                     <td class="col-actions">
-                        <x-nut-bam variant="outline" size="sm" href="{{ asset($doc->DuongDan) }}" target="_blank">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            <span>Tải về</span>
-                        </x-nut-bam>
+                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
+                            <x-nut-bam variant="outline" size="sm" href="{{ asset($doc->DuongDan) }}" target="_blank">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                <span>Tải về</span>
+                            </x-nut-bam>
+                            @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                                <form method="POST" action="{{ route('meetings.documents.remove', [$meeting->MaPhienHop, $doc->MaTaiLieu]) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài liệu {{ addslashes($doc->TenTaiLieu) }} khỏi phiên họp?');" style="display: inline-block;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="stu-btn stu-btn-danger stu-btn-xs" style="padding: 4px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 3px;" title="Xóa tài liệu">
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <span>Xóa</span>
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     </td>
                 </tr>
             @endforeach
@@ -692,9 +704,9 @@
 
 <!-- Modal 4: Tải lên tài liệu họp (BR-05) -->
 <x-hop-thoai id="uploadDocModal" title="Tải Lên Tài Liệu Phiên Họp" size="md">
-    <form method="POST" action="{{ route('meetings.documents.upload', $meeting->MaPhienHop) }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('meetings.documents.upload', $meeting->MaPhienHop) }}" enctype="multipart/form-data" id="modalUploadDocForm">
         @csrf
-        <x-bieu-mau.o-nhap name="TenTaiLieu" label="Tên tài liệu" placeholder="Ví dụ: Kịch bản điều hành phiên họp thứ 5" required />
+        <x-bieu-mau.o-nhap name="TenTaiLieu" id="modalDocTitleInput" label="Tên tài liệu" placeholder="Ví dụ: Kịch bản điều hành phiên họp thứ 5" required />
         <x-bieu-mau.o-chon name="LoaiTaiLieu" label="Phân loại tài liệu" required>
             <option value="Kịch bản họp">Kịch bản họp</option>
             <option value="Dự thảo kết luận">Dự thảo kết luận</option>
@@ -704,7 +716,11 @@
         
         <div class="stu-form-group">
             <x-bieu-mau.nhan required>Tập tin đính kèm (PDF, Word, Excel, PPT - Max 20MB)</x-bieu-mau.nhan>
-            <input type="file" name="file" class="stu-input" required accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
+            <input type="file" name="file" id="modalDocFileInput" class="stu-input" required accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
+            <div id="modalDocFormatError" class="stu-form-error" style="display: none; color: var(--color-danger, #ef4444); font-size: 12px; margin-top: 6px; font-weight: 500;"></div>
+            <div style="font-size: 11.5px; color: var(--color-text-muted); margin-top: 4px;">
+                * Định dạng được phép: <strong>.pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx</strong>. Hệ thống sẽ báo lỗi nếu tải lên tệp khác định dạng.
+            </div>
         </div>
 
         <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: var(--space-4);">
@@ -860,8 +876,54 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        // Kiểm tra và bẫy lỗi định dạng file modal tải tài liệu họp
+        const modalDocInput = document.getElementById('modalDocFileInput');
+        const modalDocErr = document.getElementById('modalDocFormatError');
+        const allowedDocExts = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+
+        if (modalDocInput) {
+            modalDocInput.addEventListener('change', function () {
+                if (modalDocErr) modalDocErr.style.display = 'none';
+                if (!this.files || this.files.length === 0) return;
+                const file = this.files[0];
+                const fileName = file.name;
+                const ext = fileName.split('.').pop().toLowerCase();
+
+                if (!allowedDocExts.includes(ext)) {
+                    if (modalDocErr) {
+                        modalDocErr.textContent = `Định dạng tập tin ".${ext}" không được hỗ trợ! Vui lòng chỉ tải lên các tệp tài liệu: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).`;
+                        modalDocErr.style.display = 'block';
+                    }
+                    this.value = '';
+                    return;
+                }
+
+                if (file.size > 20 * 1024 * 1024) {
+                    if (modalDocErr) {
+                        modalDocErr.textContent = 'Dung lượng tập tin vượt quá 20MB. Vui lòng chọn tệp nhỏ hơn.';
+                        modalDocErr.style.display = 'block';
+                    }
+                    this.value = '';
+                    return;
+                }
+
+                const docTitleInput = document.getElementById('modalDocTitleInput');
+                if (docTitleInput && !docTitleInput.value.trim()) {
+                    const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+                    docTitleInput.value = baseName;
+                }
+            });
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         const modal = urlParams.get('modal');
+        const tab = urlParams.get('tab');
+
+        if (tab === 'docs' || urlParams.get('upload_doc') === '1') {
+            const docTabBtn = document.querySelector('[data-tab-target="#pane-docs"]');
+            if (docTabBtn) docTabBtn.click();
+        }
+
         if (modal && window.STUModal) {
             window.STUModal.open(modal);
         } else if (urlParams.get('edit') === '1' || urlParams.get('chinh_sua') === '1') {

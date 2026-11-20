@@ -39,7 +39,7 @@
                 <span>Đóng</span>
             </a>
         </div>
-    <form method="POST" action="{{ route('meetings.store') }}" id="createMeetingForm" novalidate>
+    <form method="POST" action="{{ route('meetings.store') }}" id="createMeetingForm" enctype="multipart/form-data" novalidate>
         @csrf
 
         <!-- Thông tin người tạo tự động ghi nhận -->
@@ -203,6 +203,36 @@
             <div id="newGuestsList" style="padding: 12px 16px; display: flex; flex-direction: column; gap: 10px;"></div>
         </div>
 
+        <!-- 3. ĐÍNH KÈM TÀI LIỆU PHIÊN HỌP (TÙY CHỌN - BR-05) -->
+        <div style="margin-top: var(--space-4); margin-bottom: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; background: #ffffff;">
+            <div style="background: #F8FAFC; padding: 12px 16px; border-bottom: 1px solid var(--color-border); display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--color-primary);"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    <strong style="font-size: 13.5px; color: var(--color-text-main);">3. Đính kèm tài liệu phiên họp (Kịch bản, Dự thảo kết luận - Tùy chọn)</strong>
+                </div>
+                <span class="stu-badge stu-badge-info" style="font-size: 11px;">BR-05</span>
+            </div>
+            <div style="padding: 16px;">
+                <div class="stu-grid stu-grid-cols-2">
+                    <x-bieu-mau.o-nhap name="doc_title" id="createDocTitleInput" label="Tên tài liệu" placeholder="Ví dụ: Kịch bản điều hành phiên họp..." value="{{ old('doc_title') }}" />
+                    <x-bieu-mau.o-chon name="doc_type" label="Phân loại tài liệu">
+                        <option value="Kịch bản họp" {{ old('doc_type') == 'Kịch bản họp' ? 'selected' : '' }}>Kịch bản họp</option>
+                        <option value="Dự thảo kết luận" {{ old('doc_type') == 'Dự thảo kết luận' ? 'selected' : '' }}>Dự thảo kết luận</option>
+                        <option value="Tài liệu chung" {{ old('doc_type') == 'Tài liệu chung' ? 'selected' : '' }}>Tài liệu chung</option>
+                        <option value="Biên bản họp" {{ old('doc_type') == 'Biên bản họp' ? 'selected' : '' }}>Biên bản họp</option>
+                    </x-bieu-mau.o-chon>
+                </div>
+                <div class="stu-form-group" style="margin-bottom: 0;">
+                    <x-bieu-mau.nhan>Tập tin đính kèm (PDF, Word, Excel, PPT - Tối đa 20MB)</x-bieu-mau.nhan>
+                    <input type="file" name="doc_file" id="createMeetingDocFile" class="stu-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
+                    <div id="createDocFormatError" class="stu-form-error" style="display: none; color: var(--color-danger, #ef4444); font-size: 12px; margin-top: 6px; font-weight: 500;"></div>
+                    <div style="font-size: 11.5px; color: var(--color-text-muted); margin-top: 4px;">
+                        * Hỗ trợ định dạng: <strong>.pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx</strong>. Hệ thống sẽ báo lỗi nếu tải lên định dạng file khác.
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <x-canh-bao type="info" title="Quy tắc nghiệp vụ tự động (BR-02 & BR-08):" :dismissible="false">
             Hệ thống tự động ghi nhận người tạo, bẫy lỗi thời gian quá khứ, kiểm tra không trùng lịch họp (BR-08) và chỉ cấp quyền biểu quyết cho các thành viên Hội đồng được chọn triệu tập (BR-02).
         </x-canh-bao>
@@ -267,6 +297,46 @@
                     </button>
                 `;
                 newGuestsList.appendChild(row);
+            });
+        }
+
+        // Bẫy lỗi định dạng file đính kèm tài liệu phiên họp
+        const createDocInput = document.getElementById('createMeetingDocFile');
+        const createDocErr = document.getElementById('createDocFormatError');
+        const allowedExts = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+
+        if (createDocInput) {
+            createDocInput.addEventListener('change', function () {
+                if (createDocErr) createDocErr.style.display = 'none';
+                if (!this.files || this.files.length === 0) return;
+                const file = this.files[0];
+                const fileName = file.name;
+                const ext = fileName.split('.').pop().toLowerCase();
+
+                if (!allowedExts.includes(ext)) {
+                    if (createDocErr) {
+                        createDocErr.textContent = `Định dạng tập tin ".${ext}" không được hỗ trợ! Vui lòng chỉ tải lên các tệp tài liệu: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).`;
+                        createDocErr.style.display = 'block';
+                    }
+                    this.value = '';
+                    return;
+                }
+
+                if (file.size > 20 * 1024 * 1024) {
+                    if (createDocErr) {
+                        createDocErr.textContent = 'Dung lượng tập tin vượt quá 20MB. Vui lòng chọn tệp nhỏ hơn.';
+                        createDocErr.style.display = 'block';
+                    }
+                    this.value = '';
+                    return;
+                }
+
+                // Tự động điền tiêu đề tài liệu nếu chưa nhập
+                const titleInput = document.getElementById('createDocTitleInput');
+                if (titleInput && !titleInput.value.trim()) {
+                    const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+                    titleInput.value = baseName;
+                }
             });
         }
 
