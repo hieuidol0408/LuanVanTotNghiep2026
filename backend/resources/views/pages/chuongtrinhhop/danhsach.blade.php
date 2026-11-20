@@ -285,6 +285,9 @@
                         Thứ tự xem xét (Tự động nếu để trống)
                     </label>
                     <input type="number" name="ThuTu" min="1" class="stu-form-control" placeholder="Ví dụ: 1, 2, 3...">
+                    <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 3px;">
+                        * Ràng buộc: Không được trùng thứ tự với các mục đã có trong cùng phiên họp
+                    </div>
                 </div>
 
                 <div class="stu-form-group" style="margin-bottom: 0;">
@@ -336,6 +339,9 @@
                             Thứ tự xem xét <span style="color: #dc2626;">*</span>
                         </label>
                         <input type="number" name="ThuTu" min="1" required value="{{ $agenda->ThuTu }}" class="stu-form-control">
+                        <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 3px;">
+                            * Ràng buộc: Không được trùng thứ tự với các mục khác trong phiên họp này
+                        </div>
                     </div>
 
                     <div class="stu-form-group" style="margin-bottom: 0;">

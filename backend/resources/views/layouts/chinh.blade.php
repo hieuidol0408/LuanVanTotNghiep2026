@@ -41,6 +41,8 @@
                 @endif
                 @if(session('error'))
                     <x-canh-bao type="danger" title="Lỗi thao tác" :message="session('error')" dismissible />
+                @elseif($errors->any())
+                    <x-canh-bao type="danger" title="Lỗi ràng buộc dữ liệu" :message="$errors->first()" dismissible />
                 @endif
                 @if(session('info'))
                     <x-canh-bao type="info" title="Thông tin" :message="session('info')" dismissible />

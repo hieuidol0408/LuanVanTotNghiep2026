@@ -126,11 +126,43 @@ class ChuongTrinhHopWebController extends Controller
             'GhiChu' => ['nullable', 'string', 'max:1000'],
         ], [
             'MaPhienHop.required' => 'Vui lòng chọn phiên họp.',
+            'MaPhienHop.exists' => 'Phiên họp được chọn không tồn tại.',
             'MaHoSo.required' => 'Vui lòng chọn hồ sơ trình đưa vào chương trình.',
+            'MaHoSo.exists' => 'Hồ sơ trình được chọn không tồn tại.',
+            'ThuTu.min' => 'Thứ tự xem xét phải lớn hơn hoặc bằng 1.',
         ]);
 
-        $maxOrder = ChuongTrinhHop::where('MaPhienHop', $validated['MaPhienHop'])->max('ThuTu') ?? 0;
-        $thuTu = $validated['ThuTu'] ?? ($maxOrder + 1);
+        // [Ràng buộc 1] Chống đưa trùng 1 hồ sơ nhiều lần vào cùng một phiên họp (BR-08)
+        $dossierExists = ChuongTrinhHop::where('MaPhienHop', $validated['MaPhienHop'])
+            ->where('MaHoSo', $validated['MaHoSo'])
+            ->exists();
+        if ($dossierExists) {
+            $msg = 'Hồ sơ trình này đã có trong chương trình nghị sự của phiên họp này (Tuân thủ BR-08).';
+            return back()
+                ->withInput()
+                ->with('error', $msg)
+                ->withErrors(['MaHoSo' => $msg]);
+        }
+
+        // [Ràng buộc 2] Cột Thứ Tự không được trùng khi thêm mới trong cùng một phiên họp
+        if (! empty($validated['ThuTu'])) {
+            $thuTu = (int) $validated['ThuTu'];
+            $orderConflict = ChuongTrinhHop::where('MaPhienHop', $validated['MaPhienHop'])
+                ->where('ThuTu', $thuTu)
+                ->first();
+
+            if ($orderConflict) {
+                $conflictName = $orderConflict->hoSoTrinh?->TieuDe ?? ('Hồ sơ #' . $orderConflict->MaHoSo);
+                $msg = "Thứ tự xem xét #{$thuTu} đã được sử dụng cho mục: \"{$conflictName}\" trong phiên họp này. Vui lòng chọn số thứ tự khác hoặc để trống để hệ thống tự động tăng.";
+                return back()
+                    ->withInput()
+                    ->with('error', $msg)
+                    ->withErrors(['ThuTu' => $msg]);
+            }
+        } else {
+            $maxOrder = ChuongTrinhHop::where('MaPhienHop', $validated['MaPhienHop'])->max('ThuTu') ?? 0;
+            $thuTu = $maxOrder + 1;
+        }
 
         ChuongTrinhHop::create([
             'MaPhienHop' => $validated['MaPhienHop'],
@@ -161,12 +193,30 @@ class ChuongTrinhHopWebController extends Controller
             'GhiChu' => ['nullable', 'string', 'max:1000'],
         ], [
             'ThuTu.required' => 'Vui lòng nhập thứ tự xem xét.',
+            'ThuTu.integer' => 'Thứ tự xem xét phải là số nguyên.',
             'ThuTu.min' => 'Thứ tự xem xét phải lớn hơn hoặc bằng 1.',
             'TrangThai.required' => 'Vui lòng chọn trạng thái xử lý.',
         ]);
 
+        $newOrder = (int) $validated['ThuTu'];
+
+        // [Ràng buộc dữ liệu] Cột Thứ Tự không được trùng khi thay đổi/cập nhật với mục khác trong cùng một phiên họp
+        $duplicate = ChuongTrinhHop::where('MaPhienHop', $agenda->MaPhienHop)
+            ->where('ThuTu', $newOrder)
+            ->where('MaChuongTrinh', '!=', $agenda->MaChuongTrinh)
+            ->first();
+
+        if ($duplicate) {
+            $conflictName = $duplicate->hoSoTrinh?->TieuDe ?? ('Hồ sơ #' . $duplicate->MaHoSo);
+            $msg = "Thứ tự xem xét #{$newOrder} đã được sử dụng cho mục: \"{$conflictName}\" trong phiên họp này. Vui lòng chọn số thứ tự khác để tránh trùng lặp.";
+            return back()
+                ->withInput()
+                ->with('error', $msg)
+                ->withErrors(['ThuTu' => $msg]);
+        }
+
         $agenda->update([
-            'ThuTu' => $validated['ThuTu'],
+            'ThuTu' => $newOrder,
             'TrangThai' => $validated['TrangThai'],
             'GhiChu' => $validated['GhiChu'] ?? null,
         ]);

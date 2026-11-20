@@ -474,6 +474,9 @@
                     Thứ tự xem xét trong phiên (Tùy chọn)
                 </label>
                 <input type="number" name="ThuTu" class="stu-form-control" placeholder="Để trống hệ thống sẽ tự động xếp thứ tự tiếp theo" min="1">
+                <div style="font-size: 11.5px; color: var(--color-text-muted); margin-top: 4px;">
+                    * Ràng buộc: Không được trùng thứ tự với các mục đã có trong phiên họp này
+                </div>
             </div>
 
             <div class="stu-form-group stu-mb-4">

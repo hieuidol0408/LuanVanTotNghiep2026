@@ -604,6 +604,14 @@
             @endforeach
         </x-bieu-mau.o-chon>
 
+        <div class="stu-form-group">
+            <x-bieu-mau.nhan>Thứ tự xem xét (Tự động tăng nếu để trống)</x-bieu-mau.nhan>
+            <input type="number" name="ThuTu" min="1" class="stu-input" placeholder="Ví dụ: 1, 2, 3...">
+            <div style="font-size: 11.5px; color: var(--color-text-muted); margin-top: 4px;">
+                * Ràng buộc: Không được trùng thứ tự với các mục đã có trong phiên họp này
+            </div>
+        </div>
+
         <x-bieu-mau.vung-van-ban name="GhiChu" label="Ghi chú xem xét" rows="2" placeholder="Ghi chú về nội dung trình bày..." />
 
         <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: var(--space-4);">
@@ -672,7 +680,12 @@
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
-                    <x-bieu-mau.o-nhap type="number" name="ThuTu" label="Thứ tự xem xét" :value="$agenda->ThuTu" required />
+                    <div>
+                        <x-bieu-mau.o-nhap type="number" name="ThuTu" label="Thứ tự xem xét" :value="$agenda->ThuTu" required />
+                        <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 3px;">
+                            * Ràng buộc: Không được trùng thứ tự với các mục khác trong phiên họp này
+                        </div>
+                    </div>
 
                     <x-bieu-mau.o-chon name="TrangThai" label="Trạng thái xử lý" required>
                         @foreach(['Chưa xem xét', 'Đang thảo luận', 'Đã thông qua', 'Tạm hoãn'] as $st)

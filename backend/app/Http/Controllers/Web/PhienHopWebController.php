@@ -642,20 +642,52 @@ class PhienHopWebController extends Controller
     {
         $validated = $request->validate([
             'MaHoSo' => ['required', 'integer', 'exists:ho_so_trinh,MaHoSo'],
+            'ThuTu' => ['nullable', 'integer', 'min:1'],
             'GhiChu' => ['nullable', 'string'],
+        ], [
+            'ThuTu.min' => 'Thứ tự xem xét phải lớn hơn hoặc bằng 1.',
         ]);
 
-        $maxOrder = ChuongTrinhHop::where('MaPhienHop', $id)->max('ThuTu') ?? 0;
+        // [Ràng buộc 1] Chống đưa trùng hồ sơ vào phiên họp (BR-08)
+        $dossierExists = ChuongTrinhHop::where('MaPhienHop', $id)
+            ->where('MaHoSo', $validated['MaHoSo'])
+            ->exists();
+        if ($dossierExists) {
+            $msg = 'Hồ sơ trình này đã có trong chương trình họp của phiên này (Tuân thủ BR-08).';
+            return back()
+                ->withInput()
+                ->with('error', $msg)
+                ->withErrors(['MaHoSo' => $msg]);
+        }
+
+        // [Ràng buộc 2] Cột Thứ Tự không được trùng khi thêm mới trong cùng một phiên họp
+        if (! empty($validated['ThuTu'])) {
+            $thuTu = (int) $validated['ThuTu'];
+            $orderConflict = ChuongTrinhHop::where('MaPhienHop', $id)
+                ->where('ThuTu', $thuTu)
+                ->first();
+            if ($orderConflict) {
+                $conflictName = $orderConflict->hoSoTrinh?->TieuDe ?? ('Hồ sơ #' . $orderConflict->MaHoSo);
+                $msg = "Thứ tự xem xét #{$thuTu} đã được sử dụng cho mục: \"{$conflictName}\" trong phiên họp này. Vui lòng chọn số thứ tự khác hoặc để trống để hệ thống tự động tăng.";
+                return back()
+                    ->withInput()
+                    ->with('error', $msg)
+                    ->withErrors(['ThuTu' => $msg]);
+            }
+        } else {
+            $maxOrder = ChuongTrinhHop::where('MaPhienHop', $id)->max('ThuTu') ?? 0;
+            $thuTu = $maxOrder + 1;
+        }
 
         ChuongTrinhHop::create([
             'MaPhienHop' => $id,
             'MaHoSo' => $validated['MaHoSo'],
-            'ThuTu' => $maxOrder + 1,
+            'ThuTu' => $thuTu,
             'TrangThai' => 'Chưa xem xét',
             'GhiChu' => $validated['GhiChu'] ?? null,
         ]);
 
-        return back()->with('success', 'Đã đưa hồ sơ trình vào chương trình họp (Thứ tự: ' . ($maxOrder + 1) . ').');
+        return back()->with('success', "Đã đưa hồ sơ trình vào chương trình họp (Thứ tự: #{$thuTu}).");
     }
 
     /**

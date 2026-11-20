@@ -249,4 +249,71 @@ class MeetingWebTest extends TestCase
         $this->assertEquals('Đã thông qua', $agenda->TrangThai);
         $this->assertEquals('Đã thảo luận và nhất trí thông qua tại phiên họp.', $agenda->GhiChu);
     }
+
+    /**
+     * 10. Ràng buộc dữ liệu: Cột Thứ Tự khi cập nhật không được trùng với mục khác trong cùng phiên họp.
+     */
+    public function test_agenda_update_blocks_duplicate_order_in_same_meeting(): void
+    {
+        $secretary = \App\Models\User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        // Lấy 2 mục chương trình họp trong cùng 1 phiên họp
+        $agendas = \App\Models\ChuongTrinhHop::all()->groupBy('MaPhienHop')->first(function ($group) {
+            return $group->count() >= 2;
+        });
+
+        if (! $agendas || $agendas->count() < 2) {
+            $this->markTestSkipped('Cần ít nhất 2 mục chương trình họp trong cùng 1 phiên.');
+        }
+
+        $item1 = $agendas[0];
+        $item2 = $agendas[1];
+
+        // Cố tình cập nhật item2 có ThuTu trùng với item1
+        $response = $this->put(route('agendas.update', $item2->MaChuongTrinh), [
+            'ThuTu' => $item1->ThuTu,
+            'TrangThai' => 'Đang thảo luận',
+            'GhiChu' => 'Thử nghiệm trùng lặp thứ tự',
+        ]);
+
+        $response->assertSessionHas('error');
+        $response->assertSessionHasErrors(['ThuTu']);
+    }
+
+    /**
+     * 11. Ràng buộc dữ liệu: Cột Thứ Tự khi thêm mới không được trùng với mục đã có trong cùng phiên họp.
+     */
+    public function test_agenda_store_blocks_duplicate_order_in_same_meeting(): void
+    {
+        $secretary = \App\Models\User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        $existing = \App\Models\ChuongTrinhHop::first();
+        if (! $existing) {
+            $this->markTestSkipped('Chưa có mục chương trình họp mẫu.');
+        }
+
+        // Tạo hồ sơ mới chưa nằm trong phiên
+        $dossier = \App\Models\HoSoTrinh::create([
+            'TieuDe' => 'Hồ sơ kiểm thử trùng thứ tự ' . uniqid(),
+            'NoiDungTomTat' => 'Nội dung kiểm thử',
+            'NgayTrinh' => now()->toDateString(),
+            'LinhVuc' => 'Tổng hợp',
+            'TrangThai' => 'Đủ điều kiện',
+            'MaDonVi' => 1,
+            'MaNguoiDung' => $secretary->MaNguoiDung ?? 1,
+        ]);
+
+        // Cố tình thêm mới với ThuTu trùng với $existing->ThuTu trong cùng MaPhienHop
+        $response = $this->post(route('agendas.store'), [
+            'MaPhienHop' => $existing->MaPhienHop,
+            'MaHoSo' => $dossier->MaHoSo,
+            'ThuTu' => $existing->ThuTu,
+            'TrangThai' => 'Chưa xem xét',
+        ]);
+
+        $response->assertSessionHas('error');
+        $response->assertSessionHasErrors(['ThuTu']);
+    }
 }
