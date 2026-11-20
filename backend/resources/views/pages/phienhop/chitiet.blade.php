@@ -133,7 +133,7 @@
                     Tuân thủ <strong>BR-02</strong>: Đảm bảo không trùng lặp thành viên trong cùng một phiên họp.
                 </p>
             </div>
-            @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']) && $availableMembers->isNotEmpty())
+            @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
                 <x-nut-bam variant="primary" size="sm" data-modal-open="addMemberModal">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     <span>Mời thêm thành viên</span>
@@ -568,26 +568,43 @@
 <x-hop-thoai id="addMemberModal" title="Mời Thành viên Hội đồng tham dự" size="md">
     <form method="POST" action="{{ route('meetings.members.add', $meeting->MaPhienHop) }}" id="addMemberForm">
         @csrf
-        <x-bieu-mau.o-chon name="MaThanhVien" label="Chọn thành viên Hội đồng" required hint="Danh sách tự động loại bỏ các thành viên đã có trong phiên (BR-02)">
-            @foreach($availableMembers as $m)
-                <option value="{{ $m->MaThanhVien }}">
-                    {{ $m->nguoiDung?->HoTen }} ({{ $m->ChucDanh }})
-                </option>
-            @endforeach
-        </x-bieu-mau.o-chon>
+        @if($availableMembers->isNotEmpty())
+            <x-bieu-mau.o-chon name="MaThanhVien" label="Chọn thành viên Hội đồng" required hint="Danh sách tự động loại bỏ các thành viên đã có trong phiên (BR-02)">
+                @foreach($availableMembers as $m)
+                    <option value="{{ $m->MaThanhVien }}">
+                        {{ $m->nguoiDung?->HoTen }} ({{ $m->ChucDanh }})
+                    </option>
+                @endforeach
+            </x-bieu-mau.o-chon>
 
-        <x-bieu-mau.o-chon name="TrangThaiThamDu" label="Trạng thái mời ban đầu" required>
-            <option value="Có mặt">Có mặt</option>
-            <option value="Vắng">Vắng</option>
-            <option value="Có xin phép">Có xin phép</option>
-        </x-bieu-mau.o-chon>
+            <x-bieu-mau.o-chon name="TrangThaiThamDu" label="Trạng thái mời ban đầu" required>
+                <option value="Có mặt">Có mặt</option>
+                <option value="Vắng">Vắng</option>
+                <option value="Có xin phép">Có xin phép</option>
+            </x-bieu-mau.o-chon>
 
-        <x-bieu-mau.vung-van-ban name="GhiChu" label="Ghi chú" rows="2" placeholder="Nhập ghi chú (nếu có)..." />
+            <x-bieu-mau.vung-van-ban name="GhiChu" label="Ghi chú" rows="2" placeholder="Nhập ghi chú (nếu có)..." />
 
-        <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: var(--space-4);">
-            <x-nut-bam variant="secondary" data-modal-close>Đóng</x-nut-bam>
-            <x-nut-bam type="submit" variant="primary">Thêm vào phiên họp</x-nut-bam>
-        </div>
+            <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: var(--space-4);">
+                <x-nut-bam variant="secondary" data-modal-close>Đóng</x-nut-bam>
+                <x-nut-bam type="submit" variant="primary">Thêm vào phiên họp</x-nut-bam>
+            </div>
+        @else
+            <div style="padding: 16px; background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px; margin-bottom: var(--space-4); color: #92400E; font-size: 13px; line-height: 1.6;">
+                <div style="font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Tất cả thành viên Hội đồng trường đã có mặt trong phiên họp
+                </div>
+                Hiện tại tất cả thành viên trong Hội đồng trường đều đã được đưa vào danh sách tham dự phiên họp này (tuân thủ quy tắc <strong>BR-02: Chống mời trùng lặp</strong>).
+                <div style="margin-top: 8px;">
+                    • Để bớt một thành viên khỏi phiên họp, bạn chỉ cần bấm nút <strong>[Bớt]</strong> màu đỏ tại dòng của thành viên đó trong bảng.<br>
+                    • Sau khi bớt, thành viên đó sẽ tự động xuất hiện lại trong hộp thoại này để có thể mời lại khi cần.
+                </div>
+            </div>
+            <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: var(--space-4);">
+                <x-nut-bam variant="secondary" data-modal-close>Đóng</x-nut-bam>
+            </div>
+        @endif
     </form>
 </x-hop-thoai>
 
