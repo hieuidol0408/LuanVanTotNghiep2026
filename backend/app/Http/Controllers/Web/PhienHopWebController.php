@@ -203,8 +203,9 @@ class PhienHopWebController extends Controller
             return redirect()->route('meetings.index')->with('error', 'Từ chối quyền thao tác.');
         }
 
-        if ($request->hasFile('doc_file') && ! $request->file('doc_file')->isValid()) {
-            $errCode = $request->file('doc_file')->getError();
+        $initialDoc = $request->file('doc_file');
+        if ($initialDoc instanceof \Illuminate\Http\UploadedFile && ! $initialDoc->isValid()) {
+            $errCode = $initialDoc->getError();
             $errMsg = match ($errCode) {
                 UPLOAD_ERR_INI_SIZE => 'Tập tin tài liệu tải lên thất bại do dung lượng vượt quá giới hạn của máy chủ (upload_max_filesize trong PHP).',
                 UPLOAD_ERR_FORM_SIZE => 'Tập tin tài liệu tải lên vượt quá giới hạn dung lượng của biểu mẫu.',
@@ -841,8 +842,9 @@ class PhienHopWebController extends Controller
         }
 
         // Kiểm tra lỗi upload từ phía PHP trước khi validate
-        if ($request->hasFile('file') && ! $request->file('file')->isValid()) {
-            $errCode = $request->file('file')->getError();
+        $uploaded = $request->file('file');
+        if ($uploaded instanceof \Illuminate\Http\UploadedFile && ! $uploaded->isValid()) {
+            $errCode = $uploaded->getError();
             $errMsg = match ($errCode) {
                 UPLOAD_ERR_INI_SIZE => 'Tập tin tải lên thất bại do dung lượng vượt quá giới hạn của máy chủ (upload_max_filesize trong PHP).',
                 UPLOAD_ERR_FORM_SIZE => 'Tập tin tải lên vượt quá giới hạn dung lượng của biểu mẫu.',
