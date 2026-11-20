@@ -440,6 +440,25 @@
             @endif
         </div>
 
+        @php
+            $eligibleVotersCount = $meeting->thamDu->filter(function ($att) {
+                $hasRight = (bool) ($att->thanhVienHdt?->CoQuyenBieuQuyet ?? true);
+                $isPresent = in_array($att->TrangThaiThamDu, ['PRESENT', 'Có mặt']);
+                return $hasRight && $isPresent;
+            })->count();
+        @endphp
+        <div style="margin-bottom: var(--space-4); padding: 12px 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; font-size: var(--font-size-xs);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-weight: 700;">✓</span>
+                <span style="color: #14532d;">
+                    <strong>Xác định thành viên biểu quyết (BR-07):</strong> Có <strong>{{ $eligibleVotersCount }} / {{ $meeting->thamDu->count() }}</strong> thành viên đủ điều kiện bỏ phiếu (Thành viên chính thức HĐT có quyền BQ &amp; đã điểm danh có mặt).
+                </span>
+            </div>
+            <span class="stu-badge stu-badge-success" style="font-weight: 700;">
+                {{ $eligibleVotersCount }} Cử tri hợp lệ
+            </span>
+        </div>
+
         @if($meeting->noiDungBieuQuyet->isEmpty())
             <div class="stu-card" style="padding: var(--space-10); text-align: center;">
                 <p style="color: var(--color-text-muted); font-size: var(--font-size-sm);">

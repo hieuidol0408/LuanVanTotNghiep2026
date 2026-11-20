@@ -153,11 +153,17 @@ class BieuQuyetWebController extends Controller
         $disagreeVotes = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_AGAINST', 'Không tán thành']))->count();
         $abstainVotes = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_ABSTAIN', 'Không có ý kiến', 'Không ý kiến']))->count();
 
-        // Tính mẫu số theo số thành viên có mặt tại phiên họp
+        // Tính mẫu số theo số thành viên có quyền biểu quyết và có mặt tại phiên họp (BR-07)
         $presentOfficialCount = 0;
         if ($meeting) {
             $presentOfficialCount = ThamDu::where('MaPhienHop', $meeting->MaPhienHop)
                 ->whereIn('TrangThaiThamDu', ['PRESENT', 'Có mặt'])
+                ->whereHas('thanhVienHdt', function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->whereNull('CoQuyenBieuQuyet')
+                            ->orWhere('CoQuyenBieuQuyet', 1);
+                    });
+                })
                 ->count();
         }
         $denominator = $presentOfficialCount > 0 ? $presentOfficialCount : max($totalVotes, 1);
@@ -283,12 +289,18 @@ class BieuQuyetWebController extends Controller
         $totalCast = $votes->count();
         $votesFor = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_FOR', 'Tán thành']))->count();
 
-        // Lấy số thành viên HĐT có mặt tại phiên họp
+        // Lấy số thành viên HĐT có quyền biểu quyết và có mặt tại phiên họp (BR-07)
         $phienHop = $vote->chuongTrinhHop?->phienHop;
         $presentOfficialCount = 0;
         if ($phienHop) {
             $presentOfficialCount = ThamDu::where('MaPhienHop', $phienHop->MaPhienHop)
                 ->whereIn('TrangThaiThamDu', ['PRESENT', 'Có mặt'])
+                ->whereHas('thanhVienHdt', function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->whereNull('CoQuyenBieuQuyet')
+                            ->orWhere('CoQuyenBieuQuyet', 1);
+                    });
+                })
                 ->count();
         }
 
