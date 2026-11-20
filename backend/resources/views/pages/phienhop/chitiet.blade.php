@@ -142,7 +142,7 @@
         </div>
 
         <x-bang-du-lieu 
-            :headers="['Họ và tên', 'Chức danh HĐT', 'Đơn vị', 'Trạng thái điểm danh', 'Thời điểm xác nhận', 'Ghi chú']"
+            :headers="['Họ và tên', 'Chức danh HĐT', 'Đơn vị', 'Quyền biểu quyết', 'Trạng thái điểm danh', 'Thời điểm xác nhận', 'Ghi chú']"
             :hasActions="in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])"
             actionTitle="Điểm danh"
             :empty="$meeting->thamDu->isEmpty()"
@@ -153,6 +153,7 @@
                 @php
                     $mUser = $attendee->thanhVienHdt?->nguoiDung;
                     $mDept = $mUser?->donVi?->TenDonVi ?: 'Hội đồng trường';
+                    $hasVotingRight = (bool) ($attendee->thanhVienHdt?->CoQuyenBieuQuyet ?? true);
                 @endphp
                 <tr>
                     <td style="font-weight: 600;">
@@ -164,6 +165,17 @@
                         </span>
                     </td>
                     <td style="font-size: var(--font-size-xs);">{{ $mDept }}</td>
+                    <td style="font-size: var(--font-size-xs);">
+                        @if($hasVotingRight)
+                            <span class="stu-badge stu-badge-success" style="font-size: 11px; font-weight: 600;">
+                                ✓ Có quyền BQ
+                            </span>
+                        @else
+                            <span class="stu-badge stu-badge-neutral" style="font-size: 11px;">
+                                Không có quyền BQ
+                            </span>
+                        @endif
+                    </td>
                     <td>
                         <x-nhan-trang-thai :status="$attendee->TrangThaiThamDu" />
                     </td>

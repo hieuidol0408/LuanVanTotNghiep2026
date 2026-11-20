@@ -479,6 +479,55 @@
                     </div>
                 </div>
             </div>
+
+            {{-- 4. Danh sách Thành viên xác định có quyền biểu quyết (BR-07, BR-09) --}}
+            <div class="stu-card" style="padding: 22px; background: #ffffff;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                    <h3 style="font-size: 15px; font-weight: 800; color: var(--color-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <span>Xác định Thành viên Biểu quyết</span>
+                    </h3>
+                    <span class="stu-badge stu-badge-success" style="font-size: 11px; font-weight: 700;">
+                        {{ $voteStats['present_count'] }} đại biểu đủ điều kiện
+                    </span>
+                </div>
+                <p style="font-size: 12px; color: var(--color-text-muted); margin: 0 0 14px 0; line-height: 1.5;">
+                    Quy chế BR-07: Chỉ Thành viên HĐT chính thức <strong>có quyền biểu quyết</strong> và được <strong>điểm danh có mặt</strong> tại phiên họp mới có quyền gửi phiếu.
+                </p>
+
+                @if($meeting && $meeting->thamDu->isNotEmpty())
+                    <div style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                        @foreach($meeting->thamDu as $att)
+                            @php
+                                $mMember = $att->thanhVienHdt;
+                                $mName = $mMember?->nguoiDung?->HoTen ?: 'Thành viên #' . $att->MaThanhVien;
+                                $hasRight = (bool) ($mMember?->CoQuyenBieuQuyet ?? true);
+                                $isPresent = in_array($att->TrangThaiThamDu, ['PRESENT', 'Có mặt']);
+                                $isEligible = $hasRight && $isPresent;
+                            @endphp
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: {{ $isEligible ? '#f0fdf4' : 'var(--color-bg-subtle)' }}; border: 1px solid {{ $isEligible ? '#bbf7d0' : 'var(--color-border)' }}; border-radius: 6px; font-size: 12.5px;">
+                                <div>
+                                    <strong style="color: var(--color-text-primary);">{{ $mName }}</strong>
+                                    <div style="font-size: 11px; color: var(--color-text-muted);">{{ $mMember?->ChucDanh ?: 'Thành viên HĐT' }}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    @if($isEligible)
+                                        <span class="stu-badge stu-badge-success" style="font-size: 10.5px; font-weight: 700;">✓ Đủ điều kiện BQ</span>
+                                    @elseif(!$hasRight)
+                                        <span class="stu-badge stu-badge-neutral" style="font-size: 10.5px;">Không có quyền BQ</span>
+                                    @else
+                                        <span class="stu-badge stu-badge-warning" style="font-size: 10.5px;">{{ $att->TrangThaiThamDu ?: 'Vắng mặt' }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div style="font-size: 12px; color: var(--color-text-muted); text-align: center; padding: 16px;">
+                        Chưa có dữ liệu điểm danh thành viên trong phiên họp này.
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 </div>
