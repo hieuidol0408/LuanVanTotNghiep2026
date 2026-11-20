@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\DonVi;
 use App\Models\HoSoTrinh;
+use App\Models\PhienHop;
 use App\Models\TaiLieu;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -166,8 +167,12 @@ class HoSoTrinhWebController extends Controller
      */
     public function show(int|string $id): View|RedirectResponse
     {
-        $dossier = HoSoTrinh::with(['donVi', 'nguoiDung', 'taiLieu'])
-            ->findOrFail($id);
+        $dossier = HoSoTrinh::with([
+            'donVi',
+            'nguoiDung',
+            'taiLieu',
+            'chuongTrinhHop.phienHop',
+        ])->findOrFail($id);
 
         $user = Auth::user();
         $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
@@ -181,7 +186,12 @@ class HoSoTrinhWebController extends Controller
 
         $departments = DonVi::all();
 
-        return view('pages.hosotrinh.chitiet', compact('dossier', 'role', 'departments'));
+        // Danh sách các phiên họp sắp diễn ra / chưa kết thúc để thư ký có thể xếp lịch đưa vào ngay tại đây (BR-08)
+        $upcomingMeetings = PhienHop::whereNotIn('TrangThai', ['Hủy', 'Đã hủy', 'CANCELLED', 'Đã ẩn'])
+            ->orderByDesc('MaPhienHop')
+            ->get();
+
+        return view('pages.hosotrinh.chitiet', compact('dossier', 'role', 'departments', 'upcomingMeetings'));
     }
 
     /**

@@ -21,15 +21,19 @@
                 {{ $dossier->TieuDe }}
             </h1>
         </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
             @if(in_array($role, ['SECRETARY', 'CHAIR', 'ADMIN']))
                 <button type="button" class="stu-btn stu-btn-success stu-btn-sm" data-modal-open="reviewSubmissionModal" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span>Kiểm tra hồ sơ vào phiên họp</span>
                 </button>
+                <button type="button" class="stu-btn stu-btn-primary stu-btn-sm" data-modal-open="addToMeetingModal" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Đưa vào phiên họp</span>
+                </button>
             @endif
             @if(in_array($role, ['UNIT_REP', 'SECRETARY', 'CHAIR', 'ADMIN']))
-                <button type="button" class="stu-btn stu-btn-primary stu-btn-sm" data-modal-open="editSubmissionModal" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                <button type="button" class="stu-btn stu-btn-outline stu-btn-sm" data-modal-open="editSubmissionModal" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     <span>Chỉnh sửa hồ sơ</span>
                 </button>
@@ -165,6 +169,101 @@
             @else
                 <div style="text-align: center; padding: 32px; background: var(--color-bg-muted); border-radius: var(--radius-md); color: var(--color-text-muted); font-size: 13px;">
                     Chưa có file tài liệu đính kèm nào trong hồ sơ này.
+                </div>
+            @endif
+        </div>
+
+        {{-- 3. Thông tin phiên họp & Chương trình nghị sự xem xét hồ sơ (BR-08) --}}
+        <div class="stu-card" style="padding: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="font-size: 16px; font-weight: 700; color: var(--color-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Phiên họp &amp; Chương trình nghị sự xem xét hồ sơ (BR-08)</span>
+                </h3>
+                @if(in_array($role, ['SECRETARY', 'CHAIR', 'ADMIN']))
+                    <button type="button" class="stu-btn stu-btn-primary stu-btn-sm" data-modal-open="addToMeetingModal" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        <span>Đưa hồ sơ vào phiên họp</span>
+                    </button>
+                @endif
+            </div>
+
+            @if($dossier->chuongTrinhHop->isNotEmpty())
+                <div class="stu-table-container">
+                    <table class="stu-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px; text-align: center;">Thứ tự</th>
+                                <th>Phiên họp Hội đồng trường</th>
+                                <th>Thời gian họp</th>
+                                <th>Địa điểm / Hình thức</th>
+                                <th>Trạng thái xem xét</th>
+                                <th>Ghi chú</th>
+                                <th class="col-actions">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($dossier->chuongTrinhHop as $agenda)
+                                <tr>
+                                    <td style="font-weight: 700; color: var(--color-primary); text-align: center;">
+                                        #{{ $agenda->ThuTu }}
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('meetings.show', $agenda->MaPhienHop) }}" style="font-weight: 700; color: var(--color-primary); text-decoration: none;">
+                                            {{ $agenda->phienHop?->TenPhienHop ?: ('Phiên họp #' . $agenda->MaPhienHop) }}
+                                        </a>
+                                    </td>
+                                    <td style="font-size: 13px;">
+                                        {{ $agenda->phienHop?->NgayHop ? \Carbon\Carbon::parse($agenda->phienHop->NgayHop)->format('d/m/Y') : '—' }}
+                                        @if($agenda->phienHop?->ThoiGianBatDau)
+                                            <div style="font-size: 11px; color: var(--color-text-muted);">
+                                                {{ date('H:i', strtotime($agenda->phienHop->ThoiGianBatDau)) }}
+                                                @if($agenda->phienHop?->ThoiGianKetThuc)
+                                                    - {{ date('H:i', strtotime($agenda->phienHop->ThoiGianKetThuc)) }}
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td style="font-size: 13px;">
+                                        <div>{{ $agenda->phienHop?->DiaDiem ?: 'Hội trường HĐT' }}</div>
+                                        <span class="stu-badge stu-badge-light" style="font-size: 11px;">{{ $agenda->phienHop?->HinhThuc ?: 'Trực tiếp' }}</span>
+                                    </td>
+                                    <td>
+                                        <x-nhan-trang-thai :status="$agenda->TrangThai" />
+                                    </td>
+                                    <td style="font-size: 12px; color: var(--color-text-secondary); max-width: 200px;">
+                                        {{ $agenda->GhiChu ?: '—' }}
+                                    </td>
+                                    <td class="col-actions">
+                                        <a href="{{ route('meetings.show', $agenda->MaPhienHop) }}#pane-agenda" class="stu-btn stu-btn-outline stu-btn-sm">
+                                            Xem phiên họp
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 8px; padding: 20px; text-align: center;">
+                    <div style="font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 6px;">
+                        Hồ sơ này chưa được đưa vào chương trình nghị sự của phiên họp nào.
+                    </div>
+                    @if(in_array($dossier->TrangThai, ['Đủ điều kiện', 'Đầy đủ']))
+                        <p style="font-size: 12.5px; color: var(--color-success); margin: 0 0 14px 0; font-weight: 500;">
+                            ✓ Hồ sơ đã đạt thẩm định <strong>ĐỦ ĐIỀU KIỆN</strong>. Thư ký hoặc Chủ tịch có thể xếp lịch đưa vào phiên họp ngay bên dưới:
+                        </p>
+                        @if(in_array($role, ['SECRETARY', 'CHAIR', 'ADMIN']))
+                            <button type="button" class="stu-btn stu-btn-primary stu-btn-sm" data-modal-open="addToMeetingModal" style="display: inline-flex; align-items: center; gap: 6px;">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                <span>Đưa hồ sơ vào phiên họp ngay</span>
+                            </button>
+                        @endif
+                    @else
+                        <p style="font-size: 12px; color: var(--color-text-muted); margin: 0;">
+                            Quy trình: Thư ký thẩm định hồ sơ đạt <strong>Đủ điều kiện</strong> qua nút "Kiểm tra hồ sơ vào phiên họp", sau đó xếp lịch nghị sự vào phiên họp Hội đồng trường.
+                        </p>
+                    @endif
                 </div>
             @endif
         </div>
@@ -328,6 +427,67 @@
                 <button type="submit" class="stu-btn stu-btn-primary" style="padding: 10px 24px;">
                     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                     <span>Lưu kết quả kiểm tra</span>
+                </button>
+            </div>
+        </form>
+    </x-hop-thoai>
+
+    {{-- Modal Đưa hồ sơ vào phiên họp (BR-08) --}}
+    <x-hop-thoai id="addToMeetingModal" title="Đưa Hồ Sơ Vào Phiên Họp Hội Đồng Trường (BR-08)" size="md">
+        <form method="POST" action="{{ route('agendas.store') }}">
+            @csrf
+            <input type="hidden" name="MaHoSo" value="{{ $dossier->MaHoSo }}">
+
+            <div style="background: var(--color-bg-subtle); border: 1px solid var(--color-border); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px;">
+                <div style="margin-bottom: 4px;">
+                    <span style="color: var(--color-text-muted);">Hồ sơ trình:</span>
+                    <strong style="color: var(--color-primary); margin-left: 4px;">{{ $dossier->ma_ho_so_hien_thi }}</strong> - {{ $dossier->TieuDe }}
+                </div>
+                <div>
+                    <span style="color: var(--color-text-muted);">Đơn vị trình:</span>
+                    <span>{{ $dossier->donVi?->TenDonVi ?? 'Chưa xác định' }}</span>
+                </div>
+            </div>
+
+            <div class="stu-form-group stu-mb-4">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
+                    Chọn phiên họp Hội đồng trường tiếp nhận <span style="color: var(--color-danger);">*</span>
+                </label>
+                <select name="MaPhienHop" class="stu-form-control" required>
+                    <option value="">-- Chọn phiên họp nhận hồ sơ --</option>
+                    @foreach($upcomingMeetings as $m)
+                        @php
+                            $alreadyInMeeting = $dossier->chuongTrinhHop->contains('MaPhienHop', $m->MaPhienHop);
+                        @endphp
+                        <option value="{{ $m->MaPhienHop }}" {{ $alreadyInMeeting ? 'disabled' : '' }}>
+                            {{ $m->TenPhienHop }} (Ngày {{ \Carbon\Carbon::parse($m->NgayHop)->format('d/m/Y') }}) {{ $alreadyInMeeting ? '— [Đã có trong phiên]' : '' }}
+                        </option>
+                    @endforeach
+                </select>
+                <div style="font-size: 11.5px; color: var(--color-text-muted); margin-top: 4px;">
+                    Tuân thủ BR-08: Hồ sơ sẽ được đưa vào chương trình nghị sự và chuẩn bị cho biểu quyết.
+                </div>
+            </div>
+
+            <div class="stu-form-group stu-mb-4">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
+                    Thứ tự xem xét trong phiên (Tùy chọn)
+                </label>
+                <input type="number" name="ThuTu" class="stu-form-control" placeholder="Để trống hệ thống sẽ tự động xếp thứ tự tiếp theo" min="1">
+            </div>
+
+            <div class="stu-form-group stu-mb-4">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
+                    Ghi chú / Phân công trình bày
+                </label>
+                <textarea name="GhiChu" rows="2" class="stu-form-control" placeholder="Ghi chú người báo cáo, thời lượng trình bày hoặc định hướng xem xét...">{{ old('GhiChu') }}</textarea>
+            </div>
+
+            <div class="stu-flex stu-items-center stu-justify-between" style="border-top: 1px solid var(--color-border); padding-top: 16px;">
+                <button type="button" class="stu-btn stu-btn-ghost" data-modal-close>Đóng</button>
+                <button type="submit" class="stu-btn stu-btn-primary" style="padding: 10px 24px;">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    <span>Xác nhận đưa vào phiên họp</span>
                 </button>
             </div>
         </form>
