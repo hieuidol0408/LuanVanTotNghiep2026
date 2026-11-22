@@ -139,11 +139,24 @@ class TaiLieuWebController extends Controller
     public function preview(int $id): View|RedirectResponse
     {
         $user = Auth::user();
-        $doc = TaiLieu::findOrFail($id);
+        $doc = TaiLieu::with(['hoSoTrinh', 'phienHop', 'nghiQuyet'])->findOrFail($id);
 
         $isCouncilMember = $user && in_array($user->role, ['CHAIR', 'VICE_CHAIR', 'SECRETARY', 'MEMBER', 'ADMIN']);
         if ($doc->LoaiTaiLieu === 'INTERNAL' && !$isCouncilMember) {
             return redirect()->route('submissions.index')->with('error', 'Bạn không có thẩm quyền xem tài liệu nội bộ này.');
+        }
+
+        $backUrl = route('submissions.index');
+        if (request('back')) {
+            $backUrl = request('back');
+        } elseif ($doc->hoSoTrinh->isNotEmpty()) {
+            $backUrl = route('submissions.show', $doc->hoSoTrinh->first()->MaHoSo);
+        } elseif ($doc->phienHop->isNotEmpty()) {
+            $backUrl = route('meetings.show', ['id' => $doc->phienHop->first()->MaPhienHop, 'tab' => 'docs']);
+        } elseif ($doc->nghiQuyet->isNotEmpty()) {
+            $backUrl = route('resolutions.show', $doc->nghiQuyet->first()->MaNghiQuyet);
+        } elseif (url()->previous() && url()->previous() !== url()->current()) {
+            $backUrl = url()->previous();
         }
 
         $realPath = $this->getRealFilePath($doc);
@@ -165,7 +178,7 @@ class TaiLieuWebController extends Controller
             }
         }
 
-        return view('pages.tailieu.xemtruoc', compact('doc', 'ext', 'previewHtml', 'sheets', 'slides', 'realPath'));
+        return view('pages.tailieu.xemtruoc', compact('doc', 'ext', 'previewHtml', 'sheets', 'slides', 'realPath', 'backUrl'));
     }
 
     /**

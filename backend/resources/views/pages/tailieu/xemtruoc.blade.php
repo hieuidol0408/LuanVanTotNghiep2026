@@ -109,8 +109,8 @@
 @section('content')
 <div class="stu-mb-4" style="display: flex; align-items: center; justify-content: space-between;">
     <div style="display: flex; align-items: center; gap: 10px;">
-        <a href="javascript:history.back()" class="stu-btn stu-btn-ghost stu-btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        <a href="{{ $backUrl }}" onclick="handleDocBack(event)" class="stu-btn stu-btn-secondary stu-btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;" title="Quay lại">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             <span>Quay lại</span>
         </a>
         <h1 style="font-size: 18px; font-weight: 700; color: var(--color-text-main); margin: 0;">
@@ -156,6 +156,10 @@
             <a href="{{ route('documents.download', $doc->MaTaiLieu) }}" class="stu-btn stu-btn-primary stu-btn-sm">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 <span>Tải về máy</span>
+            </a>
+            <a href="{{ $backUrl }}" onclick="handleDocBack(event)" class="stu-btn stu-btn-secondary stu-btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Đóng trình xem">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                <span>Đóng</span>
             </a>
         </div>
     </div>
@@ -231,6 +235,23 @@
 
 @push('scripts')
 <script>
+    function handleDocBack(e) {
+        // 1. Nếu mở trong tab/cửa sổ popup có opener
+        if (window.opener && !window.opener.closed) {
+            e.preventDefault();
+            window.close();
+            return;
+        }
+        // 2. Nếu trong tab có lịch sử duyệt trang trước đó thực sự
+        if (window.history.length > 1 && document.referrer && document.referrer !== window.location.href) {
+            e.preventDefault();
+            window.history.back();
+            return;
+        }
+        // 3. Nếu mở trực tiếp trong tab mới mà window.close bị chặn bởi trình duyệt
+        // Trình duyệt sẽ tự động điều hướng theo liên kết href="{{ $backUrl }}"
+    }
+
     function switchSheet(index) {
         document.querySelectorAll('.xlsx-sheet-tab').forEach((tab, i) => {
             tab.classList.toggle('active', i === index);
