@@ -136,7 +136,16 @@
                             @foreach($dossier->taiLieu as $doc)
                                 <tr>
                                     <td style="font-weight: 600; color: var(--color-text-primary);">
-                                        <a href="{{ asset($doc->DuongDan) }}" target="_blank" style="color: var(--color-primary); text-decoration: none;">
+                                        <a href="javascript:void(0)" 
+                                           class="btn-view-doc" 
+                                           data-doc-id="{{ $doc->MaTaiLieu }}" 
+                                           data-doc-title="{{ $doc->TenTaiLieu }}" 
+                                           data-doc-ext="{{ strtolower($doc->DinhDang ?? pathinfo($doc->DuongDan, PATHINFO_EXTENSION)) }}" 
+                                           data-doc-url="{{ asset($doc->DuongDan) }}" 
+                                           data-view-url="{{ route('documents.view', $doc->MaTaiLieu) }}"
+                                           data-preview-url="{{ route('documents.preview', $doc->MaTaiLieu) }}"
+                                           data-download-url="{{ route('documents.download', $doc->MaTaiLieu) }}"
+                                           style="color: var(--color-primary); text-decoration: none; cursor: pointer;">
                                             {{ $doc->TenTaiLieu }}
                                         </a>
                                     </td>
@@ -152,10 +161,20 @@
                                     </td>
                                     <td class="col-actions">
                                         <div class="stu-table-actions-group">
-                                            <a href="{{ asset($doc->DuongDan) }}" target="_blank" class="stu-btn stu-btn-outline stu-btn-sm">
+                                            <button type="button" 
+                                                    class="stu-btn stu-btn-outline stu-btn-sm btn-view-doc" 
+                                                    data-doc-id="{{ $doc->MaTaiLieu }}" 
+                                                    data-doc-title="{{ $doc->TenTaiLieu }}" 
+                                                    data-doc-ext="{{ strtolower($doc->DinhDang ?? pathinfo($doc->DuongDan, PATHINFO_EXTENSION)) }}" 
+                                                    data-doc-url="{{ asset($doc->DuongDan) }}" 
+                                                    data-view-url="{{ route('documents.view', $doc->MaTaiLieu) }}"
+                                                    data-preview-url="{{ route('documents.preview', $doc->MaTaiLieu) }}"
+                                                    data-download-url="{{ route('documents.download', $doc->MaTaiLieu) }}"
+                                                    title="Xem trực tiếp trong trình duyệt không cần tải về">
+                                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                 <span>Xem file</span>
-                                            </a>
-                                            <a href="{{ asset($doc->DuongDan) }}" target="_blank" download class="stu-btn stu-btn-secondary stu-btn-sm">
+                                            </button>
+                                            <a href="{{ route('documents.download', $doc->MaTaiLieu) }}" class="stu-btn stu-btn-secondary stu-btn-sm" title="Tải về máy tính">
                                                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                 <span>Tải về</span>
                                             </a>

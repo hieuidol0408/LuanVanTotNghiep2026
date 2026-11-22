@@ -87,8 +87,19 @@
 
                         <div class="pt-2 border-top d-flex justify-content-between align-items-center gap-2">
                             @if($canDownload)
-                                <a href="{{ route('documents.download', $doc->MaTaiLieu) }}" class="btn btn-sm btn-outline-primary flex-grow-1">
-                                    <i class="bi bi-download me-1"></i> Tải về tệp
+                                <button type="button" 
+                                        class="btn btn-sm btn-primary flex-grow-1 btn-view-doc" 
+                                        data-doc-id="{{ $doc->MaTaiLieu }}" 
+                                        data-doc-title="{{ $doc->TenTaiLieu }}" 
+                                        data-doc-ext="{{ strtolower($doc->DinhDang ?? pathinfo($doc->DuongDan, PATHINFO_EXTENSION)) }}" 
+                                        data-doc-url="{{ asset($doc->DuongDan) }}" 
+                                        data-view-url="{{ route('documents.view', $doc->MaTaiLieu) }}"
+                                        data-preview-url="{{ route('documents.preview', $doc->MaTaiLieu) }}"
+                                        data-download-url="{{ route('documents.download', $doc->MaTaiLieu) }}">
+                                    <i class="bi bi-eye me-1"></i> Xem trực tiếp
+                                </button>
+                                <a href="{{ route('documents.download', $doc->MaTaiLieu) }}" class="btn btn-sm btn-outline-secondary" title="Tải về máy tính">
+                                    <i class="bi bi-download"></i>
                                 </a>
                             @else
                                 <button class="btn btn-sm btn-light text-muted flex-grow-1" disabled title="Tài liệu nội bộ chỉ dành cho thành viên HĐT">

@@ -45,7 +45,15 @@ class DocumentApiTest extends TestCase
     public function test_anyone_can_download_public_document(): void
     {
         $unitRep = User::where('email', 'daotao@stu.edu.vn')->first();
-        $publicDoc = TaiLieu::where('LoaiTaiLieu', 'PUBLIC_AGENDA')->first();
+        $publicDoc = TaiLieu::where('LoaiTaiLieu', 'PUBLIC_AGENDA')->first() ?? TaiLieu::create([
+            'TenTaiLieu' => 'Tài liệu công khai',
+            'LoaiTaiLieu' => 'PUBLIC_AGENDA',
+            'DuongDan' => '/storage/documents/public.pdf',
+            'DinhDang' => 'pdf',
+            'DungLuong' => 1024,
+            'NgayTaiLen' => now(),
+            'MaNguoiDung' => 1,
+        ]);
 
         $this->assertNotNull($publicDoc);
 
@@ -61,7 +69,15 @@ class DocumentApiTest extends TestCase
     public function test_council_member_can_download_internal_document(): void
     {
         $member = User::where('email', 'thanhvien_hdt@stu.edu.vn')->first();
-        $internalDoc = TaiLieu::where('LoaiTaiLieu', 'INTERNAL')->first();
+        $internalDoc = TaiLieu::where('LoaiTaiLieu', 'INTERNAL')->first() ?? TaiLieu::create([
+            'TenTaiLieu' => 'Tài liệu nội bộ bảo mật',
+            'LoaiTaiLieu' => 'INTERNAL',
+            'DuongDan' => '/storage/documents/internal.pdf',
+            'DinhDang' => 'pdf',
+            'DungLuong' => 1024,
+            'NgayTaiLen' => now(),
+            'MaNguoiDung' => 1,
+        ]);
 
         $this->assertNotNull($internalDoc);
 
@@ -77,7 +93,15 @@ class DocumentApiTest extends TestCase
     public function test_unit_rep_cannot_download_internal_document(): void
     {
         $unitRep = User::where('email', 'daotao@stu.edu.vn')->first();
-        $internalDoc = TaiLieu::where('LoaiTaiLieu', 'INTERNAL')->first();
+        $internalDoc = TaiLieu::where('LoaiTaiLieu', 'INTERNAL')->first() ?? TaiLieu::create([
+            'TenTaiLieu' => 'Tài liệu nội bộ bảo mật',
+            'LoaiTaiLieu' => 'INTERNAL',
+            'DuongDan' => '/storage/documents/internal.pdf',
+            'DinhDang' => 'pdf',
+            'DungLuong' => 1024,
+            'NgayTaiLen' => now(),
+            'MaNguoiDung' => 1,
+        ]);
 
         $this->assertNotNull($internalDoc);
 

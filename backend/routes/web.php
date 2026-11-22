@@ -132,6 +132,9 @@ Route::prefix('agendas')->name('agendas.')->group(function () {
 
 Route::prefix('documents')->name('documents.')->group(function () {
     Route::get('/', [TaiLieuWebController::class, 'index'])->name('index');
+    Route::get('/{id}/view', [TaiLieuWebController::class, 'view'])->name('view');
+    Route::get('/{id}/preview', [TaiLieuWebController::class, 'preview'])->name('preview');
+    Route::get('/{id}/content', [TaiLieuWebController::class, 'content'])->name('content');
     Route::get('/{id}/download', [TaiLieuWebController::class, 'download'])->name('download');
     Route::delete('/{id}', [TaiLieuWebController::class, 'destroy'])->name('destroy');
 });

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\TaiLieu;
+use App\Services\DocumentPreviewService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +15,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TaiLieuWebController extends Controller
 {
+    public function __construct(
+        protected DocumentPreviewService $previewService
+    ) {}
+
     /**
      * Danh sách tài liệu và văn bản số (BR-05, BR-06)
      */
@@ -65,10 +71,14 @@ class TaiLieuWebController extends Controller
             return back()->with('error', 'Bạn không có thẩm quyền truy cập tài liệu nội bộ bảo mật của Hội đồng trường.');
         }
 
-        // Nếu file thực sự tồn tại trong Storage
-        $filePath = str_replace(['/storage/', 'storage/'], '', $doc->DuongDan);
-        if (Storage::disk('public')->exists($filePath)) {
-            return Storage::disk('public')->download($filePath, $doc->TenTaiLieu);
+        $realPath = $this->getRealFilePath($doc);
+        if ($realPath && file_exists($realPath)) {
+            $ext = pathinfo($realPath, PATHINFO_EXTENSION);
+            $downloadName = $doc->TenTaiLieu;
+            if (!str_ends_with(strtolower($downloadName), '.' . strtolower($ext))) {
+                $downloadName .= '.' . $ext;
+            }
+            return response()->download($realPath, $downloadName);
         }
 
         // Fallback: Trả về file văn bản bảo mật nếu là file minh họa
@@ -76,6 +86,141 @@ class TaiLieuWebController extends Controller
         return response($content, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="' . $doc->TenTaiLieu . '.pdf"',
+        ]);
+    }
+
+    /**
+     * Xem tệp trực tiếp trong trình duyệt (Stream Inline) không ép tải về
+     */
+    public function view(int $id): Response|RedirectResponse
+    {
+        $user = Auth::user();
+        $doc = TaiLieu::findOrFail($id);
+
+        $isCouncilMember = $user && in_array($user->role, ['CHAIR', 'VICE_CHAIR', 'SECRETARY', 'MEMBER', 'ADMIN']);
+        if ($doc->LoaiTaiLieu === 'INTERNAL' && !$isCouncilMember) {
+            return back()->with('error', 'Bạn không có thẩm quyền xem tài liệu nội bộ này.');
+        }
+
+        $realPath = $this->getRealFilePath($doc);
+        $ext = strtolower($doc->DinhDang ?: pathinfo($realPath ?: $doc->DuongDan, PATHINFO_EXTENSION));
+
+        // Đối với file Office (.docx, .xlsx, .pptx), trình duyệt không thể xem raw trực tiếp mà sẽ tự tải về,
+        // do đó chuyển hướng sang trang preview trực quan của hệ thống
+        if (in_array($ext, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])) {
+            return redirect()->route('documents.preview', $id);
+        }
+
+        if ($realPath && file_exists($realPath)) {
+            $mime = match ($ext) {
+                'pdf' => 'application/pdf',
+                'png' => 'image/png',
+                'jpg', 'jpeg' => 'image/jpeg',
+                'gif' => 'image/gif',
+                'webp' => 'image/webp',
+                'svg' => 'image/svg+xml',
+                'txt' => 'text/plain; charset=UTF-8',
+                'csv' => 'text/csv; charset=UTF-8',
+                default => mime_content_type($realPath) ?: 'application/octet-stream',
+            };
+
+            return response()->file($realPath, [
+                'Content-Type' => $mime,
+                'Content-Disposition' => 'inline; filename="' . rawurlencode($doc->TenTaiLieu) . '"',
+            ]);
+        }
+
+        return redirect()->route('documents.preview', $id);
+    }
+
+    /**
+     * Trang xem trước tài liệu trực tiếp toàn màn hình (Trình xem trực tuyến chuyên dụng)
+     */
+    public function preview(int $id): View|RedirectResponse
+    {
+        $user = Auth::user();
+        $doc = TaiLieu::findOrFail($id);
+
+        $isCouncilMember = $user && in_array($user->role, ['CHAIR', 'VICE_CHAIR', 'SECRETARY', 'MEMBER', 'ADMIN']);
+        if ($doc->LoaiTaiLieu === 'INTERNAL' && !$isCouncilMember) {
+            return redirect()->route('submissions.index')->with('error', 'Bạn không có thẩm quyền xem tài liệu nội bộ này.');
+        }
+
+        $realPath = $this->getRealFilePath($doc);
+        $ext = strtolower($doc->DinhDang ?: pathinfo($realPath ?: $doc->DuongDan, PATHINFO_EXTENSION));
+
+        $previewHtml = '';
+        $sheets = [];
+        $slides = [];
+
+        if ($realPath && file_exists($realPath)) {
+            if (in_array($ext, ['docx', 'doc'])) {
+                $previewHtml = $this->previewService->convertDocxToHtml($realPath);
+            } elseif (in_array($ext, ['xlsx', 'xls'])) {
+                $res = $this->previewService->convertXlsxToHtml($realPath);
+                $sheets = $res['sheets'] ?? [];
+            } elseif (in_array($ext, ['pptx', 'ppt'])) {
+                $res = $this->previewService->convertPptxToHtml($realPath);
+                $slides = $res['slides'] ?? [];
+            }
+        }
+
+        return view('pages.tailieu.xemtruoc', compact('doc', 'ext', 'previewHtml', 'sheets', 'slides', 'realPath'));
+    }
+
+    /**
+     * API trả về nội dung phân tích để hiển thị ngay trong popup modal
+     */
+    public function content(int $id): JsonResponse
+    {
+        $user = Auth::user();
+        $doc = TaiLieu::findOrFail($id);
+
+        $isCouncilMember = $user && in_array($user->role, ['CHAIR', 'VICE_CHAIR', 'SECRETARY', 'MEMBER', 'ADMIN']);
+        if ($doc->LoaiTaiLieu === 'INTERNAL' && !$isCouncilMember) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không có quyền truy cập tài liệu này.',
+            ], 403);
+        }
+
+        $realPath = $this->getRealFilePath($doc);
+        $ext = strtolower($doc->DinhDang ?: pathinfo($realPath ?: $doc->DuongDan, PATHINFO_EXTENSION));
+
+        $html = '';
+        $sheets = [];
+        $slides = [];
+
+        if ($realPath && file_exists($realPath)) {
+            if (in_array($ext, ['docx', 'doc'])) {
+                $html = $this->previewService->convertDocxToHtml($realPath);
+            } elseif (in_array($ext, ['xlsx', 'xls'])) {
+                $res = $this->previewService->convertXlsxToHtml($realPath);
+                $sheets = $res['sheets'] ?? [];
+            } elseif (in_array($ext, ['pptx', 'ppt'])) {
+                $res = $this->previewService->convertPptxToHtml($realPath);
+                $slides = $res['slides'] ?? [];
+            } elseif (in_array($ext, ['txt', 'csv'])) {
+                $content = file_get_contents($realPath);
+                $html = '<pre style="padding:16px; background:#f8fafc; border-radius:6px; font-size:13px; line-height:1.5;">' . htmlspecialchars($content) . '</pre>';
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'id' => $doc->MaTaiLieu,
+            'title' => $doc->TenTaiLieu,
+            'type' => $doc->LoaiTaiLieu ?? 'Tài liệu đính kèm',
+            'extension' => $ext,
+            'size' => $doc->DungLuong,
+            'size_formatted' => $doc->DungLuong ? number_format($doc->DungLuong / 1024, 1) . ' KB' : '—',
+            'file_url' => asset($doc->DuongDan),
+            'view_url' => route('documents.view', $doc->MaTaiLieu),
+            'preview_url' => route('documents.preview', $doc->MaTaiLieu),
+            'download_url' => route('documents.download', $doc->MaTaiLieu),
+            'html' => $html,
+            'sheets' => $sheets,
+            'slides' => $slides,
         ]);
     }
 
@@ -93,5 +238,28 @@ class TaiLieuWebController extends Controller
         $doc->delete();
 
         return back()->with('success', "Đã ẩn tài liệu \"{$doc->TenTaiLieu}\" khỏi danh sách hiển thị (dữ liệu được bảo toàn).");
+    }
+
+    /**
+     * Xác định đường dẫn vật lý thực tế của file trên server
+     */
+    protected function getRealFilePath(TaiLieu $doc): ?string
+    {
+        $cleanRel = str_replace(['/storage/', 'storage/'], '', $doc->DuongDan);
+        if (Storage::disk('public')->exists($cleanRel)) {
+            return Storage::disk('public')->path($cleanRel);
+        }
+
+        $localPath = public_path($doc->DuongDan);
+        if (file_exists($localPath)) {
+            return $localPath;
+        }
+
+        $storagePath = storage_path('app/public/' . $cleanRel);
+        if (file_exists($storagePath)) {
+            return $storagePath;
+        }
+
+        return null;
     }
 }

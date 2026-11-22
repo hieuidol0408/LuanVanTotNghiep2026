@@ -60,6 +60,7 @@
 
     <!-- STU Enterprise Dashboard JavaScript -->
     <script src="{{ asset('js/stu-enterprise.js') }}"></script>
+    <x-trinh-xem-tai-lieu />
     @stack('scripts')
 </body>
 </html>
