@@ -636,4 +636,55 @@ class MeetingWebTest extends TestCase
             'MaPhienHop' => $meeting->MaPhienHop,
         ]);
     }
+
+    /**
+     * 19. Ràng buộc thời gian: Giờ bắt đầu trong quá khứ của ngày hiện tại bị chặn lại và báo lỗi.
+     */
+    public function test_meeting_store_blocks_past_start_time_on_same_day(): void
+    {
+        $memberIds = ThanhVienHDT::pluck('MaThanhVien')->take(3)->toArray();
+
+        // Đặt giờ bắt đầu lùi lại 15 phút trước thời điểm hiện tại
+        $pastStartTime = Carbon::now()->subMinutes(15)->format('H:i');
+        $endTime = Carbon::now()->addHours(2)->format('H:i');
+
+        $response = $this->post(route('meetings.store'), [
+            'TenPhienHop' => 'Phiên họp thử nghiệm giờ quá khứ ' . uniqid(),
+            'NgayHop' => Carbon::now()->toDateString(),
+            'GioBatDau' => $pastStartTime,
+            'GioKetThuc' => $endTime,
+            'DiaDiem' => 'Phòng họp Tòa nhà A',
+            'HinhThuc' => 'Trực tiếp',
+            'member_ids' => $memberIds,
+        ]);
+
+        $response->assertSessionHasErrors(['GioBatDau']);
+        $errorMsg = session('errors')->first('GioBatDau');
+        $this->assertStringContainsString('Thời gian bắt đầu phiên họp không được nằm trong quá khứ', $errorMsg);
+    }
+
+    /**
+     * 20. Ràng buộc thời gian: Giờ bắt đầu từ phút hiện tại trở đi (sau tgian hiện tại) được phép tạo thành công.
+     */
+    public function test_meeting_store_allows_current_or_future_minute_on_same_day(): void
+    {
+        $memberIds = ThanhVienHDT::pluck('MaThanhVien')->take(3)->toArray();
+
+        // Đặt giờ bắt đầu từ 2 phút sau thời điểm hiện tại
+        $futureStartTime = Carbon::now()->addMinutes(2)->format('H:i');
+        $futureEndTime = Carbon::now()->addMinutes(60)->format('H:i');
+
+        $response = $this->post(route('meetings.store'), [
+            'TenPhienHop' => 'Phiên họp thử nghiệm giờ hiện tại tương lai ' . uniqid(),
+            'NgayHop' => Carbon::now()->toDateString(),
+            'GioBatDau' => $futureStartTime,
+            'GioKetThuc' => $futureEndTime,
+            'DiaDiem' => 'Phòng họp Tòa nhà A',
+            'HinhThuc' => 'Trực tiếp',
+            'member_ids' => $memberIds,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+    }
 }

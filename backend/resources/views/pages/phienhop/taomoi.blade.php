@@ -63,6 +63,23 @@
         />
         <div id="tenPhienHopError" class="stu-form-error" style="display: none; margin-top: -12px; margin-bottom: 12px;"></div>
 
+        @php
+            $nowHour = (int) date('H');
+            if ($nowHour < 8) {
+                $defaultStart = '08:30';
+                $defaultEnd = '11:30';
+            } elseif ($nowHour < 13) {
+                $defaultStart = '14:00';
+                $defaultEnd = '16:30';
+            } elseif ($nowHour < 17) {
+                $defaultStart = date('H:00', strtotime('+1 hour'));
+                $defaultEnd = date('H:30', strtotime('+3 hours'));
+            } else {
+                $defaultStart = '08:30';
+                $defaultEnd = '11:30';
+            }
+        @endphp
+
         <div class="stu-grid stu-grid-cols-3">
             <!-- Ngày họp -->
             <x-bieu-mau.o-nhap 
@@ -81,7 +98,7 @@
                 name="GioBatDau" 
                 id="gioBatDauInput"
                 label="Giờ bắt đầu" 
-                value="{{ old('GioBatDau', '08:30') }}" 
+                value="{{ old('GioBatDau', $defaultStart) }}" 
                 required 
             />
 
@@ -91,7 +108,7 @@
                 name="GioKetThuc" 
                 id="gioKetThucInput"
                 label="Giờ kết thúc" 
-                value="{{ old('GioKetThuc', '11:30') }}" 
+                value="{{ old('GioKetThuc', $defaultEnd) }}" 
                 required 
                 hint="Phải lớn hơn giờ bắt đầu"
             />
@@ -340,6 +357,32 @@
             });
         }
 
+        // Tự động hỗ trợ & đồng bộ giờ kết thúc khi thay đổi giờ bắt đầu
+        const startInputEl = document.getElementById('gioBatDauInput');
+        const endInputEl = document.getElementById('gioKetThucInput');
+        const dateInputEl = document.getElementById('ngayHopInput');
+        const timeErrorEl = document.getElementById('timeRangeClientError');
+
+        startInputEl?.addEventListener('change', function () {
+            if (timeErrorEl) timeErrorEl.style.display = 'none';
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+            // Tự động hỗ trợ: Nếu người dùng gõ 12 giờ trưa nhưng trình duyệt Windows 12h giữ SA (sáng) sinh chuỗi 00:xx
+            if (dateInputEl && dateInputEl.value === todayStr && this.value.startsWith('00:') && now.getHours() >= 6) {
+                this.value = '12:' + this.value.substring(3);
+            }
+
+            // Tự động đẩy giờ kết thúc lên sau giờ bắt đầu (+ 2 tiếng) nếu giờ kết thúc đang nhỏ hơn hoặc bằng
+            if (endInputEl && this.value) {
+                if (!endInputEl.value || endInputEl.value <= this.value) {
+                    const [h, m] = this.value.split(':').map(Number);
+                    const endH = Math.min(23, h + 2);
+                    endInputEl.value = `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                }
+            }
+        });
+
         // Bẫy lỗi submit form
         document.getElementById('createMeetingForm')?.addEventListener('submit', function (e) {
             const titleEl = document.getElementById('tenPhienHopInput');
@@ -380,9 +423,20 @@
 
             // 3. Bẫy lỗi thời gian bắt đầu trong quá khứ so với thời điểm hiện tại
             if (dateEl && startEl && dateEl.value && startEl.value) {
-                const startDateTime = new Date(`${dateEl.value}T${startEl.value.length === 5 ? startEl.value + ':00' : startEl.value}`);
                 const now = new Date();
-                if (startDateTime < now) {
+                const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+                // Tự động chuẩn hóa nếu người dùng chọn 12:xx trưa nhưng dính SA thành 00:xx
+                if (dateEl.value === todayStr && startEl.value.startsWith('00:') && now.getHours() >= 6) {
+                    startEl.value = '12:' + startEl.value.substring(3);
+                }
+
+                const startDateTime = new Date(`${dateEl.value}T${startEl.value.length === 5 ? startEl.value + ':00' : startEl.value}`);
+                // So sánh theo cấp độ phút: đưa 'now' về mốc đầu phút (giây = 0, mili giây = 0)
+                // Ví dụ: hiện tại là 12:53 thì 12:51, 12:52 không cho, nhưng từ 12:53 trở đi thì cho phép
+                const currentMinute = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), 0, 0);
+
+                if (startDateTime < currentMinute) {
                     if (timeErr) {
                         timeErr.textContent = 'Thời gian bắt đầu phiên họp không được nằm trong quá khứ so với thời điểm hiện tại.';
                         timeErr.style.display = 'block';

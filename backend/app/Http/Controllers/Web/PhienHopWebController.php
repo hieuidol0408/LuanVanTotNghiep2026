@@ -253,13 +253,29 @@ class PhienHopWebController extends Controller
             'doc_file.max' => 'Dung lượng tập tin tài liệu không được vượt quá 20MB.',
         ]);
 
-        $startTimeStr = strlen($validated['GioBatDau']) === 5 ? "{$validated['GioBatDau']}:00" : $validated['GioBatDau'];
-        $endTimeStr = strlen($validated['GioKetThuc']) === 5 ? "{$validated['GioKetThuc']}:00" : $validated['GioKetThuc'];
+        $rawStartTime = trim($validated['GioBatDau']);
+        $rawEndTime = trim($validated['GioKetThuc']);
+
+        // [Tự động chuẩn hóa]: Trên trình duyệt Windows định dạng 12 giờ (SA/CH), nếu người dùng gõ "12:xx" trưa
+        // nhưng ô input đang giữ trạng thái SA (AM) thì trình duyệt gửi chuỗi "00:xx" (nửa đêm).
+        // Khi ngày họp là hôm nay và thời điểm hiện tại là ban ngày (sau 06:00 sáng), "00:xx" được tự động hiểu là 12:xx trưa.
+        if (str_starts_with($rawStartTime, '00:') && $validated['NgayHop'] === date('Y-m-d') && (int)date('H') >= 6) {
+            $rawStartTime = '12:' . substr($rawStartTime, 3);
+            $validated['GioBatDau'] = $rawStartTime;
+        }
+
+        $startTimeStr = strlen($rawStartTime) === 5 ? "{$rawStartTime}:00" : $rawStartTime;
+        $endTimeStr = strlen($rawEndTime) === 5 ? "{$rawEndTime}:00" : $rawEndTime;
         $startDateTime = "{$validated['NgayHop']} {$startTimeStr}";
         $endDateTime = "{$validated['NgayHop']} {$endTimeStr}";
 
-        // [Bẫy lỗi nghiệp vụ]: Thời gian bắt đầu phiên họp không được nằm trong quá khứ so với thời điểm hiện tại
-        if (strtotime($startDateTime) < time()) {
+        // [Bẫy lỗi nghiệp vụ]: Thời gian bắt đầu phiên họp không được nằm trong quá khứ so với thời điểm hiện tại.
+        // So sánh chính xác theo cấp độ phút (bỏ qua phần giây):
+        // Thí dụ: nếu hiện tại là 12:53 thì 12:51 hay 12:52 không cho, nhưng từ 12:53 trở đi (12:53, 12:54, 12:55...) thì cho phép.
+        $nowMinute = strtotime(date('Y-m-d H:i:00'));
+        $startTimestamp = strtotime($startDateTime);
+
+        if ($startTimestamp < $nowMinute) {
             $errMsg = 'Thời gian bắt đầu phiên họp không được nằm trong quá khứ so với thời điểm hiện tại.';
             return back()
                 ->withInput()
