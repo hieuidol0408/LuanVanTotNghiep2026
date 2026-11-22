@@ -301,17 +301,19 @@
         {{-- 4. Tài liệu đính kèm --}}
         <div class="stu-form-group" style="margin-bottom: 14px;">
             <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
-                Tài liệu tờ trình đính kèm (PDF, DOCX)
+                Tài liệu tờ trình đính kèm (PDF, Word, Excel, PPT - Max 20MB)
             </label>
             <input 
                 type="file" 
                 name="file_dinh_kem" 
+                id="modalSubmissionDocFile"
                 class="stu-form-control" 
-                accept=".pdf,.doc,.docx"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
                 style="height: 38px; font-size: 12px; padding: 6px 12px;"
             >
+            <div id="modalSubmissionDocErr" class="stu-form-error" style="display: none; color: var(--color-danger, #ef4444); font-size: 11.5px; margin-top: 4px; font-weight: 500;"></div>
             <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px;">
-                Định dạng cho phép: .pdf, .docx, .doc (Tối đa 20MB)
+                * Định dạng được phép: <strong>.pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx</strong> (Tối đa 20MB). Hệ thống sẽ báo lỗi nếu tải lên tệp khác định dạng.
             </div>
         </div>
 
@@ -335,6 +337,45 @@
         @endif
 
         const form = document.getElementById('modalCreateSubmissionForm');
+        const docFile = document.getElementById('modalSubmissionDocFile');
+        const docErr = document.getElementById('modalSubmissionDocErr');
+        const allowedExts = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+
+        if (docFile) {
+            docFile.addEventListener('change', function () {
+                if (docErr) {
+                    docErr.textContent = '';
+                    docErr.style.display = 'none';
+                }
+                if (!this.files || this.files.length === 0) return;
+                const file = this.files[0];
+                const fileName = file.name;
+                const ext = fileName.split('.').pop().toLowerCase();
+
+                if (!allowedExts.includes(ext)) {
+                    const msg = `Định dạng tập tin ".${ext}" không được hỗ trợ! Vui lòng chỉ tải lên các tệp tài liệu: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).`;
+                    if (docErr) {
+                        docErr.textContent = msg;
+                        docErr.style.display = 'block';
+                    }
+                    alert(msg);
+                    this.value = '';
+                    return;
+                }
+
+                if (file.size > 20 * 1024 * 1024) {
+                    const msg = 'Dung lượng tập tin vượt quá 20MB! Vui lòng chọn tệp nhỏ hơn.';
+                    if (docErr) {
+                        docErr.textContent = msg;
+                        docErr.style.display = 'block';
+                    }
+                    alert(msg);
+                    this.value = '';
+                    return;
+                }
+            });
+        }
+
         if (form) {
             form.addEventListener('submit', function (e) {
                 const title = document.getElementById('modalSubmissionTitle');
@@ -354,6 +395,26 @@
                     if (contentErr) contentErr.style.display = 'block';
                     hasErr = true;
                 }
+
+                if (docFile && docFile.files && docFile.files.length > 0) {
+                    const file = docFile.files[0];
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    if (!allowedExts.includes(ext)) {
+                        if (docErr) {
+                            docErr.textContent = `Định dạng tập tin ".${ext}" không được hỗ trợ!`;
+                            docErr.style.display = 'block';
+                        }
+                        hasErr = true;
+                    }
+                    if (file.size > 20 * 1024 * 1024) {
+                        if (docErr) {
+                            docErr.textContent = 'Dung lượng tập tin vượt quá 20MB!';
+                            docErr.style.display = 'block';
+                        }
+                        hasErr = true;
+                    }
+                }
+
                 if (hasErr) {
                     e.preventDefault();
                 }

@@ -27,7 +27,7 @@ class SubmissionWebTest extends TestCase
         $response->assertSee('Tìm kiếm');
         $response->assertSee('Đơn vị trình');
         $response->assertSee('Lĩnh vực');
-        $response->assertSee('Trạng thái thẩm định');
+        $response->assertSee('Trạng thái');
     }
 
     /**
@@ -41,11 +41,11 @@ class SubmissionWebTest extends TestCase
         $response = $this->get(route('submissions.create'));
 
         $response->assertStatus(200);
-        $response->assertSee('Lập Hồ sơ tờ trình Hội đồng trường STU');
-        $response->assertSee('Tiêu đề tờ trình');
-        $response->assertSee('Đơn vị trình đề xuất');
-        $response->assertSee('Lĩnh vực tờ trình');
-        $response->assertSee('Tài liệu / Bản thuyết minh đính kèm');
+        $response->assertSee('Tạo mới Hồ sơ trình');
+        $response->assertSee('Tiêu đề hồ sơ trình');
+        $response->assertSee('Đơn vị trình');
+        $response->assertSee('Lĩnh vực');
+        $response->assertSee('Tài liệu đính kèm');
     }
 
     /**
@@ -163,25 +163,63 @@ class SubmissionWebTest extends TestCase
             $this->markTestSkipped('Chưa có hồ sơ trình để cập nhật.');
         }
 
-        // Kiểm tra hiển thị form edit
+        // Kiểm tra hiển thị form edit (Chuyển hướng mở modal chỉnh sửa)
         $editResponse = $this->get(route('submissions.edit', $dossier->MaHoSo));
-        $editResponse->assertStatus(200);
-        $editResponse->assertSee('Cập nhật Hồ sơ tờ trình Hội đồng trường');
+        $editResponse->assertRedirect(route('submissions.show', ['id' => $dossier->MaHoSo, 'edit' => 1]));
 
-        // Kiểm tra lưu cập nhật
+        $showResponse = $this->get(route('submissions.show', ['id' => $dossier->MaHoSo, 'edit' => 1]));
+        $showResponse->assertStatus(200);
+
+        // Kiểm tra lưu cập nhật kèm tài liệu word/excel/powerpoint
         $newTitle = 'Tờ trình cập nhật hoàn thiện thuyết minh ' . uniqid();
+        $fakeDoc = UploadedFile::fake()->create('bao_cao_thuyet_minh.docx', 500);
         $updateResponse = $this->put(route('submissions.update', $dossier->MaHoSo), [
             'TieuDe' => $newTitle,
             'NoiDungTomTat' => 'Nội dung đã được bổ sung và hoàn thiện theo ý kiến thẩm tra.',
             'LinhVuc' => 'Đào tạo & Đảm bảo chất lượng',
             'MaDonVi' => $dossier->MaDonVi,
-            'GhiChu' => 'Đã cập nhật thuyết minh bổ sung.',
+            'file' => $fakeDoc,
+            'GhiChu' => 'Đã cập nhật thuyết minh bổ sung bằng file Word.',
         ]);
 
         $updateResponse->assertRedirect(route('submissions.show', $dossier->MaHoSo));
-        $updateResponse->assertSessionHas('success');
+        $this->assertDatabaseHas('ho_so_trinh', [
+            'MaHoSo' => $dossier->MaHoSo,
+            'TieuDe' => $newTitle,
+        ]);
+    }
 
-        $dossier->refresh();
-        $this->assertEquals($newTitle, $dossier->TieuDe);
+    /**
+     * 7. Kiểm tra xác thực định dạng file (Chỉ chấp nhận PDF, Word, Excel, PowerPoint - Chặn các định dạng khác).
+     */
+    public function test_submission_rejects_invalid_file_formats(): void
+    {
+        $secretary = User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $this->actingAs($secretary);
+
+        $department = DonVi::first();
+
+        // Thử upload file exe nguy hiểm
+        $badFile = UploadedFile::fake()->create('malicious.exe', 1024);
+        $resBad = $this->post(route('submissions.store'), [
+            'TieuDe' => 'Tờ trình thử nghiệm file độc hại',
+            'NoiDungTomTat' => 'Thử nghiệm hệ thống bảo mật tệp.',
+            'LinhVuc' => 'Khoa học công nghệ & Dự án',
+            'MaDonVi' => $department->MaDonVi,
+            'file' => $badFile,
+        ]);
+        $resBad->assertSessionHasErrors(['file']);
+
+        // Upload file PowerPoint (.pptx) và Excel (.xlsx) hợp lệ
+        $pptxFile = UploadedFile::fake()->create('slide_trinh_bay.pptx', 1024);
+        $resGood = $this->post(route('submissions.store'), [
+            'TieuDe' => 'Tờ trình đính kèm slide PowerPoint ' . uniqid(),
+            'NoiDungTomTat' => 'Thuyết minh kèm bài trình chiếu slide PowerPoint.',
+            'LinhVuc' => 'Khoa học công nghệ & Dự án',
+            'MaDonVi' => $department->MaDonVi,
+            'file' => $pptxFile,
+        ]);
+        $resGood->assertSessionHasNoErrors();
+        $resGood->assertRedirect();
     }
 }

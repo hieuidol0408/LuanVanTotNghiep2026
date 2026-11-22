@@ -670,9 +670,18 @@ class MeetingWebTest extends TestCase
     {
         $memberIds = ThanhVienHDT::pluck('MaThanhVien')->take(3)->toArray();
 
-        // Đặt giờ bắt đầu từ 2 phút sau thời điểm hiện tại
-        $futureStartTime = Carbon::now()->addMinutes(2)->format('H:i');
-        $futureEndTime = Carbon::now()->addMinutes(60)->format('H:i');
+        // Xóa bất kỳ phiên họp nào trùng ngày giờ test để tránh xung đột lịch
+        PhienHop::where('NgayHop', Carbon::now()->toDateString())
+            ->where('TenPhienHop', 'like', 'Phiên họp thử nghiệm giờ hiện tại tương lai%')
+            ->delete();
+
+        // Đặt giờ bắt đầu từ 2 phút sau thời điểm hiện tại nhưng đảm bảo không trùng phiên 14:00-15:30
+        $futureStart = Carbon::now()->addMinutes(2);
+        if ($futureStart->format('H:i') >= '14:00' && $futureStart->format('H:i') <= '16:00') {
+            $futureStart = Carbon::now()->setTime(21, 0);
+        }
+        $futureStartTime = $futureStart->format('H:i');
+        $futureEndTime = $futureStart->copy()->addMinutes(45)->format('H:i');
 
         $response = $this->post(route('meetings.store'), [
             'TenPhienHop' => 'Phiên họp thử nghiệm giờ hiện tại tương lai ' . uniqid(),

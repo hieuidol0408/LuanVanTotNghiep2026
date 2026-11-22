@@ -101,7 +101,18 @@ class HoSoTrinhWebController extends Controller
             'LinhVuc' => ['required', 'string', 'max:255'],
             'MaDonVi' => ['required', 'integer', 'exists:don_vi,MaDonVi'],
             'GhiChu' => ['nullable', 'string', 'max:2000'],
-            'file' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx'],
+            'file' => [
+                'nullable',
+                'file',
+                'max:20480',
+                'extensions:pdf,doc,docx,xls,xlsx,ppt,pptx',
+            ],
+            'file_dinh_kem' => [
+                'nullable',
+                'file',
+                'max:20480',
+                'extensions:pdf,doc,docx,xls,xlsx,ppt,pptx',
+            ],
         ], [
             'TieuDe.required' => 'Vui lòng nhập tiêu đề hồ sơ trình.',
             'TieuDe.min' => 'Tiêu đề hồ sơ trình phải có ít nhất 5 ký tự.',
@@ -112,8 +123,14 @@ class HoSoTrinhWebController extends Controller
             'MaDonVi.required' => 'Vui lòng chọn đơn vị trình.',
             'MaDonVi.exists' => 'Đơn vị trình không hợp lệ.',
             'GhiChu.max' => 'Ghi chú không được vượt quá 2000 ký tự.',
-            'file.max' => 'Tập tin đính kèm không vượt quá 20MB.',
-            'file.mimes' => 'Tập tin đính kèm phải có định dạng: PDF, DOC, DOCX, XLS, XLSX.',
+            'file.max' => 'Dung lượng tập tin đính kèm không được vượt quá 20MB.',
+            'file.extensions' => 'Định dạng tập tin tài liệu không hợp lệ! Hệ thống chỉ hỗ trợ các tệp: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
+            'file.mimes' => 'Định dạng tập tin tài liệu không hợp lệ! Hệ thống chỉ hỗ trợ các tệp: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
+            'file.uploaded' => 'Tập tin tài liệu tải lên thất bại! Dung lượng tệp có thể vượt quá cấu hình của máy chủ hoặc đường truyền bị ngắt quãng.',
+            'file_dinh_kem.max' => 'Dung lượng tập tin đính kèm không được vượt quá 20MB.',
+            'file_dinh_kem.extensions' => 'Định dạng tập tin tài liệu không hợp lệ! Hệ thống chỉ hỗ trợ các tệp: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
+            'file_dinh_kem.mimes' => 'Định dạng tập tin tài liệu không hợp lệ! Hệ thống chỉ hỗ trợ các tệp: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
+            'file_dinh_kem.uploaded' => 'Tập tin tài liệu tải lên thất bại! Dung lượng tệp có thể vượt quá cấu hình của máy chủ hoặc đường truyền bị ngắt quãng.',
         ]);
 
         // Nếu là UNIT_REP, bắt buộc lưu theo đơn vị của người dùng
@@ -133,18 +150,18 @@ class HoSoTrinhWebController extends Controller
                 'MaNguoiDung' => $user?->MaNguoiDung ?? 1,
             ]);
 
-            // Xử lý tệp đính kèm an toàn nếu có
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
-                $path = $file->storeAs('documents/submissions', $fileName, 'public');
+            // Xử lý tệp đính kèm an toàn nếu có (hỗ trợ cả trường file và file_dinh_kem)
+            $uploadedFile = $request->file('file') ?? $request->file('file_dinh_kem');
+            if ($uploadedFile) {
+                $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $uploadedFile->getClientOriginalName());
+                $path = $uploadedFile->storeAs('documents/submissions', $fileName, 'public');
 
                 $taiLieu = TaiLieu::create([
-                    'TenTaiLieu' => $file->getClientOriginalName(),
+                    'TenTaiLieu' => $uploadedFile->getClientOriginalName(),
                     'LoaiTaiLieu' => 'Tờ trình đính kèm',
                     'DuongDan' => '/storage/' . $path,
-                    'DinhDang' => $file->getClientOriginalExtension(),
-                    'DungLuong' => $file->getSize(),
+                    'DinhDang' => strtolower($uploadedFile->getClientOriginalExtension()),
+                    'DungLuong' => $uploadedFile->getSize(),
                     'NgayTaiLen' => now(),
                     'MaNguoiDung' => $user?->MaNguoiDung ?? 1,
                 ]);
@@ -230,7 +247,18 @@ class HoSoTrinhWebController extends Controller
             'MaDonVi' => ['required', 'integer', 'exists:don_vi,MaDonVi'],
             'TrangThai' => ['nullable', 'string', 'max:100'],
             'GhiChu' => ['nullable', 'string', 'max:2000'],
-            'file' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx'],
+            'file' => [
+                'nullable',
+                'file',
+                'max:20480',
+                'extensions:pdf,doc,docx,xls,xlsx,ppt,pptx',
+            ],
+            'file_dinh_kem' => [
+                'nullable',
+                'file',
+                'max:20480',
+                'extensions:pdf,doc,docx,xls,xlsx,ppt,pptx',
+            ],
         ], [
             'TieuDe.required' => 'Vui lòng nhập tiêu đề hồ sơ trình.',
             'TieuDe.min' => 'Tiêu đề hồ sơ trình phải có ít nhất 5 ký tự.',
@@ -241,8 +269,14 @@ class HoSoTrinhWebController extends Controller
             'MaDonVi.required' => 'Vui lòng chọn đơn vị trình.',
             'MaDonVi.exists' => 'Đơn vị trình không hợp lệ.',
             'GhiChu.max' => 'Ghi chú không được vượt quá 2000 ký tự.',
-            'file.max' => 'Tập tin đính kèm không vượt quá 20MB.',
-            'file.mimes' => 'Tập tin đính kèm phải có định dạng: PDF, DOC, DOCX, XLS, XLSX.',
+            'file.max' => 'Dung lượng tập tin đính kèm không được vượt quá 20MB.',
+            'file.extensions' => 'Định dạng tập tin tài liệu không hợp lệ! Hệ thống chỉ hỗ trợ các tệp: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
+            'file.mimes' => 'Định dạng tập tin tài liệu không hợp lệ! Hệ thống chỉ hỗ trợ các tệp: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
+            'file.uploaded' => 'Tập tin tài liệu tải lên thất bại! Dung lượng tệp có thể vượt quá cấu hình của máy chủ hoặc đường truyền bị ngắt quãng.',
+            'file_dinh_kem.max' => 'Dung lượng tập tin đính kèm không được vượt quá 20MB.',
+            'file_dinh_kem.extensions' => 'Định dạng tập tin tài liệu không hợp lệ! Hệ thống chỉ hỗ trợ các tệp: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
+            'file_dinh_kem.mimes' => 'Định dạng tập tin tài liệu không hợp lệ! Hệ thống chỉ hỗ trợ các tệp: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
+            'file_dinh_kem.uploaded' => 'Tập tin tài liệu tải lên thất bại! Dung lượng tệp có thể vượt quá cấu hình của máy chủ hoặc đường truyền bị ngắt quãng.',
         ]);
 
         if ($role === 'UNIT_REP' && $user?->MaDonVi) {
@@ -266,17 +300,17 @@ class HoSoTrinhWebController extends Controller
 
             $dossier->update($updateData);
 
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
-                $path = $file->storeAs('documents/submissions', $fileName, 'public');
+            $uploadedFile = $request->file('file') ?? $request->file('file_dinh_kem');
+            if ($uploadedFile) {
+                $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $uploadedFile->getClientOriginalName());
+                $path = $uploadedFile->storeAs('documents/submissions', $fileName, 'public');
 
                 $taiLieu = TaiLieu::create([
-                    'TenTaiLieu' => $file->getClientOriginalName(),
+                    'TenTaiLieu' => $uploadedFile->getClientOriginalName(),
                     'LoaiTaiLieu' => 'Tài liệu bổ sung',
                     'DuongDan' => '/storage/' . $path,
-                    'DinhDang' => $file->getClientOriginalExtension(),
-                    'DungLuong' => $file->getSize(),
+                    'DinhDang' => strtolower($uploadedFile->getClientOriginalExtension()),
+                    'DungLuong' => $uploadedFile->getSize(),
                     'NgayTaiLen' => now(),
                     'MaNguoiDung' => $user?->MaNguoiDung ?? 1,
                 ]);

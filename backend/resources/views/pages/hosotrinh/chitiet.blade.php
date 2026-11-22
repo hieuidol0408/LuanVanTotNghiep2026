@@ -343,7 +343,17 @@
 
             <div class="stu-form-group stu-mb-4" style="background: var(--color-bg-muted); padding: 14px 16px; border-radius: var(--radius-md); border: 1px dashed var(--color-border);">
                 <label class="stu-form-label" style="font-size: 12px; font-weight: 700;">Tải lên tài liệu đính kèm bổ sung (Tùy chọn)</label>
-                <input type="file" name="file" class="stu-form-control" accept=".pdf,.doc,.docx,.xls,.xlsx">
+                <input 
+                    type="file" 
+                    name="file" 
+                    id="submissionEditDocFile"
+                    class="stu-form-control @error('file') is-invalid @enderror" 
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                >
+                <div id="submissionEditDocError" class="stu-form-error" style="display: none; color: var(--color-danger, #ef4444); font-size: 12px; margin-top: 6px; font-weight: 500;"></div>
+                <div style="font-size: 11.5px; color: var(--color-text-muted); margin-top: 4px;">
+                    * Định dạng được phép: <strong>.pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx</strong> (Tối đa 20MB). Hệ thống sẽ cảnh báo lỗi nếu tải lên tệp khác định dạng.
+                </div>
             </div>
 
             <div class="stu-form-group stu-mb-5">
@@ -499,6 +509,46 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Kiểm tra và bẫy lỗi định dạng file đính kèm tài liệu bổ sung
+        const editDocFile = document.getElementById('submissionEditDocFile');
+        const editDocErr = document.getElementById('submissionEditDocError');
+        const allowedExts = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+
+        if (editDocFile) {
+            editDocFile.addEventListener('change', function () {
+                if (editDocErr) {
+                    editDocErr.textContent = '';
+                    editDocErr.style.display = 'none';
+                }
+                if (!this.files || this.files.length === 0) return;
+                const file = this.files[0];
+                const fileName = file.name;
+                const ext = fileName.split('.').pop().toLowerCase();
+
+                if (!allowedExts.includes(ext)) {
+                    const msg = `Định dạng tập tin ".${ext}" không được hỗ trợ! Vui lòng chỉ tải lên các tệp tài liệu: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).`;
+                    if (editDocErr) {
+                        editDocErr.textContent = msg;
+                        editDocErr.style.display = 'block';
+                    }
+                    alert(msg);
+                    this.value = '';
+                    return;
+                }
+
+                if (file.size > 20 * 1024 * 1024) {
+                    const msg = 'Dung lượng tập tin vượt quá 20MB! Vui lòng chọn tệp nhỏ hơn.';
+                    if (editDocErr) {
+                        editDocErr.textContent = msg;
+                        editDocErr.style.display = 'block';
+                    }
+                    alert(msg);
+                    this.value = '';
+                    return;
+                }
+            });
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('edit') === '1' || urlParams.get('chinh_sua') === '1') {
             if (window.STUModal) {
