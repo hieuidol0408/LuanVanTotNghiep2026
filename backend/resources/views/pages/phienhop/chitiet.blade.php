@@ -294,7 +294,7 @@
         </div>
 
         <x-bang-du-lieu 
-            :headers="['Thứ tự', 'Hồ sơ trình xem xét', 'Đơn vị trình', 'Lĩnh vực', 'Trạng thái xử lý', 'Ghi chú']"
+            :headers="['Thứ tự', 'Hồ sơ trình xem xét', 'Đơn vị & Cán bộ trình', 'Người đưa vào phiên', 'Lĩnh vực', 'Trạng thái xử lý', 'Ghi chú']"
             :hasActions="true"
             actionTitle="Chi tiết"
             :empty="$meeting->chuongTrinhHop->isEmpty()"
@@ -302,7 +302,18 @@
             emptyMessage="Chưa có hồ sơ trình nào được đưa vào chương trình nghị sự của phiên họp này."
         >
             @foreach($meeting->chuongTrinhHop->sortBy('ThuTu') as $agenda)
-                @php $dossier = $agenda->hoSoTrinh; @endphp
+                @php 
+                    $dossier = $agenda->hoSoTrinh;
+                    $adder = $agenda->nguoiDung ?? $meeting->nguoiDung;
+                    $adderRole = $adder?->vaiTro?->TenVaiTro ?? ($adder?->role ?? 'Thư ký HĐT');
+                    $roleLabel = match(strtoupper(trim((string)$adderRole))) {
+                        'CHAIR', 'CHỦ TỊCH HỘI ĐỒNG TRƯỜNG', 'CHỦ TỊCH' => 'Chủ tịch HĐT',
+                        'SECRETARY', 'THƯ KÝ HỘI ĐỒNG TRƯỜNG', 'THƯ KÝ' => 'Thư ký HĐT',
+                        'ADMIN', 'QUẢN TRỊ VIÊN' => 'Quản trị viên',
+                        default => $adderRole ?: 'Thư ký HĐT',
+                    };
+                    $badgeClass = str_contains($roleLabel, 'Chủ tịch') ? 'stu-badge-primary' : 'stu-badge-info';
+                @endphp
                 <tr>
                     <td style="font-weight: 700; color: var(--color-primary); text-align: center; width: 60px;">
                         #{{ $agenda->ThuTu }}
@@ -311,9 +322,28 @@
                         <a href="{{ route('submissions.show', $dossier?->MaHoSo) }}" style="font-weight: 600; color: var(--color-primary);" title="{{ $dossier?->TieuDe }}">
                             {{ $dossier?->TieuDe ?: 'Hồ sơ #' . $agenda->MaHoSo }}
                         </a>
-                        <div style="font-size: 11px; color: var(--color-text-muted);">Mã: {{ $dossier?->ma_ho_so_hien_thi ?? ('#HS-' . $agenda->MaHoSo) }}</div>
+                        <div style="display: flex; gap: 6px; align-items: center; margin-top: 3px; font-size: 11px; color: var(--color-text-muted);">
+                            <span>Mã: {{ $dossier?->ma_ho_so_hien_thi ?? ('#HS-' . $agenda->MaHoSo) }}</span>
+                            @if($dossier?->NgayTrinh)
+                                <span>&bull; Nộp: {{ date('d/m/Y', strtotime($dossier->NgayTrinh)) }}</span>
+                            @endif
+                        </div>
                     </td>
-                    <td style="font-size: var(--font-size-xs);">{{ $dossier?->donVi?->TenDonVi ?: '-' }}</td>
+                    <td style="font-size: var(--font-size-xs); min-width: 150px;">
+                        <div style="font-weight: 600; color: #1E293B;">{{ $dossier?->donVi?->TenDonVi ?: '-' }}</div>
+                        <div style="font-size: 11.5px; color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <span>{{ $dossier?->nguoiDung?->HoTen ?: 'Cán bộ đơn vị' }}</span>
+                        </div>
+                    </td>
+                    <td style="font-size: var(--font-size-xs); min-width: 140px;">
+                        <div style="font-weight: 600; color: #1E293B;">
+                            {{ $adder?->HoTen ?: 'Thư ký Hội đồng trường' }}
+                        </div>
+                        <span class="stu-badge {{ $badgeClass }}" style="font-size: 9.5px; padding: 1px 6px; margin-top: 2px; display: inline-block;">
+                            {{ $roleLabel }}
+                        </span>
+                    </td>
                     <td style="font-size: var(--font-size-xs);">
                         <span class="stu-badge stu-badge-info">{{ $dossier?->LinhVuc ?: '-' }}</span>
                     </td>
@@ -709,10 +739,21 @@
 <x-hop-thoai id="addAgendaModal" title="Đưa Hồ Sơ Trình vào Chương Trình Họp" size="md">
     <form method="POST" action="{{ route('meetings.agenda.add', $meeting->MaPhienHop) }}">
         @csrf
+        <div style="background: #F8FAFC; border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; font-size: 12.5px;">
+            <div style="color: var(--color-text-muted); display: flex; align-items: center; gap: 6px;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>Cán bộ thực hiện đưa vào phiên:</span>
+            </div>
+            <div style="font-weight: 700; color: var(--color-primary);">
+                {{ Auth::user()?->HoTen ?? 'Thư ký HĐT' }}
+                <span class="stu-badge stu-badge-info" style="font-size: 10px; margin-left: 4px;">{{ in_array($role, ['CHAIR', 'CHỦ TỊCH HỘI ĐỒNG TRƯỜNG']) ? 'Chủ tịch HĐT' : 'Thư ký HĐT' }}</span>
+            </div>
+        </div>
+
         <x-bieu-mau.o-chon name="MaHoSo" label="Chọn hồ sơ trình" required hint="Danh sách hiển thị các hồ sơ trình chưa được đưa vào chương trình họp này (BR-08)">
             @foreach($availableDossiers as $d)
                 <option value="{{ $d->MaHoSo }}">
-                    {{ $d->ma_ho_so_hien_thi }}: {{ $d->TieuDe }} ({{ $d->donVi?->TenDonVi }})
+                    {{ $d->ma_ho_so_hien_thi }}: {{ $d->TieuDe }} [{{ $d->donVi?->TenDonVi }} • Người trình: {{ $d->nguoiDung?->HoTen ?: 'Cán bộ đơn vị' }}]
                 </option>
             @endforeach
         </x-bieu-mau.o-chon>

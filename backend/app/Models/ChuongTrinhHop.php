@@ -22,6 +22,7 @@ class ChuongTrinhHop extends Model
         'GhiChu',
         'MaPhienHop',
         'MaHoSo',
+        'MaNguoiDung',
     ];
 
     protected $casts = [
@@ -53,6 +54,11 @@ class ChuongTrinhHop extends Model
     public function hoSoTrinh(): BelongsTo
     {
         return $this->belongsTo(HoSoTrinh::class, 'MaHoSo', 'MaHoSo');
+    }
+
+    public function nguoiDung(): BelongsTo
+    {
+        return $this->belongsTo(NguoiDung::class, 'MaNguoiDung', 'MaNguoiDung');
     }
 
     public function noiDungBieuQuyet(): HasMany

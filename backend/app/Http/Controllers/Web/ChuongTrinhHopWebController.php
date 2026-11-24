@@ -35,9 +35,10 @@ class ChuongTrinhHopWebController extends Controller
 
         // 2. Query chương trình họp có eager load
         $query = ChuongTrinhHop::with([
-            'phienHop',
+            'phienHop.nguoiDung.vaiTro',
             'hoSoTrinh.donVi',
             'hoSoTrinh.nguoiDung',
+            'nguoiDung.vaiTro',
             'noiDungBieuQuyet',
         ]);
 
@@ -170,6 +171,7 @@ class ChuongTrinhHopWebController extends Controller
             'ThuTu' => $thuTu,
             'TrangThai' => $validated['TrangThai'] ?? 'Chưa xem xét',
             'GhiChu' => $validated['GhiChu'] ?? null,
+            'MaNguoiDung' => Auth::id(),
         ]);
 
         return back()->with('success', "Đã thêm mục mới vào chương trình họp (Thứ tự #{$thuTu}) thành công!");

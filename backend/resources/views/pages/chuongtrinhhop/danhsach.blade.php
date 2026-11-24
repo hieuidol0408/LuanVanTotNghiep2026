@@ -142,7 +142,7 @@
 
 <!-- BẢNG DỮ LIỆU CHƯƠNG TRÌNH HỌP -->
 <x-bang-du-lieu 
-    :headers="['Thứ tự', 'Phiên họp', 'Hồ sơ trình xem xét', 'Đơn vị trình', 'Trạng thái', 'Ghi chú']"
+    :headers="['Thứ tự', 'Phiên họp', 'Hồ sơ trình xem xét', 'Đơn vị & Cán bộ trình', 'Người đưa vào phiên', 'Trạng thái', 'Ghi chú']"
     :hasActions="true"
     actionTitle="Thao tác"
     :empty="$agendas->isEmpty()"
@@ -153,6 +153,15 @@
         @php 
             $dossier = $agenda->hoSoTrinh;
             $meeting = $agenda->phienHop;
+            $adder = $agenda->nguoiDung ?? $meeting?->nguoiDung;
+            $adderRole = $adder?->vaiTro?->TenVaiTro ?? ($adder?->role ?? 'Thư ký HĐT');
+            $roleLabel = match(strtoupper(trim((string)$adderRole))) {
+                'CHAIR', 'CHỦ TỊCH HỘI ĐỒNG TRƯỜNG', 'CHỦ TỊCH' => 'Chủ tịch HĐT',
+                'SECRETARY', 'THƯ KÝ HỘI ĐỒNG TRƯỜNG', 'THƯ KÝ' => 'Thư ký HĐT',
+                'ADMIN', 'QUẢN TRỊ VIÊN' => 'Quản trị viên',
+                default => $adderRole ?: 'Thư ký HĐT',
+            };
+            $badgeClass = str_contains($roleLabel, 'Chủ tịch') ? 'stu-badge-primary' : 'stu-badge-info';
         @endphp
         <tr>
             <td style="font-weight: 700; color: var(--color-primary); text-align: center; width: 65px;">
@@ -194,8 +203,17 @@
                 @endif
             </td>
             <td style="font-size: var(--font-size-xs); white-space: nowrap;">
-                <div style="font-weight: 500;">{{ $dossier?->donVi?->TenDonVi ?: '-' }}</div>
-                <div style="font-size: 11px; color: var(--color-text-muted);">{{ $dossier?->nguoiDung?->HoTen ?: '' }}</div>
+                <div style="font-weight: 600; color: #1E293B;">{{ $dossier?->donVi?->TenDonVi ?: '-' }}</div>
+                <div style="font-size: 11px; color: var(--color-text-muted); display: flex; align-items: center; gap: 3px; margin-top: 2px;">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span>{{ $dossier?->nguoiDung?->HoTen ?: 'Cán bộ đơn vị' }}</span>
+                </div>
+            </td>
+            <td style="font-size: var(--font-size-xs); white-space: nowrap;">
+                <div style="font-weight: 600; color: #1E293B;">{{ $adder?->HoTen ?: 'Thư ký Hội đồng trường' }}</div>
+                <span class="stu-badge {{ $badgeClass }}" style="font-size: 9.5px; padding: 1px 6px; margin-top: 2px; display: inline-block;">
+                    {{ $roleLabel }}
+                </span>
             </td>
             <td style="white-space: nowrap;">
                 <x-nhan-trang-thai :status="$agenda->TrangThai" />

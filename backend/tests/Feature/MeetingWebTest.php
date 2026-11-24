@@ -810,4 +810,74 @@ class MeetingWebTest extends TestCase
         $indexResponse->assertStatus(200);
         $indexResponse->assertSee($meeting->TenPhienHop);
     }
+
+    /**
+     * 24. Tab 3 (Chương trình họp): Hiển thị đầy đủ thông tin Cán bộ trình & Người đưa hồ sơ vào phiên cho cả Chủ tịch và Thư ký.
+     */
+    public function test_agenda_displays_submitter_and_adder_for_chair_and_secretary(): void
+    {
+        $secretary = User::where('email', 'thuky_hdt@stu.edu.vn')->first();
+        $chair = User::where('email', 'chutich_hdt@stu.edu.vn')->first();
+        $this->assertNotNull($secretary);
+        $this->assertNotNull($chair);
+
+        $meeting = PhienHop::first();
+        if (! $meeting) {
+            $this->markTestSkipped('Chưa có phiên họp.');
+        }
+
+        // 1. Thư ký truy cập chi tiết phiên họp -> nhìn thấy cột Đơn vị & Cán bộ trình, Người đưa vào phiên
+        $this->actingAs($secretary);
+        $resSecretary = $this->get(route('meetings.show', $meeting->MaPhienHop));
+        $resSecretary->assertStatus(200);
+        $resSecretary->assertSee('Đơn vị & Cán bộ trình');
+        $resSecretary->assertSee('Người đưa vào phiên');
+
+        // 2. Chủ tịch truy cập chi tiết phiên họp -> cũng nhìn thấy đầy đủ 2 cột thông tin này
+        $this->actingAs($chair);
+        $resChair = $this->get(route('meetings.show', $meeting->MaPhienHop));
+        $resChair->assertStatus(200);
+        $resChair->assertSee('Đơn vị & Cán bộ trình');
+        $resChair->assertSee('Người đưa vào phiên');
+
+        // 3. Thêm mới hồ sơ vào chương trình họp và xác nhận lưu đúng MaNguoiDung
+        $this->actingAs($secretary);
+        $dossier = \App\Models\HoSoTrinh::create([
+            'TieuDe' => 'Hồ sơ kiểm thử người đưa vào phiên ' . uniqid(),
+            'NoiDungTomTat' => 'Kiểm tra lưu vết người đưa hồ sơ vào phiên họp',
+            'NgayTrinh' => now()->toDateString(),
+            'LinhVuc' => 'Tổ chức nhân sự',
+            'TrangThai' => 'Đủ điều kiện',
+            'MaDonVi' => 1,
+            'MaNguoiDung' => $secretary->MaNguoiDung,
+        ]);
+
+        $maxOrder = (int) \App\Models\ChuongTrinhHop::where('MaPhienHop', $meeting->MaPhienHop)->max('ThuTu') + 1;
+
+        $addRes = $this->post(route('meetings.agenda.add', $meeting->MaPhienHop), [
+            'MaHoSo' => $dossier->MaHoSo,
+            'ThuTu' => $maxOrder,
+            'TrangThai' => 'Chờ thảo luận',
+            'GhiChu' => 'Thử nghiệm lưu vết người đưa vào phiên',
+        ]);
+
+        $addRes->assertRedirect();
+        $addRes->assertSessionHas('success');
+
+        $agenda = \App\Models\ChuongTrinhHop::where('MaPhienHop', $meeting->MaPhienHop)
+            ->where('MaHoSo', $dossier->MaHoSo)
+            ->first();
+
+        $this->assertNotNull($agenda);
+        $this->assertEquals($secretary->MaNguoiDung, $agenda->MaNguoiDung);
+
+        // Sau khi thêm, trang chi tiết hiển thị đúng tên người đưa vào phiên
+        $resCheck = $this->get(route('meetings.show', $meeting->MaPhienHop));
+        $resCheck->assertStatus(200);
+        $resCheck->assertSee($secretary->HoTen);
+
+        // Dọn dẹp dữ liệu
+        $agenda->forceDelete();
+        $dossier->forceDelete();
+    }
 }

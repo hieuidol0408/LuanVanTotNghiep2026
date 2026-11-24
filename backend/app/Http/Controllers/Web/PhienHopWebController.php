@@ -465,10 +465,12 @@ class PhienHopWebController extends Controller
     public function show(int|string $id): View
     {
         $meeting = PhienHop::with([
-            'nguoiDung',
+            'nguoiDung.vaiTro',
             'thamDu.thanhVienHdt.nguoiDung.donVi',
             'khachMoiPhienHop.khachMoi',
             'chuongTrinhHop.hoSoTrinh.donVi',
+            'chuongTrinhHop.hoSoTrinh.nguoiDung',
+            'chuongTrinhHop.nguoiDung.vaiTro',
             'taiLieu',
             'noiDungBieuQuyet.ketQuaBieuQuyet',
         ])->findOrFail($id);
@@ -490,7 +492,7 @@ class PhienHopWebController extends Controller
 
         // Danh sách hồ sơ trình có thể đưa vào chương trình họp (dựa trên khóa ngoại MaHoSo chưa gắn vào phiên này)
         $existingDossierIds = $meeting->chuongTrinhHop->pluck('MaHoSo')->toArray();
-        $availableDossiers = HoSoTrinh::with('donVi')
+        $availableDossiers = HoSoTrinh::with(['donVi', 'nguoiDung'])
             ->whereNotIn('MaHoSo', $existingDossierIds)
             ->orderByDesc('MaHoSo')
             ->get();
@@ -890,6 +892,7 @@ class PhienHopWebController extends Controller
             'ThuTu' => $thuTu,
             'TrangThai' => 'Chưa xem xét',
             'GhiChu' => $validated['GhiChu'] ?? null,
+            'MaNguoiDung' => Auth::id(),
         ]);
 
         return back()->with('success', "Đã đưa hồ sơ trình vào chương trình họp (Thứ tự: #{$thuTu}).");
