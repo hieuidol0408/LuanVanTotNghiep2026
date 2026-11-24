@@ -242,98 +242,96 @@
         {{ $votings->links() }}
     </div>
 
-    {{-- Modal Tạo Nội dung Biểu quyết mới (Thiết kế phân tầng chống tràn) --}}
+    {{-- Modal Tạo Nội dung Biểu quyết mới --}}
     @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
         <x-hop-thoai id="createVoteModal" title="Khởi Tạo Nội Dung Biểu Quyết Mới" size="lg">
-            <form method="POST" action="{{ route('votes.store') }}" style="max-width: 100%;">
+            <form method="POST" action="{{ route('votes.store') }}" style="width: 100%; max-width: 100%; box-sizing: border-box;">
                 @csrf
+                <div class="stu-form-group" style="margin-bottom: 16px; width: 100%; max-width: 100%; box-sizing: border-box;">
+                    <label class="stu-form-label" style="font-weight: 700; color: var(--color-primary); display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                        <span>Mục chương trình họp &amp; Hồ sơ liên kết <span style="color: #dc2626;">*</span></span>
+                        <span style="font-size: 11px; font-weight: normal; color: var(--color-text-muted); text-transform: none;">Theo chương trình nghị sự</span>
+                    </label>
 
-                {{-- 2 Cột lựa chọn phân cấp: Phiên họp -> Mục chương trình --}}
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 14px;">
-                    {{-- Cột 1: Lọc nhanh theo Phiên họp --}}
-                    <div class="stu-form-group" style="margin-bottom: 0;">
-                        <label class="stu-form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block; color: var(--color-text-main);">
-                            1. Phiên họp Hội đồng trường <span style="color: #dc2626;">*</span>
-                        </label>
-                        <select id="modalFilterMeeting" class="stu-form-control" style="font-size: 13px; border-radius: 6px; width: 100%; max-width: 100%;">
-                            <option value="">-- Tất cả phiên họp (Lọc nhanh) --</option>
-                            @foreach($meetings as $m)
-                                <option value="{{ $m->MaPhienHop }}" {{ (request('meeting_id') == $m->MaPhienHop) ? 'selected' : '' }}>
-                                    Phiên #{{ $m->MaPhienHop }}: {{ Str::limit($m->TenPhienHop, 45) }} ({{ $m->NgayHop ? date('d/m/Y', strtotime($m->NgayHop)) : 'Chưa định ngày' }})
-                                </option>
-                            @endforeach
-                        </select>
-                        <small style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px; display: block;">
-                            Chọn phiên để lọc các mục chương trình họp.
-                        </small>
-                    </div>
-
-                    {{-- Cột 2: Chọn mục chương trình nghị sự & Tờ trình liên kết --}}
-                    <div class="stu-form-group" style="margin-bottom: 0;">
-                        <label class="stu-form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block; color: var(--color-text-main);">
-                            2. Mục chương trình / Tờ trình <span style="color: #dc2626;">*</span>
-                        </label>
-                        <select name="MaChuongTrinh" id="modalSelectAgenda" required class="stu-form-control" style="font-size: 13px; border-radius: 6px; width: 100%; max-width: 100%; text-overflow: ellipsis;">
-                            <option value="">-- Chọn mục chương trình họp --</option>
+                    <div style="position: relative; width: 100%; max-width: 100%; box-sizing: border-box;">
+                        <select 
+                            name="MaChuongTrinh" 
+                            id="createVoteAgendaSelect" 
+                            required 
+                            class="stu-form-control"
+                            style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 42px; font-size: 13.5px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 36px; background-color: #F8FAFC;"
+                        >
+                            <option value="">-- Chọn mục chương trình họp cần biểu quyết --</option>
                             @php
-                                $groupedAgendas = ($agendaItems ?? collect())->groupBy('MaPhienHop');
+                                $groupedAgendas = ($agendaItems ?? collect([]))->groupBy('MaPhienHop');
                             @endphp
-                            @foreach($groupedAgendas as $mId => $items)
+                            @foreach($groupedAgendas as $meetingId => $items)
                                 @php
-                                    $meetingObj = $items->first()?->phienHop;
-                                    $meetingName = $meetingObj?->TenPhienHop ?? ('Phiên họp #' . $mId);
+                                    $meetingObj = $items->first()->phienHop;
+                                    $mTitle = $meetingObj?->TenPhienHop ?? ('Phiên họp #' . $meetingId);
+                                    $mDate = $meetingObj?->NgayHop ? date('d/m/Y', strtotime($meetingObj->NgayHop)) : '';
                                 @endphp
-                                <optgroup label="[Phiên #{{ $mId }}] {{ Str::limit($meetingName, 45) }}" data-meeting="{{ $mId }}">
+                                <optgroup label="🏛️ {{ Str::limit($mTitle, 55) }} {{ $mDate ? "({$mDate})" : '' }}">
                                     @foreach($items as $item)
                                         @php
-                                            $itemTitle = $item->hoSoTrinh?->TieuDe ?? 'Nội dung thảo luận';
-                                            $itemHoSo = $item->hoSoTrinh?->ma_ho_so_hien_thi ?? ($item->MaHoSo ? '#HS-' . $item->MaHoSo : null);
+                                            $dossierTitle = $item->hoSoTrinh?->TieuDe ?? 'Nội dung thảo luận chương trình';
+                                            $dossierCode = $item->hoSoTrinh?->ma_ho_so_hien_thi ?? ('#HS-' . $item->MaHoSo);
+                                            $submitter = $item->hoSoTrinh?->nguoiTrinh?->HoTen ?? ($item->hoSoTrinh?->donVi?->TenDonVi ?? 'Ban Giám hiệu');
                                         @endphp
-                                        <option value="{{ $item->MaChuongTrinh }}"
-                                                data-meeting="{{ $mId }}"
-                                                data-meeting-name="Phiên #{{ $mId }} - {{ $meetingName }}"
-                                                data-order="{{ $item->ThuTu }}"
-                                                data-title="{{ $itemTitle }}"
-                                                data-hoso="{{ $itemHoSo ?? 'Thảo luận phiên' }}">
-                                            Mục {{ $item->ThuTu }}: {{ Str::limit($itemTitle, 55) }} {{ $itemHoSo ? "($itemHoSo)" : '' }}
+                                        <option 
+                                            value="{{ $item->MaChuongTrinh }}"
+                                            data-meeting="{{ $mTitle }}"
+                                            data-order="{{ $item->ThuTu }}"
+                                            data-code="{{ $dossierCode }}"
+                                            data-title="{{ $dossierTitle }}"
+                                            data-submitter="{{ $submitter }}"
+                                        >
+                                            Mục {{ $item->ThuTu }} ({{ $dossierCode }}): {{ Str::limit($dossierTitle, 75) }}
                                         </option>
                                     @endforeach
                                 </optgroup>
                             @endforeach
                         </select>
-                        <small style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px; display: block;">
-                            Mỗi câu hỏi biểu quyết gắn liền với một mục chương trình.
-                        </small>
+                    </div>
+
+                    {{-- Thẻ Preview chi tiết hồ sơ được chọn --}}
+                    <div id="createVoteAgendaPreview" style="display: none; margin-top: 10px; padding: 12px 14px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; font-size: 13px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span id="previewOrderBadge" style="background: #15803D; color: #ffffff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;"></span>
+                                <span id="previewCodeBadge" style="background: rgba(0, 58, 140, 0.1); color: var(--color-primary); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;"></span>
+                            </div>
+                            <button type="button" id="btnAutoFillQuestion" class="stu-btn stu-btn-outline" style="height: 26px; padding: 0 8px; font-size: 11px; border-color: #86EFAC; color: #166534; background: #ffffff;">
+                                💡 Gợi ý tự động điền câu hỏi
+                            </button>
+                        </div>
+                        <div id="previewTitle" style="font-weight: 600; color: #166534; line-height: 1.4; margin-bottom: 4px;"></div>
+                        <div style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: #15803D;">
+                            <span id="previewMeeting"></span>
+                            <span style="opacity: 0.5;">•</span>
+                            <span id="previewSubmitter"></span>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Thẻ xem trước chi tiết nội dung đã chọn --}}
-                <div id="modalAgendaPreviewBox" style="display: none; margin-bottom: 16px; padding: 12px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
-                        <span style="font-weight: 700; color: #166534; font-size: 11.5px; display: inline-flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.5px;">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            Mục chương trình đã chọn
-                        </span>
-                        <button type="button" id="btnAutoFillTitle" style="background: none; border: none; color: #0284c7; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0;">
-                            Sử dụng tên tờ trình làm câu hỏi biểu quyết ✍️
-                        </button>
-                    </div>
-                    <div id="previewAgendaFullTitle" style="font-weight: 600; color: #0f172a; font-size: 13.5px; line-height: 1.5; margin-bottom: 6px;"></div>
-                    <div style="font-size: 12px; color: #475569; display: flex; gap: 16px; flex-wrap: wrap;">
-                        <span>🏛️ <span id="previewAgendaMeeting" style="font-weight: 500;"></span></span>
-                        <span>📄 Hồ sơ trình: <strong id="previewAgendaDossier" style="color: #0369a1;"></strong></span>
-                    </div>
-                </div>
-
-                {{-- Ô nhập Câu hỏi / Nội dung biểu quyết --}}
-                <div class="stu-form-group" style="margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label class="stu-form-label" style="font-weight: 600; font-size: 13px; margin: 0; display: block; color: var(--color-text-main);">
-                            3. Câu hỏi / Nội dung biểu quyết <span style="color: #dc2626;">*</span>
-                        </label>
-                        <span style="font-size: 11px; color: var(--color-text-muted);">Tối đa 255 ký tự</span>
-                    </div>
-                    <textarea name="NoiDung" id="modalVoteContentInput" required minlength="5" maxlength="255" rows="2" class="stu-form-control" style="font-size: 13px; border-radius: 6px; resize: vertical; line-height: 1.5; height: auto;" placeholder="Ví dụ: Thông qua Đề án thành lập Viện Nghiên cứu Ứng dụng AI STU"></textarea>
+                <div class="stu-form-group" style="margin-bottom: 20px; width: 100%; max-width: 100%; box-sizing: border-box;">
+                    <label class="stu-form-label" style="font-weight: 700; color: var(--color-primary); margin-bottom: 6px; display: block;">
+                        Câu hỏi / Nội dung biểu quyết <span style="color: #dc2626;">*</span>
+                    </label>
+                    <textarea 
+                        name="NoiDung" 
+                        id="createVoteNoiDungInput"
+                        required 
+                        minlength="5" 
+                        maxlength="255" 
+                        rows="2"
+                        class="stu-form-control" 
+                        placeholder="Ví dụ: Biểu quyết thông qua Đề án kiện toàn cơ cấu tổ chức và nhân sự các đơn vị trực thuộc"
+                        style="width: 100%; max-width: 100%; box-sizing: border-box; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; line-height: 1.4; resize: vertical;"
+                    ></textarea>
+                    <small style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px; display: block;">
+                        Nội dung này sẽ được hiển thị trên phiếu biểu quyết điện tử của tất cả thành viên Hội đồng trường.
+                    </small>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid var(--color-border);">
@@ -348,103 +346,52 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                const filterMeetingSelect = document.getElementById('modalFilterMeeting');
-                const agendaSelect = document.getElementById('modalSelectAgenda');
-                const previewBox = document.getElementById('modalAgendaPreviewBox');
-                const previewFullTitle = document.getElementById('previewAgendaFullTitle');
-                const previewMeeting = document.getElementById('previewAgendaMeeting');
-                const previewDossier = document.getElementById('previewAgendaDossier');
-                const voteContentInput = document.getElementById('modalVoteContentInput');
-                const btnAutoFill = document.getElementById('btnAutoFillTitle');
-
-                if (filterMeetingSelect && agendaSelect) {
-                    const allOptgroups = Array.from(agendaSelect.querySelectorAll('optgroup'));
-
-                    function filterAgendasByMeeting(selectedMeetingId) {
-                        allOptgroups.forEach(group => {
-                            const groupMeetingId = group.getAttribute('data-meeting');
-                            if (!selectedMeetingId || groupMeetingId === selectedMeetingId) {
-                                group.hidden = false;
-                                group.disabled = false;
-                                group.style.display = '';
-                            } else {
-                                group.hidden = true;
-                                group.disabled = true;
-                                group.style.display = 'none';
-                            }
-                        });
-
-                        // Nếu option đang chọn thuộc nhóm bị ẩn, reset lựa chọn
-                        const currentOption = agendaSelect.options[agendaSelect.selectedIndex];
-                        if (currentOption && currentOption.value) {
-                            const currentMeeting = currentOption.getAttribute('data-meeting');
-                            if (selectedMeetingId && currentMeeting !== selectedMeetingId) {
-                                agendaSelect.value = '';
-                                updatePreview();
-                            }
-                        }
-                    }
-
-                    function updatePreview() {
-                        const selectedOption = agendaSelect.options[agendaSelect.selectedIndex];
-                        if (!selectedOption || !selectedOption.value) {
-                            if (previewBox) previewBox.style.display = 'none';
-                            return;
-                        }
-
-                        const title = selectedOption.getAttribute('data-title') || '';
-                        const meetingName = selectedOption.getAttribute('data-meeting-name') || '';
-                        const hoso = selectedOption.getAttribute('data-hoso') || '';
-
-                        if (previewFullTitle) previewFullTitle.textContent = title;
-                        if (previewMeeting) previewMeeting.textContent = meetingName;
-                        if (previewDossier) previewDossier.textContent = hoso;
-                        if (previewBox) previewBox.style.display = 'block';
-
-                        // Gợi ý tự động điền nếu ô nội dung đang trống hoặc đã được điền tự động
-                        if (voteContentInput && (!voteContentInput.value.trim() || voteContentInput.dataset.autoFilled === 'true')) {
-                            voteContentInput.value = 'Thông qua: ' + title;
-                            voteContentInput.dataset.autoFilled = 'true';
-                        }
-                    }
-
-                    filterMeetingSelect.addEventListener('change', function () {
-                        filterAgendasByMeeting(this.value);
-                    });
-
-                    agendaSelect.addEventListener('change', function () {
-                        updatePreview();
-                    });
-
-                    if (btnAutoFill) {
-                        btnAutoFill.addEventListener('click', function () {
-                            const selectedOption = agendaSelect.options[agendaSelect.selectedIndex];
-                            if (selectedOption && selectedOption.value) {
-                                const title = selectedOption.getAttribute('data-title') || '';
-                                if (voteContentInput) {
-                                    voteContentInput.value = 'Thông qua: ' + title;
-                                    voteContentInput.focus();
-                                }
-                            }
-                        });
-                    }
-
-                    if (voteContentInput) {
-                        voteContentInput.addEventListener('input', function () {
-                            this.dataset.autoFilled = 'false';
-                        });
-                    }
-
-                    // Tự động kích hoạt lọc nếu đã chọn phiên họp từ URL
-                    if (filterMeetingSelect.value) {
-                        filterAgendasByMeeting(filterMeetingSelect.value);
-                    }
-                }
-
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('create') === '1' @if($errors->any()) || true @endif) {
                     if (window.STUModal) {
                         window.STUModal.open('createVoteModal');
+                    }
+                }
+
+                // Handler cho Selection đổi mục chương trình họp
+                const selectAgenda = document.getElementById('createVoteAgendaSelect');
+                const previewCard = document.getElementById('createVoteAgendaPreview');
+                const orderBadge = document.getElementById('previewOrderBadge');
+                const codeBadge = document.getElementById('previewCodeBadge');
+                const previewTitle = document.getElementById('previewTitle');
+                const previewMeeting = document.getElementById('previewMeeting');
+                const previewSubmitter = document.getElementById('previewSubmitter');
+                const btnAutoFill = document.getElementById('btnAutoFillQuestion');
+                const inputNoiDung = document.getElementById('createVoteNoiDungInput');
+
+                if (selectAgenda && previewCard) {
+                    selectAgenda.addEventListener('change', function () {
+                        const opt = selectAgenda.options[selectAgenda.selectedIndex];
+                        if (opt && opt.value) {
+                            orderBadge.textContent = 'Mục ' + (opt.dataset.order || '1');
+                            codeBadge.textContent = opt.dataset.code || '#HS';
+                            previewTitle.textContent = opt.dataset.title || '';
+                            previewMeeting.textContent = '🏛️ ' + (opt.dataset.meeting || '');
+                            previewSubmitter.textContent = '👤 Trình: ' + (opt.dataset.submitter || 'Đơn vị');
+                            previewCard.style.display = 'block';
+
+                            // Tự động gợi ý câu hỏi nếu chưa nhập
+                            if (inputNoiDung && !inputNoiDung.value.trim()) {
+                                inputNoiDung.value = 'Biểu quyết thông qua: ' + (opt.dataset.title || '');
+                            }
+                        } else {
+                            previewCard.style.display = 'none';
+                        }
+                    });
+
+                    if (btnAutoFill && inputNoiDung) {
+                        btnAutoFill.addEventListener('click', function () {
+                            const opt = selectAgenda.options[selectAgenda.selectedIndex];
+                            if (opt && opt.dataset.title) {
+                                inputNoiDung.value = 'Biểu quyết thông qua: ' + opt.dataset.title;
+                                inputNoiDung.focus();
+                            }
+                        });
                     }
                 }
             });

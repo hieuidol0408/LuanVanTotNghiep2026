@@ -1278,6 +1278,10 @@ a:hover {
   display: flex;
   flex-direction: column;
   gap: var(--space-1-5);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .stu-label,
@@ -1303,6 +1307,8 @@ a:hover {
 .stu-textarea,
 .stu-form-control {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   font-family: var(--font-family);
   font-size: 13.5px;
   color: var(--color-text-main);
@@ -1333,6 +1339,18 @@ select.stu-form-control {
   background-size: 15px 15px;
   padding-right: 32px;
   cursor: pointer;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+select.stu-select option,
+select.stu-form-control option {
+  max-width: 100%;
+  padding: 6px 10px;
+  white-space: normal;
 }
 
 .stu-input:hover,
@@ -1451,7 +1469,10 @@ select.stu-form-control {
 .stu-modal-body {
   padding: var(--space-6);
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .stu-modal-footer {
