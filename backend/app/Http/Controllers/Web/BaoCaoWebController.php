@@ -116,6 +116,17 @@ class BaoCaoWebController extends Controller
     {
         $user = Auth::user();
 
+        // Chuẩn hóa tên trường giữa các phiên bản biểu mẫu (modal & form)
+        if (!$request->has('NoiDung') && $request->has('NoiDungBaoCao')) {
+            $request->merge(['NoiDung' => $request->input('NoiDungBaoCao')]);
+        }
+        if (!$request->has('NoiDungKhoKhan') && $request->has('KhoKhanVuongMac')) {
+            $request->merge(['NoiDungKhoKhan' => $request->input('KhoKhanVuongMac')]);
+        }
+        if (!$request->hasFile('file_minh_chung') && $request->hasFile('file')) {
+            $request->files->set('file_minh_chung', $request->file('file'));
+        }
+
         $request->validate([
             'MaPhanCong' => 'required|exists:phan_cong_nhiem_vu,MaPhanCong',
             'TienDo' => 'required|integer|min:0|max:100',

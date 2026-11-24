@@ -226,7 +226,7 @@
                 </label>
                 <input 
                     type="file" 
-                    name="file" 
+                    name="file_minh_chung" 
                     class="stu-form-control" 
                     accept=".pdf,.doc,.docx,.zip,.rar"
                     style="height: 38px; font-size: 12px; padding: 6px 12px;"
@@ -240,7 +240,7 @@
                 Nội dung kết quả thực hiện <span style="color: var(--color-danger);">*</span>
             </label>
             <textarea 
-                name="NoiDungBaoCao" 
+                name="NoiDung" 
                 rows="3" 
                 class="stu-form-control" 
                 placeholder="Mô tả cụ thể các hạng mục công việc đã triển khai, kết quả đạt được..."
@@ -255,7 +255,7 @@
                 Khó khăn & Kiến nghị (Nếu có)
             </label>
             <textarea 
-                name="KhoKhanVuongMac" 
+                name="NoiDungKhoKhan" 
                 rows="2" 
                 class="stu-form-control" 
                 placeholder="Nêu rõ các vướng mắc phát sinh cần Hội đồng trường tháo gỡ..."

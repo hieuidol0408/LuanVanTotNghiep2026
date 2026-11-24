@@ -60,10 +60,10 @@
 
         {{-- Thanh nút thao tác --}}
         <div class="stu-flex stu-items-center stu-gap-2" style="flex-wrap: wrap;">
-            <a href="{{ route('task-reports.create', ['task_id' => $task->MaNhiemVu]) }}" class="stu-btn stu-btn-primary" style="height: 38px;">
+            <button type="button" class="stu-btn stu-btn-primary" style="height: 38px;" data-modal-open="createTaskReportModal">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                 <span>Nộp báo cáo tiến độ</span>
-            </a>
+            </button>
 
             @if(Auth::user() && in_array(Auth::user()->role, ['SECRETARY', 'CHAIR', 'ADMIN']))
                 <button type="button" class="stu-btn stu-btn-secondary" style="height: 38px;" data-modal-open="editTaskModal">
@@ -172,9 +172,9 @@
                             Nhật ký Báo cáo Tiến độ ({{ $allReports->count() }})
                         </h3>
                     </div>
-                    <a href="{{ route('task-reports.create', ['task_id' => $task->MaNhiemVu]) }}" class="stu-btn stu-btn-outline stu-btn-sm" style="font-weight: 600;">
+                    <button type="button" class="stu-btn stu-btn-outline stu-btn-sm" style="font-weight: 600;" data-modal-open="createTaskReportModal">
                         <i class="bi bi-plus-lg me-1"></i> Nộp báo cáo mới
-                    </a>
+                    </button>
                 </div>
 
                 <div class="stu-table-responsive" style="overflow-x: auto;">
@@ -393,6 +393,96 @@
     </x-hop-thoai>
 @endif
 
+{{-- MODAL NỔI: NỘP BÁO CÁO TIẾN ĐỘ NHIỆM VỤ (BR-10) --}}
+<x-hop-thoai id="createTaskReportModal" title="Nộp Báo Cáo Tiến Độ Nhiệm Vụ (BR-10)" size="lg">
+    <form method="POST" action="{{ route('task-reports.store') }}" enctype="multipart/form-data">
+        @csrf
+        <div style="background: #F8FAFC; border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; font-size: 12.5px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-weight: 800; color: var(--color-primary); background: rgba(0, 43, 91, 0.08); padding: 2px 8px; border-radius: 4px;">#NV-{{ str_pad($task->MaNhiemVu, 3, '0', STR_PAD_LEFT) }}</span>
+                <strong style="color: var(--color-text-main);">{{ $task->TenNhiemVu }}</strong>
+            </div>
+            <span style="color: var(--color-text-muted);">Tiến độ hiện tại: <strong style="color: var(--color-primary);">{{ $currentProgress }}%</strong></span>
+        </div>
+
+        {{-- 1. Phân công nhiệm vụ --}}
+        <div class="stu-form-group" style="margin-bottom: 14px; width: 100%; box-sizing: border-box;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Phân công phụ trách <span style="color: var(--color-danger);">*</span>
+            </label>
+            <select name="MaPhanCong" class="stu-form-control" required style="width: 100%; height: 38px; font-size: 13px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 32px; background-color: #F8FAFC;">
+                @foreach($task->phanCongNhiemVu as $assign)
+                    <option value="{{ $assign->MaPhanCong }}">
+                        {{ $assign->VaiTroThucHien }} — {{ $assign->donVi?->TenDonVi }} (Người phụ trách: {{ $assign->TenNguoiPhuTrach ?: 'Cán bộ đơn vị' }})
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        {{-- 2. Tỷ lệ tiến độ & Tệp đính kèm --}}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; width: 100%; box-sizing: border-box;">
+            <div class="stu-form-group" style="min-width: 0; width: 100%; box-sizing: border-box; margin-bottom: 0;">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700; display: flex; align-items: center; justify-content: space-between;">
+                    <span>Tỷ lệ tiến độ mới (%) <span style="color: var(--color-danger);">*</span></span>
+                    <span id="detail_modal_progress_badge" style="font-size: 12px; font-weight: 800; color: var(--color-primary); background: rgba(0, 43, 91, 0.08); padding: 1px 8px; border-radius: 4px;">{{ $currentProgress }}%</span>
+                </label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="number" id="detail_modal_tiendo_input" name="TienDo" min="0" max="100" 
+                           value="{{ old('TienDo', $currentProgress) }}" 
+                           class="stu-form-control" required 
+                           style="height: 38px; font-size: 14px; font-weight: 700; color: var(--color-primary); width: 85px; text-align: center;">
+                    <div style="flex: 1;">
+                        <input type="range" class="stu-form-range" id="detail_modal_tiendo_range" min="0" max="100" 
+                               value="{{ old('TienDo', $currentProgress) }}" 
+                               style="width: 100%; accent-color: var(--color-primary); cursor: pointer;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="stu-form-group" style="min-width: 0; width: 100%; box-sizing: border-box; margin-bottom: 0;">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Minh chứng đính kèm (Tùy chọn)
+                </label>
+                <input type="file" name="file_minh_chung" 
+                       class="stu-form-control" 
+                       accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"
+                       style="height: 38px; font-size: 12px; padding: 6px 12px; background: #F8FAFC;">
+            </div>
+        </div>
+
+        {{-- 3. Nội dung thực hiện --}}
+        <div class="stu-form-group" style="margin-bottom: 14px; width: 100%; box-sizing: border-box;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Nội dung kết quả đã thực hiện <span style="color: var(--color-danger);">*</span>
+            </label>
+            <textarea name="NoiDung" rows="3" class="stu-form-control" 
+                      placeholder="Mô tả cụ thể các hạng mục công việc đã triển khai, kết quả đạt được..." 
+                      required style="font-size: 13px; line-height: 1.5;">{{ old('NoiDung') }}</textarea>
+        </div>
+
+        {{-- 4. Khó khăn vướng mắc --}}
+        <div class="stu-form-group" style="margin-bottom: 14px; width: 100%; box-sizing: border-box;">
+            <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                Khó khăn & Kiến nghị (Nếu có)
+            </label>
+            <textarea name="NoiDungKhoKhan" rows="2" class="stu-form-control" 
+                      placeholder="Nêu rõ các vướng mắc phát sinh cần Hội đồng trường tháo gỡ..." 
+                      style="font-size: 13px; line-height: 1.5;">{{ old('NoiDungKhoKhan') }}</textarea>
+        </div>
+
+        <!-- Footer buttons -->
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--color-border);">
+            <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>
+                <span>Hủy bỏ</span>
+            </button>
+            <button type="submit" class="stu-btn stu-btn-primary" style="font-weight: 600;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                <span>Gửi báo cáo tiến độ</span>
+            </button>
+        </div>
+    </form>
+</x-hop-thoai>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const urlParams = new URLSearchParams(window.location.search);
@@ -400,6 +490,28 @@
             if (window.STUModal) {
                 window.STUModal.open('editTaskModal');
             }
+        }
+        if (urlParams.get('report') === '1' || urlParams.get('bao_cao') === '1') {
+            if (window.STUModal) {
+                window.STUModal.open('createTaskReportModal');
+            }
+        }
+
+        // Đồng bộ slider và input number cho modal nộp báo cáo
+        const reportInput = document.getElementById('detail_modal_tiendo_input');
+        const reportRange = document.getElementById('detail_modal_tiendo_range');
+        const reportBadge = document.getElementById('detail_modal_progress_badge');
+
+        function updateModalProgress(val) {
+            val = Math.max(0, Math.min(100, parseInt(val) || 0));
+            if (reportInput) reportInput.value = val;
+            if (reportRange) reportRange.value = val;
+            if (reportBadge) reportBadge.textContent = val + '%';
+        }
+
+        if (reportInput && reportRange) {
+            reportInput.addEventListener('input', function() { updateModalProgress(this.value); });
+            reportRange.addEventListener('input', function() { updateModalProgress(this.value); });
         }
     });
 </script>
