@@ -639,12 +639,22 @@ class PhienHopWebController extends Controller
             'TrangThaiThamDu.required' => 'Vui lòng chọn trạng thái tham dự ban đầu.',
         ]);
 
-        // Chống tạo trùng lặp theo ràng buộc BR-02
-        $exists = ThamDu::where('MaPhienHop', $id)
+        // Chống tạo trùng lặp theo ràng buộc BR-02 (xử lý khôi phục bản ghi nếu đã từng xóa mềm)
+        $existing = ThamDu::withTrashed()
+            ->where('MaPhienHop', $id)
             ->where('MaThanhVien', $validated['MaThanhVien'])
-            ->exists();
+            ->first();
 
-        if ($exists) {
+        if ($existing) {
+            if ($existing->trashed()) {
+                $existing->restore();
+                $existing->update([
+                    'TrangThaiThamDu' => $validated['TrangThaiThamDu'],
+                    'ThoiDiemXacNhan' => $validated['TrangThaiThamDu'] === 'Có mặt' ? now() : null,
+                    'GhiChu' => $validated['GhiChu'] ?? null,
+                ]);
+                return back()->with('success', 'Đã thêm lại thành viên vào danh sách tham dự phiên họp thành công.');
+            }
             return back()->with('warning', 'Thành viên này đã có trong danh sách mời của phiên họp (Tuân thủ BR-02).');
         }
 
@@ -752,12 +762,21 @@ class PhienHopWebController extends Controller
             ]);
         }
 
-        // Kiểm tra chống trùng khách mời trong phiên (BR-03)
-        $exists = KhachMoiPhienHop::where('MaPhienHop', $id)
+        // Kiểm tra chống trùng khách mời trong phiên (BR-03, xử lý khôi phục bản ghi nếu đã từng xóa mềm)
+        $existingGuest = KhachMoiPhienHop::withTrashed()
+            ->where('MaPhienHop', $id)
             ->where('MaKhachMoi', $guest->MaKhachMoi)
-            ->exists();
+            ->first();
 
-        if ($exists) {
+        if ($existingGuest) {
+            if ($existingGuest->trashed()) {
+                $existingGuest->restore();
+                $existingGuest->update([
+                    'NoiDungMoi' => $validated['NoiDungMoi'],
+                    'TrangThaiThamDu' => $validated['TrangThaiThamDu'],
+                ]);
+                return back()->with('success', "Đã thêm lại khách mời \"{$guest->HoTen}\" vào phiên họp thành công.");
+            }
             return back()->with('warning', 'Khách mời này đã được mời tham gia phiên họp (Tuân thủ BR-03).');
         }
 

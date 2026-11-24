@@ -395,6 +395,16 @@ class MeetingWebTest extends TestCase
         $removeResponse->assertSessionHas('success');
 
         $this->assertSoftDeleted('tham_du', ['MaThamDu' => $attendee->MaThamDu]);
+
+        // Thêm lại thành viên sau khi đã bớt (khôi phục từ soft-delete, không bị lỗi duplicate entry 1062)
+        $reAddResponse = $this->post(route('meetings.members.add', $meeting->MaPhienHop), [
+            'MaThanhVien' => $newMember->MaThanhVien,
+            'TrangThaiThamDu' => 'Có mặt',
+            'GhiChu' => 'Thêm lại sau khi bớt',
+        ]);
+        $reAddResponse->assertRedirect();
+        $reAddResponse->assertSessionHas('success');
+        $this->assertNotSoftDeleted('tham_du', ['MaThamDu' => $attendee->MaThamDu]);
     }
 
     /**
@@ -447,6 +457,16 @@ class MeetingWebTest extends TestCase
         $removeResponse->assertSessionHas('success');
 
         $this->assertSoftDeleted('khach_moi_phien_hop', ['MaMoi' => $invite->MaMoi]);
+
+        // Thêm lại khách mời sau khi đã bớt (khôi phục từ soft-delete, không bị lỗi duplicate entry 1062)
+        $reAddGuestResponse = $this->post(route('meetings.guests.add', $meeting->MaPhienHop), [
+            'MaKhachMoi' => $guest->MaKhachMoi,
+            'NoiDungMoi' => 'Mời lại tham dự phiên họp',
+            'TrangThaiThamDu' => 'Đã gửi giấy mời',
+        ]);
+        $reAddGuestResponse->assertRedirect();
+        $reAddGuestResponse->assertSessionHas('success');
+        $this->assertNotSoftDeleted('khach_moi_phien_hop', ['MaMoi' => $invite->MaMoi]);
     }
 
     /**
@@ -675,13 +695,13 @@ class MeetingWebTest extends TestCase
             ->where('TenPhienHop', 'like', 'Phiên họp thử nghiệm giờ hiện tại tương lai%')
             ->delete();
 
-        // Đặt giờ bắt đầu từ 2 phút sau thời điểm hiện tại nhưng đảm bảo không trùng phiên 14:00-15:30
+        // Đặt giờ bắt đầu sau thời điểm hiện tại và ngoài giờ làm việc thông thường để tránh trùng lịch họp thực tế
         $futureStart = Carbon::now()->addMinutes(2);
-        if ($futureStart->format('H:i') >= '14:00' && $futureStart->format('H:i') <= '16:00') {
-            $futureStart = Carbon::now()->setTime(21, 0);
+        if ($futureStart->format('H:i') >= '07:00' && $futureStart->format('H:i') <= '20:00') {
+            $futureStart = Carbon::now()->setTime(21, 30);
         }
         $futureStartTime = $futureStart->format('H:i');
-        $futureEndTime = $futureStart->copy()->addMinutes(45)->format('H:i');
+        $futureEndTime = $futureStart->copy()->addMinutes(30)->format('H:i');
 
         $response = $this->post(route('meetings.store'), [
             'TenPhienHop' => 'Phiên họp thử nghiệm giờ hiện tại tương lai ' . uniqid(),
@@ -695,5 +715,60 @@ class MeetingWebTest extends TestCase
 
         $response->assertSessionHasNoErrors();
         $response->assertRedirect();
+    }
+
+    /**
+     * 21. Khôi phục thành viên sau khi bớt (BR-02): Xóa nhiều người rồi thêm lại không bị lỗi Integrity constraint violation: 1062 Duplicate entry.
+     */
+    public function test_meeting_remove_and_re_add_multiple_members_succeeds_without_unique_constraint_violation(): void
+    {
+        $allMembers = ThanhVienHDT::take(3)->get();
+        if ($allMembers->count() < 2) {
+            $this->markTestSkipped('Không đủ thành viên HĐT để kiểm thử.');
+        }
+
+        // Tạo một phiên họp riêng biệt cho test này để tránh vướng dữ liệu biểu quyết/ủy quyền cũ
+        $meeting = PhienHop::create([
+            'TenPhienHop' => 'Phiên họp test re-add members ' . uniqid(),
+            'NgayHop' => Carbon::now()->addDays(35)->toDateString(),
+            'ThoiGianBatDau' => Carbon::now()->addDays(35)->setTime(9, 0),
+            'ThoiGianKetThuc' => Carbon::now()->addDays(35)->setTime(11, 0),
+            'DiaDiem' => 'Phòng họp Test Re-add',
+            'HinhThuc' => 'Trực tiếp',
+            'TrangThai' => 'Sắp diễn ra',
+            'MaNguoiDung' => 1,
+        ]);
+
+        // Đảm bảo các thành viên này đã được thêm vào phiên họp
+        $attendeeIds = [];
+        foreach ($allMembers as $m) {
+            $td = \App\Models\ThamDu::create([
+                'MaPhienHop' => $meeting->MaPhienHop,
+                'MaThanhVien' => $m->MaThanhVien,
+                'TrangThaiThamDu' => 'Có mặt',
+            ]);
+            $attendeeIds[$m->MaThanhVien] = $td->MaThamDu;
+        }
+
+        // Bớt các thành viên (xóa mềm)
+        foreach ($allMembers as $m) {
+            $removeRes = $this->delete(route('meetings.members.remove', [$meeting->MaPhienHop, $attendeeIds[$m->MaThanhVien]]));
+            $removeRes->assertRedirect();
+            $removeRes->assertSessionHas('success');
+            $this->assertSoftDeleted('tham_du', ['MaThamDu' => $attendeeIds[$m->MaThanhVien]]);
+        }
+
+        // Thêm lại lần lượt từng thành viên -> Phải thành công và khôi phục bản ghi, không bị lỗi SQL 1062 Duplicate entry
+        foreach ($allMembers as $m) {
+            $reAddRes = $this->post(route('meetings.members.add', $meeting->MaPhienHop), [
+                'MaThanhVien' => $m->MaThanhVien,
+                'TrangThaiThamDu' => 'Có mặt',
+                'GhiChu' => 'Khôi phục sau khi xóa',
+            ]);
+
+            $reAddRes->assertRedirect();
+            $reAddRes->assertSessionHas('success');
+            $this->assertNotSoftDeleted('tham_du', ['MaThamDu' => $attendeeIds[$m->MaThanhVien]]);
+        }
     }
 }

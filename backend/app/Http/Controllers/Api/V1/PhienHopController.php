@@ -441,24 +441,34 @@ class PhienHopController extends Controller
             'SoDienThoai' => $validated['phone'] ?? null,
         ]);
 
-        // [BR-03] Ràng buộc bộ duy nhất: Cặp (MaKhachMoi, MaPhienHop) bắt buộc phải là UNIQUE
-        $existingInvite = KhachMoiPhienHop::where('MaKhachMoi', $khachMoi->MaKhachMoi)
+        // [BR-03] Ràng buộc bộ duy nhất: Cặp (MaKhachMoi, MaPhienHop) bắt buộc phải là UNIQUE (xử lý khôi phục bản ghi đã xóa mềm)
+        $existingInvite = KhachMoiPhienHop::withTrashed()
+            ->where('MaKhachMoi', $khachMoi->MaKhachMoi)
             ->where('MaPhienHop', $id)
             ->first();
 
         if ($existingInvite) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Khách mời này đã được mời tham gia phiên họp này trước đó (BR-03).',
-            ], 422);
+            if ($existingInvite->trashed()) {
+                $existingInvite->restore();
+                $existingInvite->update([
+                    'NoiDungMoi' => $validated['notes'] ?? 'Tham dự theo lời mời của HĐT',
+                    'TrangThaiThamDu' => 'INVITED',
+                ]);
+                $moi = $existingInvite;
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Khách mời này đã được mời tham gia phiên họp này trước đó (BR-03).',
+                ], 422);
+            }
+        } else {
+            $moi = KhachMoiPhienHop::create([
+                'NoiDungMoi' => $validated['notes'] ?? 'Tham dự theo lời mời của HĐT',
+                'TrangThaiThamDu' => 'INVITED',
+                'MaKhachMoi' => $khachMoi->MaKhachMoi,
+                'MaPhienHop' => $id,
+            ]);
         }
-
-        $moi = KhachMoiPhienHop::create([
-            'NoiDungMoi' => $validated['notes'] ?? 'Tham dự theo lời mời của HĐT',
-            'TrangThaiThamDu' => 'INVITED',
-            'MaKhachMoi' => $khachMoi->MaKhachMoi,
-            'MaPhienHop' => $id,
-        ]);
 
         return response()->json([
             'success' => true,
