@@ -248,14 +248,6 @@
             <form method="POST" action="{{ route('votes.store') }}" style="max-width: 100%;">
                 @csrf
 
-                {{-- Banner hướng dẫn nghiệp vụ --}}
-                <div style="background: rgba(0, 43, 91, 0.04); border: 1px solid rgba(0, 43, 91, 0.12); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px;">
-                    <svg width="18" height="18" fill="none" stroke="#002b5b" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink: 0; margin-top: 1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <div style="font-size: 12.5px; color: #1e293b; line-height: 1.45;">
-                        Chọn <strong>Phiên họp</strong> trước để danh sách mục thảo luận/tờ trình tự động thu gọn theo phiên tương ứng, giúp hiển thị gọn gàng và không bị tràn giao diện.
-                    </div>
-                </div>
-
                 {{-- 2 Cột lựa chọn phân cấp: Phiên họp -> Mục chương trình --}}
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 14px;">
                     {{-- Cột 1: Lọc nhanh theo Phiên họp --}}
