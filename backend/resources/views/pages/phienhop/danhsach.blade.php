@@ -34,7 +34,7 @@
             <input 
                 type="text" 
                 name="search" 
-                placeholder="Tìm theo tên phiên họp, địa điểm..." 
+                placeholder="Tìm theo mã phiên (#...), tên phiên họp, địa điểm..." 
                 value="{{ request('search') }}" 
                 class="stu-form-control"
                 style="padding-left: 36px; height: 38px;"

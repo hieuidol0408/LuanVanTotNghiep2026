@@ -33,12 +33,19 @@ class PhienHopWebController extends Controller
             ->with(['nguoiDung'])
             ->withCount(['chuongTrinhHop', 'thamDu', 'taiLieu']);
 
-        // 1. Tìm kiếm từ khóa
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
+        // 1. Tìm kiếm từ khóa (tên, địa điểm, ghi chú, mã phiên họp)
+        if ($search = trim((string) $request->input('search'))) {
+            $numericId = preg_replace('/[^0-9]/', '', $search);
+
+            $query->where(function ($q) use ($search, $numericId) {
                 $q->where('TenPhienHop', 'like', "%{$search}%")
                     ->orWhere('DiaDiem', 'like', "%{$search}%")
                     ->orWhere('GhiChu', 'like', "%{$search}%");
+
+                if ($numericId !== '') {
+                    $q->orWhere('MaPhienHop', (int) $numericId)
+                      ->orWhereRaw('CAST(MaPhienHop AS CHAR) LIKE ?', ["%{$numericId}%"]);
+                }
             });
         }
 
@@ -89,13 +96,30 @@ class PhienHopWebController extends Controller
             ->with(['nguoiDung', 'nghiQuyet', 'taiLieu'])
             ->withCount(['chuongTrinhHop', 'thamDu', 'taiLieu', 'nghiQuyet']);
 
-        // 1. Tìm kiếm từ khóa (tên, địa điểm, ghi chú, mã)
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
+        // 1. Lọc theo Mã phiên họp (nếu nhập riêng ở ô Mã phiên)
+        if ($code = trim((string) $request->input('code'))) {
+            $numericCode = preg_replace('/[^0-9]/', '', $code);
+            if ($numericCode !== '') {
+                $query->where(function ($q) use ($numericCode) {
+                    $q->where('MaPhienHop', (int) $numericCode)
+                      ->orWhereRaw('CAST(MaPhienHop AS CHAR) LIKE ?', ["%{$numericCode}%"]);
+                });
+            }
+        }
+
+        // 2. Tìm kiếm từ khóa (tên, địa điểm, ghi chú, mã phiên họp)
+        if ($search = trim((string) $request->input('search'))) {
+            $numericId = preg_replace('/[^0-9]/', '', $search);
+
+            $query->where(function ($q) use ($search, $numericId) {
                 $q->where('TenPhienHop', 'like', "%{$search}%")
                     ->orWhere('DiaDiem', 'like', "%{$search}%")
-                    ->orWhere('GhiChu', 'like', "%{$search}%")
-                    ->orWhere('MaPhienHop', $search);
+                    ->orWhere('GhiChu', 'like', "%{$search}%");
+
+                if ($numericId !== '') {
+                    $q->orWhere('MaPhienHop', (int) $numericId)
+                      ->orWhereRaw('CAST(MaPhienHop AS CHAR) LIKE ?', ["%{$numericId}%"]);
+                }
             });
         }
 

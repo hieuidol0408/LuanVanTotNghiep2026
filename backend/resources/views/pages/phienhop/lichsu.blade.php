@@ -77,18 +77,32 @@
 <div class="stu-card" style="padding: 18px 24px; margin-bottom: var(--space-6); border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
     <form method="GET" action="{{ route('meetings.history') }}">
         <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
-        <!-- Hàng 1: Từ khóa, Khóa nhiệm kỳ, Năm, Loại phiên họp -->
-        <div style="display: grid; grid-template-columns: 2.2fr 1.2fr 1.2fr 1.2fr; gap: 12px; margin-bottom: 12px;">
+        <!-- Hàng 1: Từ khóa, Mã phiên họp, Khóa nhiệm kỳ, Năm, Loại phiên họp -->
+        <div style="display: grid; grid-template-columns: 2fr 1.1fr 1.2fr 1fr 1.1fr; gap: 12px; margin-bottom: 12px;">
             <!-- Ô tìm kiếm từ khóa -->
             <div style="position: relative;">
                 <svg width="15" height="15" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input 
                     type="text" 
                     name="search" 
-                    placeholder="Nhập tên phiên họp, mã phiên, địa điểm, từ khóa..." 
+                    placeholder="Nhập tên phiên họp, địa điểm, từ khóa..." 
                     value="{{ request('search') }}" 
                     class="stu-form-control"
                     style="padding-left: 36px; height: 38px;"
+                >
+            </div>
+
+            <!-- Ô tìm kiếm theo Mã phiên họp -->
+            <div style="position: relative;">
+                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: 700; color: #94A3B8; font-size: 13px; pointer-events: none;">#</span>
+                <input 
+                    type="text" 
+                    name="code" 
+                    placeholder="Mã phiên (#50, 21)..." 
+                    value="{{ request('code') }}" 
+                    class="stu-form-control"
+                    style="padding-left: 28px; height: 38px;"
+                    title="Tìm kiếm chính xác hoặc tương đối theo mã phiên họp"
                 >
             </div>
 
@@ -96,7 +110,7 @@
             <div>
                 <select name="term" class="stu-form-control" style="height: 38px;">
                     <option value="">-- Tất cả các khóa --</option>
-                    <option value="Khóa IV" {{ request('term') == 'Khóa IV' || (!request()->has('term') && !request()->has('search')) ? 'selected' : '' }}>Khóa IV (2020 - 2025)</option>
+                    <option value="Khóa IV" {{ request('term') == 'Khóa IV' ? 'selected' : '' }}>Khóa IV (2020 - 2025)</option>
                     <option value="Khóa III" {{ request('term') == 'Khóa III' ? 'selected' : '' }}>Khóa III (2015 - 2020)</option>
                     <option value="Khóa II" {{ request('term') == 'Khóa II' ? 'selected' : '' }}>Khóa II (2010 - 2015)</option>
                 </select>
@@ -186,7 +200,7 @@
 
             <!-- Nút Đặt lại -->
             <div>
-                @if(request()->anyFilled(['search', 'term', 'year', 'type', 'format', 'status', 'from_date', 'to_date']))
+                @if(request()->anyFilled(['search', 'code', 'term', 'year', 'type', 'format', 'status', 'from_date', 'to_date']))
                     <a href="{{ route('meetings.history') }}" class="stu-btn stu-btn-ghost" style="height: 38px; padding: 0 14px;" title="Đặt lại bộ lọc">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         <span>Đặt lại</span>
@@ -209,8 +223,20 @@
     @foreach($meetings as $meeting)
         <tr>
             <!-- Cột Mã -->
-            <td style="font-weight: 700; color: var(--color-primary); white-space: nowrap;">
-                #{{ $meeting->MaPhienHop }}
+            <td style="font-weight: 700; white-space: nowrap;">
+                @php
+                    $isCodeMatch = (request('code') && preg_replace('/[^0-9]/', '', request('code')) == $meeting->MaPhienHop)
+                        || (request('search') && preg_replace('/[^0-9]/', '', request('search')) == $meeting->MaPhienHop);
+                @endphp
+                @if($isCodeMatch)
+                    <span class="stu-badge stu-badge-primary" style="font-size: 12.5px; font-weight: 800; padding: 2px 8px; border-radius: 6px;">
+                        #{{ $meeting->MaPhienHop }}
+                    </span>
+                @else
+                    <span style="color: var(--color-primary); font-size: 13px;">
+                        #{{ $meeting->MaPhienHop }}
+                    </span>
+                @endif
             </td>
 
             <!-- Cột Thông tin phiên họp -->

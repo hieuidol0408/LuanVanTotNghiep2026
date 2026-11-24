@@ -771,4 +771,49 @@ class MeetingWebTest extends TestCase
             $this->assertNotSoftDeleted('tham_du', ['MaThamDu' => $attendeeIds[$m->MaThanhVien]]);
         }
     }
+
+    /**
+     * 22. Tra cứu lịch sử phiên họp: Hiển thị trang lịch sử thành công với ô tìm kiếm mã phiên.
+     */
+    public function test_meeting_history_renders_successfully_with_code_search(): void
+    {
+        $response = $this->get(route('meetings.history'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Tra cứu Lịch sử Phiên họp');
+        $response->assertSee('name="code"', false);
+        $response->assertSee('name="search"', false);
+    }
+
+    /**
+     * 23. Tra cứu lịch sử phiên họp: Cho phép tìm kiếm phiên họp theo mã (cả dạng số và dạng #mã).
+     */
+    public function test_meeting_history_search_by_meeting_code(): void
+    {
+        $meeting = PhienHop::first();
+        if (! $meeting) {
+            $this->markTestSkipped('Chưa có phiên họp.');
+        }
+
+        // 1. Tìm bằng ô nhập mã phiên riêng biệt (param code)
+        $codeResponse = $this->get(route('meetings.history', ['code' => $meeting->MaPhienHop]));
+        $codeResponse->assertStatus(200);
+        $codeResponse->assertSee($meeting->TenPhienHop);
+        $codeResponse->assertSee('#' . $meeting->MaPhienHop);
+
+        // 2. Tìm bằng mã có tiền tố '#' (VD: #50)
+        $hashResponse = $this->get(route('meetings.history', ['code' => '#' . $meeting->MaPhienHop]));
+        $hashResponse->assertStatus(200);
+        $hashResponse->assertSee($meeting->TenPhienHop);
+
+        // 3. Tìm qua ô tìm kiếm chung (param search) với ký tự '#'
+        $searchResponse = $this->get(route('meetings.history', ['search' => '#' . $meeting->MaPhienHop]));
+        $searchResponse->assertStatus(200);
+        $searchResponse->assertSee($meeting->TenPhienHop);
+
+        // 4. Tìm qua trang Quản lý phiên họp (index) với mã
+        $indexResponse = $this->get(route('meetings.index', ['search' => '#' . $meeting->MaPhienHop]));
+        $indexResponse->assertStatus(200);
+        $indexResponse->assertSee($meeting->TenPhienHop);
+    }
 }

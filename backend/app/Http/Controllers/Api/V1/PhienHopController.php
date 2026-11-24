@@ -26,12 +26,19 @@ class PhienHopController extends Controller
         $query = PhienHop::query()
             ->withCount(['chuongTrinhHop as agendas_count', 'thamDu as attendees_count', 'taiLieu as documents_count']);
 
-        // 1. Lọc từ khóa tìm kiếm
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
+        // 1. Lọc từ khóa tìm kiếm (tên, địa điểm, ghi chú, mã phiên họp)
+        if ($search = trim((string) $request->input('search'))) {
+            $numericId = preg_replace('/[^0-9]/', '', $search);
+
+            $query->where(function ($q) use ($search, $numericId) {
                 $q->where('TenPhienHop', 'like', "%{$search}%")
                     ->orWhere('DiaDiem', 'like', "%{$search}%")
                     ->orWhere('GhiChu', 'like', "%{$search}%");
+
+                if ($numericId !== '') {
+                    $q->orWhere('MaPhienHop', (int) $numericId)
+                      ->orWhereRaw('CAST(MaPhienHop AS CHAR) LIKE ?', ["%{$numericId}%"]);
+                }
             });
         }
 
