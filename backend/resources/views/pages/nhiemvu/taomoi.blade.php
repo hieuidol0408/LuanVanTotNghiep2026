@@ -3,29 +3,26 @@
 @section('title', 'Giao Nhiệm vụ mới từ Nghị quyết - Hội đồng trường STU')
 
 @section('content')
-<div class="page-container">
-    <div class="page-header mb-4">
+<div class="stu-page-container">
+    <div class="stu-page-header stu-mb-6">
         <x-thanh-dieu-huong :items="[
-            ['label' => 'Bảng điều hành', 'url' => route('dashboard')],
-            ['label' => 'Quản lý Nhiệm vụ', 'url' => route('tasks.index')],
-            ['label' => 'Giao nhiệm vụ mới', 'url' => null]
+            'Bảng điều hành' => route('dashboard'),
+            'Quản lý Nhiệm vụ' => route('tasks.index'),
+            'Giao nhiệm vụ mới' => null
         ]" />
-        <h1 class="page-title mt-2">Phân công Nhiệm vụ từ Nghị quyết</h1>
-        <p class="text-muted">Thiết lập đơn vị chủ trì, đơn vị phối hợp và thời hạn hoàn thành theo quy định BR-10</p>
+        <h1 class="stu-page-title" style="font-size: 24px; font-weight: 800; color: var(--color-primary); margin: 8px 0 0 0;">Phân công Nhiệm vụ từ Nghị quyết</h1>
+        <p style="font-size: 13px; color: var(--color-text-muted); margin: 4px 0 0 0;">Thiết lập đơn vị chủ trì, đơn vị phối hợp và thời hạn hoàn thành theo quy định BR-10</p>
     </div>
 
     @if ($errors->any())
-        <div class="alert alert-danger shadow-sm mb-4">
-            <div class="d-flex align-items-center mb-2">
-                <i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i>
-                <h6 class="mb-0 fw-bold">Vui lòng kiểm tra lại thông tin:</h6>
-            </div>
-            <ul class="mb-0 ps-3">
+        <x-canh-bao type="danger" :dismissible="true" class="stu-mb-6">
+            <div style="font-weight: 700; margin-bottom: 4px;">Vui lòng kiểm tra lại thông tin:</div>
+            <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
-        </div>
+        </x-canh-bao>
     @endif
 
     <div style="display: flex; justify-content: center; padding: 10px 0 30px 0;">

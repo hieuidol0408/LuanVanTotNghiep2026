@@ -3,214 +3,262 @@
 @section('title', 'Chi tiết Nhiệm vụ #' . $task->MaNhiemVu . ' - Hội đồng trường STU')
 
 @section('content')
-<div class="page-container">
+<div class="stu-page-container">
     {{-- Header & Breadcrumb --}}
-    <div class="page-header d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <x-thanh-dieu-huong :items="[
-                ['label' => 'Bảng điều hành', 'url' => route('dashboard')],
-                ['label' => 'Quản lý Nhiệm vụ', 'url' => route('tasks.index')],
-                ['label' => '#' . $task->MaNhiemVu, 'url' => null]
-            ]" />
-            <div class="d-flex align-items-center gap-3 mt-2">
-                <h1 class="page-title mb-0">{{ $task->TenNhiemVu }}</h1>
-                @php
-                    $isOverdue = $task->TrangThai !== 'COMPLETED' && $task->NgayHoanThanh && \Carbon\Carbon::parse($task->NgayHoanThanh)->isPast();
-                @endphp
-                @if($task->TrangThai === 'COMPLETED' || $task->TrangThai === 'Hoàn tất')
-                    <span class="badge bg-success-subtle text-success fs-6 border border-success-subtle px-3 py-2">
-                        <i class="bi bi-check-circle-fill me-1"></i> Đã hoàn thành
-                    </span>
-                @elseif($isOverdue || $task->TrangThai === 'OVERDUE')
-                    <span class="badge bg-danger-subtle text-danger fs-6 border border-danger-subtle px-3 py-2">
-                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Quá hạn
-                    </span>
-                @elseif($task->TrangThai === 'IN_PROGRESS' || $task->TrangThai === 'Đang thực hiện')
-                    <span class="badge bg-warning-subtle text-warning fs-6 border border-warning-subtle px-3 py-2">
-                        <i class="bi bi-arrow-repeat me-1"></i> Đang thực hiện
-                    </span>
-                @else
-                    <span class="badge bg-secondary-subtle text-secondary fs-6 border px-3 py-2">
-                        <i class="bi bi-hourglass-split me-1"></i> Mới giao
+    <x-thanh-dieu-huong :items="[
+        'Bảng điều hành' => route('dashboard'),
+        'Quản lý Nhiệm vụ' => route('tasks.index'),
+        '#' . $task->MaNhiemVu => null
+    ]" />
+
+    @php
+        $isOverdue = $task->TrangThai !== 'COMPLETED' && $task->NgayHoanThanh && \Carbon\Carbon::parse($task->NgayHoanThanh)->isPast();
+    @endphp
+
+    {{-- Page Header --}}
+    <div class="stu-page-header stu-flex stu-items-start stu-justify-between stu-mb-6" style="gap: 16px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 300px;">
+            <div class="stu-flex stu-items-center stu-gap-2 stu-mb-2">
+                <span style="font-weight: 800; color: var(--color-primary); font-size: 13px; background: rgba(0, 43, 91, 0.08); padding: 3px 10px; border-radius: var(--radius-sm); letter-spacing: 0.5px;">
+                    #NV-{{ str_pad($task->MaNhiemVu, 3, '0', STR_PAD_LEFT) }}
+                </span>
+                <x-nhan-trang-thai :status="$task->TrangThai" />
+                @if($isOverdue)
+                    <span class="stu-badge stu-badge-danger" style="font-size: 11px; padding: 2px 8px;">
+                        <i class="bi bi-clock-history me-1"></i> Quá hạn
                     </span>
                 @endif
             </div>
+
+            <h1 class="stu-page-title" style="font-size: 24px; font-weight: 800; color: var(--color-primary); margin: 0; line-height: 1.35;">
+                {{ $task->TenNhiemVu }}
+            </h1>
+
+            <div style="font-size: 13px; color: var(--color-text-muted); margin-top: 8px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
+                @if($task->nghiQuyet)
+                    <span>
+                        <i class="bi bi-file-earmark-check text-primary me-1"></i>
+                        <strong>Nghị quyết căn cứ:</strong> 
+                        <a href="{{ route('resolutions.show', $task->nghiQuyet->MaNghiQuyet) }}" style="color: var(--color-primary); font-weight: 600; text-decoration: none;">
+                            {{ $task->nghiQuyet->SoNghiQuyet }}
+                        </a>
+                    </span>
+                @endif
+                <span>
+                    <i class="bi bi-calendar-event me-1"></i>
+                    <strong>Ngày giao:</strong> {{ $task->NgayGiao ? \Carbon\Carbon::parse($task->NgayGiao)->format('d/m/Y') : '--' }}
+                </span>
+                <span>
+                    <i class="bi bi-calendar-check me-1 {{ $isOverdue ? 'text-danger' : '' }}"></i>
+                    <strong>Hạn hoàn thành:</strong> 
+                    <span class="{{ $isOverdue ? 'text-danger fw-bold' : '' }}">
+                        {{ $task->NgayHoanThanh ? \Carbon\Carbon::parse($task->NgayHoanThanh)->format('d/m/Y') : '--' }}
+                    </span>
+                </span>
+            </div>
         </div>
 
-        <div class="d-flex gap-2">
-            {{-- Nút nộp báo cáo tiến độ --}}
-            <a href="{{ route('task-reports.create', ['task_id' => $task->MaNhiemVu]) }}" class="btn btn-primary">
-                <i class="bi bi-journal-plus me-1"></i> Nộp báo cáo tiến độ
+        {{-- Thanh nút thao tác --}}
+        <div class="stu-flex stu-items-center stu-gap-2" style="flex-wrap: wrap;">
+            <a href="{{ route('task-reports.create', ['task_id' => $task->MaNhiemVu]) }}" class="stu-btn stu-btn-primary" style="height: 38px;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <span>Nộp báo cáo tiến độ</span>
             </a>
 
             @if(Auth::user() && in_array(Auth::user()->role, ['SECRETARY', 'CHAIR', 'ADMIN']))
-                <button type="button" class="btn btn-outline-secondary" data-modal-open="editTaskModal">
-                    <i class="bi bi-pencil me-1"></i> Chỉnh sửa
+                <button type="button" class="stu-btn stu-btn-secondary" style="height: 38px;" data-modal-open="editTaskModal">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <span>Chỉnh sửa</span>
                 </button>
             @endif
         </div>
     </div>
 
     @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <x-canh-bao type="success" :dismissible="true" class="stu-mb-6">
+            {{ session('success') }}
+        </x-canh-bao>
     @endif
 
-    <div class="row g-4 mb-4">
-        {{-- Cột trái: Thông tin tổng quan & Tiến độ --}}
-        <div class="col-lg-8">
-            {{-- Card Tiến độ thực hiện --}}
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="fw-bold text-dark mb-0">
-                            <i class="bi bi-speedometer2 text-primary me-2"></i>Tiến độ thực hiện hiện tại
-                        </h5>
-                        <span class="fs-4 fw-bold {{ $currentProgress >= 100 ? 'text-success' : 'text-primary' }}">
-                            {{ $currentProgress }}%
+    {{-- Main Grid Layout: 2 cột (Trái 2fr, Phải 1fr) --}}
+    <div class="stu-grid" style="grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;">
+        {{-- CỘT TRÁI (2fr): Tiến độ, Chi tiết nhiệm vụ, Nhật ký báo cáo --}}
+        <div>
+            {{-- Card 1: Tiến độ thực hiện hiện tại --}}
+            <div class="stu-card stu-mb-6" style="padding: 22px 24px; border-radius: 12px; border: 1px solid var(--color-border); background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 43, 91, 0.08); display: flex; align-items: center; justify-content: center; color: var(--color-primary);">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                         </span>
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--color-text-main); margin: 0;">
+                            Tiến độ thực hiện hiện tại
+                        </h3>
+                    </div>
+                    <div style="font-size: 24px; font-weight: 800; color: {{ $currentProgress >= 100 ? 'var(--color-success)' : 'var(--color-primary)' }};">
+                        {{ $currentProgress }}%
+                    </div>
+                </div>
+
+                {{-- Thanh tiến độ chuẩn phong cách STU --}}
+                <div style="width: 100%; height: 12px; background: #E2E8F0; border-radius: 999px; overflow: hidden; position: relative; margin-bottom: 10px;">
+                    <div style="width: {{ $currentProgress }}%; height: 100%; border-radius: 999px; background: {{ $currentProgress >= 100 ? 'var(--color-success)' : 'linear-gradient(90deg, #002B5B 0%, #0056B3 100%)' }}; transition: width 0.4s ease;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-muted);">
+                    <span>0% (Khởi đầu)</span>
+                    <span style="color: var(--color-text-main); font-weight: 600;">50% (Đang triển khai)</span>
+                    <span>100% (Nghiệm thu / Hoàn tất)</span>
+                </div>
+            </div>
+
+            {{-- Card 2: Mô tả & Yêu cầu nhiệm vụ --}}
+            <div class="stu-card stu-mb-6" style="padding: 24px; border-radius: 12px; border: 1px solid var(--color-border); background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--color-border);">
+                    <span style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 43, 91, 0.08); display: flex; align-items: center; justify-content: center; color: var(--color-primary);">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                    <h3 style="font-size: 16px; font-weight: 700; color: var(--color-text-main); margin: 0;">
+                        Mô tả &amp; Yêu cầu nhiệm vụ
+                    </h3>
+                </div>
+
+                <div style="font-size: 14px; line-height: 1.7; color: #334155; white-space: pre-line; margin-bottom: 18px;">
+                    {{ $task->NoiDung ?: 'Chưa có mô tả chi tiết cho nhiệm vụ này.' }}
+                </div>
+
+                {{-- Hộp thông tin căn cứ & Thời hạn cân đối 3 cột --}}
+                <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 18px; align-items: start;">
+                    <div>
+                        <div style="font-size: 11.5px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 4px;">Nghị quyết căn cứ:</div>
+                        @if($task->nghiQuyet)
+                            <a href="{{ route('resolutions.show', $task->nghiQuyet->MaNghiQuyet) }}" style="font-weight: 700; color: var(--color-primary); text-decoration: none; display: flex; align-items: center; gap: 6px; font-size: 13.5px;">
+                                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span>{{ $task->nghiQuyet->SoNghiQuyet }}</span>
+                            </a>
+                            <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px; line-height: 1.4;">{{ Str::limit($task->nghiQuyet->TrichYeu, 65) }}</div>
+                        @else
+                            <span style="font-size: 13px; color: var(--color-text-muted);">Không xác định</span>
+                        @endif
                     </div>
 
-                    <div class="progress" style="height: 14px;">
-                        <div class="progress-bar progress-bar-striped {{ $currentProgress >= 100 ? 'bg-success' : 'bg-primary' }}" 
-                             role="progressbar" style="width: {{ $currentProgress }}%;" 
-                             aria-valuenow="{{ $currentProgress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div>
+                        <div style="font-size: 11.5px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 4px;">Ngày giao nhiệm vụ:</div>
+                        <div style="font-size: 14px; font-weight: 700; color: var(--color-text-main);">
+                            {{ $task->NgayGiao ? \Carbon\Carbon::parse($task->NgayGiao)->format('d/m/Y') : '--' }}
+                        </div>
                     </div>
 
-                    <div class="d-flex justify-content-between small text-muted mt-2">
-                        <span>0% (Khởi đầu)</span>
-                        <span>50% (Đang triển khai)</span>
-                        <span>100% (Nghiệm thu / Hoàn tất)</span>
+                    <div>
+                        <div style="font-size: 11.5px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 4px;">Hạn hoàn thành:</div>
+                        <div style="font-size: 14px; font-weight: 700; color: {{ $isOverdue ? 'var(--color-danger)' : 'var(--color-text-main)' }};">
+                            {{ $task->NgayHoanThanh ? \Carbon\Carbon::parse($task->NgayHoanThanh)->format('d/m/Y') : '--' }}
+                        </div>
+                        @if($isOverdue)
+                            <div style="font-size: 11px; color: var(--color-danger); margin-top: 2px; font-weight: 600;">Đã quá hạn</div>
+                        @endif
                     </div>
                 </div>
             </div>
 
-            {{-- Card Chi tiết nhiệm vụ --}}
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
-                        <i class="bi bi-info-circle text-primary me-2"></i>Mô tả &amp; Yêu cầu nhiệm vụ
-                    </h5>
-
-                    <div class="text-secondary mb-4" style="line-height: 1.7; white-space: pre-line;">
-                        {{ $task->NoiDung ?: 'Chưa có mô tả chi tiết cho nhiệm vụ này.' }}
+            {{-- Card 3: Nhật ký Báo cáo Tiến độ --}}
+            <div class="stu-card" style="padding: 24px; border-radius: 12px; border: 1px solid var(--color-border); background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--color-border); flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 43, 91, 0.08); display: flex; align-items: center; justify-content: center; color: var(--color-primary);">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </span>
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--color-text-main); margin: 0;">
+                            Nhật ký Báo cáo Tiến độ ({{ $allReports->count() }})
+                        </h3>
                     </div>
-
-                    <div class="row g-3 p-3 bg-light rounded">
-                        <div class="col-md-6">
-                            <div class="small text-muted">Nghị quyết căn cứ:</div>
-                            @if($task->nghiQuyet)
-                                <a href="{{ route('resolutions.show', $task->nghiQuyet->MaNghiQuyet) }}" class="fw-bold text-primary text-decoration-none">
-                                    <i class="bi bi-file-earmark-check me-1"></i>{{ $task->nghiQuyet->SoNghiQuyet }}
-                                </a>
-                                <div class="small text-muted mt-1">{{ $task->nghiQuyet->TrichYeu }}</div>
-                            @else
-                                <span class="text-muted">Không xác định</span>
-                            @endif
-                        </div>
-                        <div class="col-md-3">
-                            <div class="small text-muted">Ngày giao nhiệm vụ:</div>
-                            <div class="fw-semibold text-dark">
-                                {{ $task->NgayGiao ? \Carbon\Carbon::parse($task->NgayGiao)->format('d/m/Y') : '--' }}
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="small text-muted">Hạn hoàn thành:</div>
-                            <div class="fw-semibold {{ $isOverdue ? 'text-danger' : 'text-dark' }}">
-                                {{ $task->NgayHoanThanh ? \Carbon\Carbon::parse($task->NgayHoanThanh)->format('d/m/Y') : '--' }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Danh sách Lịch sử Báo cáo Tiến độ --}}
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold text-dark mb-0">
-                        <i class="bi bi-clock-history text-primary me-2"></i>Nhật ký Báo cáo Tiến độ
-                    </h5>
-                    <a href="{{ route('task-reports.create', ['task_id' => $task->MaNhiemVu]) }}" class="btn btn-sm btn-outline-primary">
+                    <a href="{{ route('task-reports.create', ['task_id' => $task->MaNhiemVu]) }}" class="stu-btn stu-btn-outline stu-btn-sm" style="font-weight: 600;">
                         <i class="bi bi-plus-lg me-1"></i> Nộp báo cáo mới
                     </a>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Thời gian</th>
-                                <th>Đơn vị / Người báo cáo</th>
-                                <th style="width: 100px;">Tiến độ</th>
-                                <th>Nội dung &amp; Minh chứng</th>
-                                <th style="width: 140px;">Thẩm định</th>
-                                <th style="width: 110px;" class="text-end">Chi tiết</th>
+                <div class="stu-table-responsive" style="overflow-x: auto;">
+                    <table class="stu-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: #F8FAFC; border-bottom: 2px solid #E2E8F0; text-align: left;">
+                                <th style="padding: 10px 12px; font-weight: 700; color: var(--color-text-muted); font-size: 12px; text-transform: uppercase;">Thời gian</th>
+                                <th style="padding: 10px 12px; font-weight: 700; color: var(--color-text-muted); font-size: 12px; text-transform: uppercase;">Đơn vị / Người báo cáo</th>
+                                <th style="padding: 10px 12px; font-weight: 700; color: var(--color-text-muted); font-size: 12px; text-transform: uppercase; width: 110px;">Tiến độ</th>
+                                <th style="padding: 10px 12px; font-weight: 700; color: var(--color-text-muted); font-size: 12px; text-transform: uppercase;">Nội dung &amp; Minh chứng</th>
+                                <th style="padding: 10px 12px; font-weight: 700; color: var(--color-text-muted); font-size: 12px; text-transform: uppercase; width: 130px;">Thẩm định</th>
+                                <th style="padding: 10px 12px; font-weight: 700; color: var(--color-text-muted); font-size: 12px; text-transform: uppercase; width: 80px; text-align: right;">Chi tiết</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($allReports->sortByDesc('MaBaoCao') as $rpt)
-                                <tr>
-                                    <td class="small">
-                                        <div class="fw-bold">{{ $rpt->NgayBaoCao ? \Carbon\Carbon::parse($rpt->NgayBaoCao)->format('d/m/Y') : '--' }}</div>
-                                        <span class="text-muted">#BC-{{ $rpt->MaBaoCao }}</span>
+                                <tr style="border-bottom: 1px solid var(--color-border); transition: background-color 0.15s ease;">
+                                    <td style="padding: 12px;">
+                                        <div style="font-weight: 700; color: var(--color-text-main);">
+                                            {{ $rpt->NgayBaoCao ? \Carbon\Carbon::parse($rpt->NgayBaoCao)->format('d/m/Y') : '--' }}
+                                        </div>
+                                        <span style="font-size: 11px; color: var(--color-text-muted);">#BC-{{ str_pad($rpt->MaBaoCao, 3, '0', STR_PAD_LEFT) }}</span>
                                     </td>
-                                    <td>
-                                        <div class="fw-semibold text-dark">{{ $rpt->phanCongNhiemVu?->donVi?->TenDonVi ?? 'Đơn vị' }}</div>
-                                        <div class="small text-muted">{{ $rpt->nguoiDung?->HoTen ?? 'Cán bộ phụ trách' }}</div>
+                                    <td style="padding: 12px;">
+                                        <div style="font-weight: 600; color: var(--color-text-main);">{{ $rpt->phanCongNhiemVu?->donVi?->TenDonVi ?? 'Đơn vị' }}</div>
+                                        <div style="font-size: 12px; color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                                            <i class="bi bi-person"></i>
+                                            <span>{{ $rpt->nguoiDung?->HoTen ?? 'Cán bộ phụ trách' }}</span>
+                                        </div>
                                     </td>
-                                    <td>
-                                        <div class="fw-bold {{ $rpt->TienDo >= 100 ? 'text-success' : 'text-primary' }}">
+                                    <td style="padding: 12px;">
+                                        <div style="font-weight: 800; font-size: 13.5px; color: {{ $rpt->TienDo >= 100 ? 'var(--color-success)' : 'var(--color-primary)' }};">
                                             {{ $rpt->TienDo }}%
                                         </div>
-                                        <div class="progress" style="height: 6px;">
-                                            <div class="progress-bar {{ $rpt->TienDo >= 100 ? 'bg-success' : 'bg-primary' }}" style="width: {{ $rpt->TienDo }}%;"></div>
+                                        <div style="width: 100%; height: 6px; background: #E2E8F0; border-radius: 999px; overflow: hidden; margin-top: 4px;">
+                                            <div style="width: {{ $rpt->TienDo }}%; height: 100%; background: {{ $rpt->TienDo >= 100 ? 'var(--color-success)' : 'var(--color-primary)' }}; border-radius: 999px;"></div>
                                         </div>
                                     </td>
-                                    <td>
-                                        <div class="small text-dark">{{ Str::limit($rpt->NoiDung, 60) }}</div>
+                                    <td style="padding: 12px;">
+                                        <div style="color: #334155; line-height: 1.4;">{{ Str::limit($rpt->NoiDung, 60) }}</div>
                                         @if($rpt->NoiDungKhoKhan)
-                                            <div class="small text-danger mt-1">
-                                                <i class="bi bi-exclamation-circle me-1"></i>Khó khăn: {{ Str::limit($rpt->NoiDungKhoKhan, 40) }}
+                                            <div style="font-size: 12px; color: var(--color-danger); margin-top: 4px; display: flex; align-items: flex-start; gap: 4px;">
+                                                <i class="bi bi-exclamation-triangle" style="margin-top: 1px;"></i>
+                                                <span>Khó khăn: {{ Str::limit($rpt->NoiDungKhoKhan, 45) }}</span>
                                             </div>
                                         @endif
                                         @if($rpt->taiLieu->isNotEmpty())
-                                            <div class="mt-1">
+                                            <div style="margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap;">
                                                 @foreach($rpt->taiLieu as $doc)
-                                                    <a href="{{ asset($doc->DuongDan) }}" target="_blank" class="badge bg-light text-secondary border text-decoration-none">
-                                                        <i class="bi bi-paperclip me-1"></i>{{ Str::limit($doc->TenTaiLieu, 20) }}
+                                                    <a href="{{ asset($doc->DuongDan) }}" target="_blank" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: #F1F5F9; border: 1px solid #CBD5E1; color: #475569; font-size: 11px; text-decoration: none;">
+                                                        <i class="bi bi-paperclip"></i>
+                                                        <span>{{ Str::limit($doc->TenTaiLieu, 20) }}</span>
                                                     </a>
                                                 @endforeach
                                             </div>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td style="padding: 12px;">
                                         @if($rpt->TrangThaiXacNhan === 'APPROVED')
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                            <span class="stu-badge stu-badge-success" style="font-size: 11px; padding: 3px 8px;">
                                                 <i class="bi bi-check-circle me-1"></i> Đã duyệt
                                             </span>
                                         @elseif($rpt->TrangThaiXacNhan === 'REJECTED')
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                            <span class="stu-badge stu-badge-danger" style="font-size: 11px; padding: 3px 8px;">
                                                 <i class="bi bi-x-circle me-1"></i> Yêu cầu sửa
                                             </span>
                                         @else
-                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle">
+                                            <span class="stu-badge stu-badge-warning" style="font-size: 11px; padding: 3px 8px;">
                                                 <i class="bi bi-hourglass-split me-1"></i> Chờ duyệt
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="text-end">
-                                        <a href="{{ route('task-reports.show', $rpt->MaBaoCao) }}" class="btn btn-sm btn-outline-primary">
-                                            Xem
+                                    <td style="padding: 12px; text-align: right;">
+                                        <a href="{{ route('task-reports.show', $rpt->MaBaoCao) }}" class="stu-btn stu-btn-ghost stu-btn-sm" style="font-size: 12px; padding: 4px 8px;">
+                                            <span>Xem</span>
+                                            <i class="bi bi-chevron-right ms-1" style="font-size: 10px;"></i>
                                         </a>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">
-                                        <i class="bi bi-journal-x display-6 d-block mb-2 text-muted"></i>
-                                        Chưa có báo cáo tiến độ nào được nộp cho nhiệm vụ này.
+                                    <td colspan="6" style="padding: 36px; text-align: center; color: var(--color-text-muted);">
+                                        <i class="bi bi-journal-x" style="font-size: 32px; display: block; margin-bottom: 8px; opacity: 0.5;"></i>
+                                        <div>Chưa có báo cáo tiến độ nào được nộp cho nhiệm vụ này.</div>
                                     </td>
                                 </tr>
                             @endforelse
@@ -220,72 +268,75 @@
             </div>
         </div>
 
-        {{-- Cột phải: Đơn vị phụ trách & Phân công (BR-10) --}}
-        <div class="col-lg-4">
-            {{-- Đơn vị Chủ trì --}}
+        {{-- CỘT PHẢI (1fr): Đơn vị chủ trì, Đơn vị phối hợp, Hướng dẫn nghiệp vụ BR-10 --}}
+        <div>
+            {{-- Card Đơn vị Chủ trì --}}
             @php
                 $leadAssignment = $task->phanCongNhiemVu->firstWhere('VaiTroThucHien', 'CHỦ TRÌ');
                 $coopAssignments = $task->phanCongNhiemVu->where('VaiTroThucHien', 'PHỐI HỢP');
             @endphp
-            <div class="card border-0 shadow-sm mb-4 border-start border-primary border-4">
-                <div class="card-body p-4">
-                    <h6 class="fw-bold text-uppercase text-primary small mb-3">
-                        <i class="bi bi-award me-1"></i> Đơn vị Chủ trì (BR-10)
-                    </h6>
-
-                    @if($leadAssignment && $leadAssignment->donVi)
-                        <h5 class="fw-bold text-dark mb-2">{{ $leadAssignment->donVi->TenDonVi }}</h5>
-                        <div class="small text-muted mb-2">
-                            <i class="bi bi-person-fill text-primary me-1"></i>
-                            <strong>Người phụ trách:</strong> {{ $leadAssignment->TenNguoiPhuTrach ?: 'Chưa cập nhật' }}
-                        </div>
-                        <div class="small text-muted">
-                            <i class="bi bi-flag-fill text-secondary me-1"></i>
-                            <strong>Trạng thái thực hiện:</strong> 
-                            <span class="badge bg-light text-dark border">{{ $leadAssignment->TrangThaiThucHien }}</span>
-                        </div>
-                    @else
-                        <div class="text-muted small fst-italic">Chưa có thông tin đơn vị chủ trì.</div>
-                    @endif
+            <div class="stu-card stu-mb-4" style="padding: 20px; border-radius: 12px; border: 1px solid var(--color-border); border-left: 4px solid var(--color-primary); background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="font-size: 11.5px; font-weight: 700; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                    <i class="bi bi-award-fill"></i>
+                    <span>Đơn vị Chủ trì (BR-10)</span>
                 </div>
-            </div>
 
-            {{-- Đơn vị Phối hợp --}}
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body p-4">
-                    <h6 class="fw-bold text-uppercase text-secondary small mb-3">
-                        <i class="bi bi-people me-1"></i> Đơn vị Phối hợp
-                    </h6>
-
-                    @if($coopAssignments->isNotEmpty())
-                        <ul class="list-group list-group-flush small">
-                            @foreach($coopAssignments as $coop)
-                                <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="fw-semibold text-dark">{{ $coop->donVi?->TenDonVi ?? 'Đơn vị phối hợp' }}</div>
-                                        <div class="text-muted small">{{ $coop->TenNguoiPhuTrach ?: 'Cán bộ liên lạc' }}</div>
-                                    </div>
-                                    <span class="badge bg-light text-secondary border">{{ $coop->TrangThaiThucHien }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                    @else
-                        <div class="text-muted small fst-italic">Không có đơn vị phối hợp.</div>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Hộp hỗ trợ nghiệp vụ --}}
-            <div class="card border-0 bg-primary-subtle text-primary shadow-sm">
-                <div class="card-body p-3">
-                    <div class="d-flex align-items-center mb-2">
-                        <i class="bi bi-shield-check fs-5 me-2"></i>
-                        <h6 class="mb-0 fw-bold">Quy định BR-10</h6>
+                @if($leadAssignment && $leadAssignment->donVi)
+                    <div style="font-size: 16px; font-weight: 700; color: var(--color-text-main); margin-bottom: 10px; line-height: 1.4;">
+                        {{ $leadAssignment->donVi->TenDonVi }}
                     </div>
-                    <p class="small mb-0">
-                        Nhiệm vụ chỉ được xác nhận hoàn thành (COMPLETED) khi báo cáo tiến độ đạt 100% và được Thư ký hoặc Chủ tịch Hội đồng trường thẩm định phê duyệt.
-                    </p>
+                    <div style="font-size: 12.5px; color: var(--color-text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <i class="bi bi-person text-primary"></i>
+                        <span>Người phụ trách: <strong style="color: var(--color-text-main);">{{ $leadAssignment->TenNguoiPhuTrach ?: 'Chưa cập nhật' }}</strong></span>
+                    </div>
+                    <div style="font-size: 12.5px; color: var(--color-text-muted); display: flex; align-items: center; gap: 6px;">
+                        <i class="bi bi-flag text-secondary"></i>
+                        <span>Trạng thái: 
+                            <span class="stu-badge stu-badge-neutral" style="font-size: 11px; padding: 2px 7px;">
+                                {{ $leadAssignment->TrangThaiThucHien }}
+                            </span>
+                        </span>
+                    </div>
+                @else
+                    <div style="font-size: 12.5px; color: var(--color-text-muted); font-style: italic;">Chưa có thông tin đơn vị chủ trì.</div>
+                @endif
+            </div>
+
+            {{-- Card Đơn vị Phối hợp --}}
+            <div class="stu-card stu-mb-4" style="padding: 20px; border-radius: 12px; border: 1px solid var(--color-border); background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="font-size: 11.5px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Đơn vị Phối hợp ({{ $coopAssignments->count() }})</span>
                 </div>
+
+                @if($coopAssignments->isNotEmpty())
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        @foreach($coopAssignments as $coop)
+                            <div style="padding: 10px 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px;">
+                                <div style="font-weight: 600; font-size: 13px; color: var(--color-text-main);">
+                                    {{ $coop->donVi?->TenDonVi ?? 'Đơn vị phối hợp' }}
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 11.5px; color: var(--color-text-muted);">
+                                    <span>{{ $coop->TenNguoiPhuTrach ?: 'Cán bộ liên lạc' }}</span>
+                                    <span class="stu-badge stu-badge-neutral" style="font-size: 10.5px; padding: 1px 6px;">
+                                        {{ $coop->TrangThaiThucHien }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div style="font-size: 12.5px; color: var(--color-text-muted); font-style: italic;">Không có đơn vị phối hợp.</div>
+                @endif
+            </div>
+
+            {{-- Hộp hỗ trợ quy định BR-10 --}}
+            <div style="padding: 16px; background: #F0F9FF; border: 1px dashed #BAE6FD; border-radius: 10px; font-size: 12px; color: #0369A1; line-height: 1.55;">
+                <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; margin-bottom: 4px; color: #0284C7;">
+                    <i class="bi bi-shield-check" style="font-size: 15px;"></i>
+                    <span>Quy định BR-10</span>
+                </div>
+                Nhiệm vụ chỉ được xác nhận hoàn thành (COMPLETED) khi báo cáo tiến độ đạt 100% và được Thư ký hoặc Chủ tịch Hội đồng trường thẩm định phê duyệt chính thức.
             </div>
         </div>
     </div>
@@ -298,34 +349,34 @@
             @csrf
             @method('PUT')
 
-            <div class="stu-form-group stu-mb-4">
+            <div class="stu-form-group stu-mb-4" style="width: 100%; box-sizing: border-box;">
                 <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Tên nhiệm vụ <span style="color: var(--color-danger);">*</span></label>
-                <input type="text" name="TenNhiemVu" value="{{ old('TenNhiemVu', $task->TenNhiemVu) }}" class="stu-form-control" required>
+                <input type="text" name="TenNhiemVu" value="{{ old('TenNhiemVu', $task->TenNhiemVu) }}" class="stu-form-control" required style="height: 38px;">
             </div>
 
-            <div class="stu-form-group stu-mb-4">
+            <div class="stu-form-group stu-mb-4" style="width: 100%; box-sizing: border-box;">
                 <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Nội dung chi tiết</label>
-                <textarea name="NoiDung" rows="4" class="stu-form-control">{{ old('NoiDung', $task->NoiDung) }}</textarea>
+                <textarea name="NoiDung" rows="4" class="stu-form-control" style="font-size: 13px;">{{ old('NoiDung', $task->NoiDung) }}</textarea>
             </div>
 
-            <div class="stu-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 16px;" class="stu-mb-5">
-                <div class="stu-form-group">
-                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Ngày giao nhiệm vụ <span style="color: var(--color-danger);">*</span></label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 16px; width: 100%; box-sizing: border-box;">
+                <div class="stu-form-group" style="min-width: 0; width: 100%; box-sizing: border-box; margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">Ngày giao <span style="color: var(--color-danger);">*</span></label>
                     <input type="date" name="NgayGiao" 
                            value="{{ old('NgayGiao', $task->NgayGiao ? \Carbon\Carbon::parse($task->NgayGiao)->format('Y-m-d') : '') }}" 
-                           class="stu-form-control" required>
+                           class="stu-form-control" required style="height: 38px; font-size: 13px;">
                 </div>
 
-                <div class="stu-form-group">
-                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Hạn hoàn thành <span style="color: var(--color-danger);">*</span></label>
+                <div class="stu-form-group" style="min-width: 0; width: 100%; box-sizing: border-box; margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">Hạn hoàn thành <span style="color: var(--color-danger);">*</span></label>
                     <input type="date" name="NgayHoanThanh" 
                            value="{{ old('NgayHoanThanh', $task->NgayHoanThanh ? \Carbon\Carbon::parse($task->NgayHoanThanh)->format('Y-m-d') : '') }}" 
-                           class="stu-form-control" required>
+                           class="stu-form-control" required style="height: 38px; font-size: 13px;">
                 </div>
 
-                <div class="stu-form-group">
-                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Trạng thái nhiệm vụ <span style="color: var(--color-danger);">*</span></label>
-                    <select name="TrangThai" class="stu-form-control" required>
+                <div class="stu-form-group" style="min-width: 0; width: 100%; box-sizing: border-box; margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">Trạng thái <span style="color: var(--color-danger);">*</span></label>
+                    <select name="TrangThai" class="stu-form-control" required style="height: 38px; font-size: 13px;">
                         <option value="ASSIGNED" {{ old('TrangThai', $task->TrangThai) === 'ASSIGNED' ? 'selected' : '' }}>Chưa thực hiện (ASSIGNED)</option>
                         <option value="IN_PROGRESS" {{ old('TrangThai', $task->TrangThai) === 'IN_PROGRESS' ? 'selected' : '' }}>Đang thực hiện (IN_PROGRESS)</option>
                         <option value="COMPLETED" {{ old('TrangThai', $task->TrangThai) === 'COMPLETED' ? 'selected' : '' }}>Đã hoàn tất (COMPLETED)</option>
@@ -334,9 +385,9 @@
                 </div>
             </div>
 
-            <div class="stu-flex stu-items-center stu-justify-between" style="border-top: 1px solid var(--color-border); padding-top: 16px;">
-                <button type="button" class="stu-btn stu-btn-ghost" data-modal-close>Hủy bỏ</button>
-                <button type="submit" class="stu-btn stu-btn-primary" style="padding: 10px 24px;">Lưu thay đổi</button>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--color-border); padding-top: 14px; margin-top: 16px;">
+                <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>Hủy bỏ</button>
+                <button type="submit" class="stu-btn stu-btn-primary" style="font-weight: 600;">Lưu thay đổi</button>
             </div>
         </form>
     </x-hop-thoai>
