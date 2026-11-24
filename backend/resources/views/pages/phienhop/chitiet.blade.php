@@ -736,8 +736,8 @@
 </x-hop-thoai>
 
 <!-- Modal 3: Đưa hồ sơ vào chương trình họp (BR-08) -->
-<x-hop-thoai id="addAgendaModal" title="Đưa Hồ Sơ Trình vào Chương Trình Họp" size="md">
-    <form method="POST" action="{{ route('meetings.agenda.add', $meeting->MaPhienHop) }}">
+<x-hop-thoai id="addAgendaModal" title="Đưa Hồ Sơ Trình vào Chương Trình Họp" size="lg">
+    <form method="POST" action="{{ route('meetings.agenda.add', $meeting->MaPhienHop) }}" style="width: 100%; max-width: 100%; box-sizing: border-box;">
         @csrf
         <div style="background: #F8FAFC; border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; font-size: 12.5px;">
             <div style="color: var(--color-text-muted); display: flex; align-items: center; gap: 6px;">
@@ -750,13 +750,67 @@
             </div>
         </div>
 
-        <x-bieu-mau.o-chon name="MaHoSo" label="Chọn hồ sơ trình" required hint="Danh sách hiển thị các hồ sơ trình chưa được đưa vào chương trình họp này (BR-08)">
-            @foreach($availableDossiers as $d)
-                <option value="{{ $d->MaHoSo }}">
-                    {{ $d->ma_ho_so_hien_thi }}: {{ $d->TieuDe }} [{{ $d->donVi?->TenDonVi }} • Người trình: {{ $d->nguoiDung?->HoTen ?: 'Cán bộ đơn vị' }}]
-                </option>
-            @endforeach
-        </x-bieu-mau.o-chon>
+        <div class="stu-form-group" style="margin-bottom: 16px; width: 100%; max-width: 100%; box-sizing: border-box;">
+            <label class="stu-form-label" style="font-weight: 700; color: var(--color-primary); display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span>Chọn hồ sơ trình đưa vào phiên họp <span style="color: #dc2626;">*</span></span>
+                <span style="font-size: 11px; font-weight: normal; color: var(--color-text-muted); text-transform: none;">Chỉ hiển thị hồ sơ chưa thuộc phiên (BR-08)</span>
+            </label>
+
+            <div style="position: relative; width: 100%; max-width: 100%; box-sizing: border-box;">
+                <select 
+                    name="MaHoSo" 
+                    id="addAgendaDossierSelect" 
+                    required 
+                    class="stu-form-control"
+                    style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 42px; font-size: 13.5px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 36px; background-color: #F8FAFC;"
+                >
+                    <option value="">-- Chọn hồ sơ trình cần đưa vào chương trình họp --</option>
+                    @php
+                        $groupedDossiers = ($availableDossiers ?? collect([]))->groupBy(function($item) {
+                            return $item->donVi?->TenDonVi ?: 'Đơn vị khác';
+                        });
+                    @endphp
+                    @foreach($groupedDossiers as $unitName => $dossiers)
+                        <optgroup label="🏢 {{ $unitName }} ({{ $dossiers->count() }} hồ sơ)">
+                            @foreach($dossiers as $d)
+                                @php
+                                    $dossierCode = $d->ma_ho_so_hien_thi;
+                                    $dossierTitle = $d->TieuDe;
+                                    $submitter = $d->nguoiDung?->HoTen ?: 'Cán bộ đơn vị';
+                                    $unit = $d->donVi?->TenDonVi ?: 'Chưa rõ đơn vị';
+                                    $summary = $d->TomTat ?: 'Chưa có tóm tắt nội dung';
+                                @endphp
+                                <option 
+                                    value="{{ $d->MaHoSo }}"
+                                    data-code="{{ $dossierCode }}"
+                                    data-title="{{ $dossierTitle }}"
+                                    data-unit="{{ $unit }}"
+                                    data-submitter="{{ $submitter }}"
+                                    data-summary="{{ $summary }}"
+                                >
+                                    {{ $dossierCode }}: {{ Str::limit($dossierTitle, 65) }}
+                                </option>
+                            @endforeach
+                        </optgroup>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Thẻ Preview chi tiết hồ sơ được chọn --}}
+            <div id="addAgendaDossierPreview" style="display: none; margin-top: 10px; padding: 12px 14px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; font-size: 13px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span id="agendaPreviewCodeBadge" style="background: rgba(0, 58, 140, 0.1); color: var(--color-primary); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;"></span>
+                        <span id="agendaPreviewUnitBadge" style="background: #E0E7FF; color: #3730A3; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;"></span>
+                    </div>
+                    <span style="font-size: 11.5px; color: #15803D; font-weight: 600;">✓ Hồ sơ đủ điều kiện đưa vào phiên họp</span>
+                </div>
+                <div id="agendaPreviewTitle" style="font-weight: 700; color: #166534; line-height: 1.4; margin-bottom: 4px;"></div>
+                <div style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: #15803D;">
+                    <span id="agendaPreviewSubmitter"></span>
+                </div>
+            </div>
+        </div>
 
         <div class="stu-form-group">
             <x-bieu-mau.nhan>Thứ tự xem xét (Tự động tăng nếu để trống)</x-bieu-mau.nhan>
@@ -1086,6 +1140,29 @@
                     }
                 });
             }
+        }
+
+        // Handler cho Selection đổi hồ sơ trình trong Modal Đưa vào chương trình họp
+        const addAgendaSelect = document.getElementById('addAgendaDossierSelect');
+        const addAgendaPreview = document.getElementById('addAgendaDossierPreview');
+        const agendaPreviewCodeBadge = document.getElementById('agendaPreviewCodeBadge');
+        const agendaPreviewUnitBadge = document.getElementById('agendaPreviewUnitBadge');
+        const agendaPreviewTitle = document.getElementById('agendaPreviewTitle');
+        const agendaPreviewSubmitter = document.getElementById('agendaPreviewSubmitter');
+
+        if (addAgendaSelect && addAgendaPreview) {
+            addAgendaSelect.addEventListener('change', function () {
+                const opt = addAgendaSelect.options[addAgendaSelect.selectedIndex];
+                if (opt && opt.value) {
+                    if (agendaPreviewCodeBadge) agendaPreviewCodeBadge.textContent = opt.dataset.code || '#HS';
+                    if (agendaPreviewUnitBadge) agendaPreviewUnitBadge.textContent = '🏢 ' + (opt.dataset.unit || '');
+                    if (agendaPreviewTitle) agendaPreviewTitle.textContent = opt.dataset.title || '';
+                    if (agendaPreviewSubmitter) agendaPreviewSubmitter.textContent = '👤 Người trình: ' + (opt.dataset.submitter || '');
+                    addAgendaPreview.style.display = 'block';
+                } else {
+                    addAgendaPreview.style.display = 'none';
+                }
+            });
         }
 
         const urlParams = new URLSearchParams(window.location.search);
