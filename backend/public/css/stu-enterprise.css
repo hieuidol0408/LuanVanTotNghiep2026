@@ -1353,6 +1353,15 @@ select.stu-form-control option {
   white-space: normal;
 }
 
+select.stu-select optgroup,
+select.stu-form-control optgroup {
+  font-weight: 700;
+  color: var(--color-primary);
+  background-color: #F1F5F9;
+  padding: 6px 8px;
+  font-size: 12.5px;
+}
+
 .stu-input:hover,
 .stu-select:hover,
 .stu-textarea:hover,

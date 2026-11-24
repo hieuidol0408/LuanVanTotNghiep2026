@@ -47,24 +47,38 @@
             @csrf
             @method('PUT')
 
-            <div class="stu-grid" style="grid-template-columns: 1.5fr 1.5fr 1fr; gap: 16px;" class="stu-mb-5">
-                <div class="stu-form-group">
+            <div class="stu-grid" style="grid-template-columns: 1.1fr 1.6fr 1fr; gap: 16px; width: 100%; max-width: 100%; box-sizing: border-box;" class="stu-mb-5">
+                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
                     <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Số hiệu Nghị quyết <span style="color: var(--color-danger);">*</span></label>
                     <input type="text" name="SoNghiQuyet" value="{{ old('SoNghiQuyet', $resolution->SoNghiQuyet) }}" class="stu-form-control" required>
                 </div>
 
-                <div class="stu-form-group">
+                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
                     <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Phiên họp ban hành <span style="color: var(--color-danger);">*</span></label>
-                    <select name="MaPhienHop" class="stu-form-control" required>
-                        @foreach($meetings as $m)
-                            <option value="{{ $m->MaPhienHop }}" {{ old('MaPhienHop', $resolution->MaPhienHop) == $m->MaPhienHop ? 'selected' : '' }}>
-                                {{ $m->TenPhienHop }}
-                            </option>
+                    <select name="MaPhienHop" class="stu-form-control" required style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 38px; font-size: 13px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 32px; background-color: #F8FAFC;">
+                        @php
+                            $groupedMeetings = ($meetings ?? collect([]))->groupBy(function($m) {
+                                $date = $m->NgayHop ?: $m->ThoiGianBatDau;
+                                return $date ? date('Y', strtotime($date)) : 'Khác';
+                            });
+                        @endphp
+                        @foreach($groupedMeetings as $yearGroup => $mList)
+                            <optgroup label="📅 Các phiên họp năm {{ $yearGroup }} ({{ $mList->count() }} phiên)">
+                                @foreach($mList as $m)
+                                    @php
+                                        $meetingDate = $m->NgayHop ?: $m->ThoiGianBatDau;
+                                        $dateFormatted = $meetingDate ? \Carbon\Carbon::parse($meetingDate)->format('d/m/Y') : 'Chưa xếp ngày';
+                                    @endphp
+                                    <option value="{{ $m->MaPhienHop }}" {{ old('MaPhienHop', $resolution->MaPhienHop) == $m->MaPhienHop ? 'selected' : '' }}>
+                                        #{{ $m->MaPhienHop }} - {{ Str::limit($m->TenPhienHop, 48) }} ({{ $dateFormatted }})
+                                    </option>
+                                @endforeach
+                            </optgroup>
                         @endforeach
                     </select>
                 </div>
 
-                <div class="stu-form-group">
+                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
                     <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Ngày ban hành <span style="color: var(--color-danger);">*</span></label>
                     <input type="date" name="NgayBanHanh" value="{{ old('NgayBanHanh', $resolution->NgayBanHanh ? \Carbon\Carbon::parse($resolution->NgayBanHanh)->format('Y-m-d') : '') }}" class="stu-form-control" required>
                 </div>

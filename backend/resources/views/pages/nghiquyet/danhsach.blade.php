@@ -295,8 +295,8 @@
     <form method="POST" action="{{ route('resolutions.store') }}" enctype="multipart/form-data" id="modalCreateResolutionForm">
         @csrf
 
-        <div style="display: grid; grid-template-columns: 1.2fr 1.5fr 1fr; gap: 12px; margin-bottom: 14px;">
-            <div class="stu-form-group">
+        <div style="display: grid; grid-template-columns: 1.1fr 1.6fr 1fr; gap: 12px; margin-bottom: 12px; width: 100%; max-width: 100%; box-sizing: border-box;">
+            <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
                 <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
                     Số hiệu Nghị quyết <span style="color: var(--color-danger);">*</span>
                 </label>
@@ -312,21 +312,57 @@
                 >
             </div>
 
-            <div class="stu-form-group">
-                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
-                    Kỳ họp ban hành <span style="color: var(--color-danger);">*</span>
+            <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700; display: flex; align-items: center; justify-content: space-between;">
+                    <span>Kỳ họp ban hành <span style="color: var(--color-danger);">*</span></span>
+                    <span style="font-size: 11px; font-weight: normal; color: var(--color-text-muted);">Phiên HĐT STU</span>
                 </label>
-                <select name="MaPhienHop" class="stu-form-control" required style="height: 38px; font-size: 13px;">
-                    <option value="">-- Chọn phiên họp --</option>
-                    @foreach($meetings as $m)
-                        <option value="{{ $m->MaPhienHop }}">
-                            #{{ $m->MaPhienHop }} - {{ $m->TenPhienHop }}
-                        </option>
-                    @endforeach
-                </select>
+                <div style="position: relative; width: 100%; max-width: 100%; box-sizing: border-box;">
+                    <select 
+                        name="MaPhienHop" 
+                        id="modalMaPhienHopSelect" 
+                        class="stu-form-control" 
+                        required 
+                        style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 38px; font-size: 13px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 32px; background-color: #F8FAFC;"
+                    >
+                        <option value="">-- Chọn phiên họp --</option>
+                        @php
+                            $groupedMeetings = ($meetings ?? collect([]))->groupBy(function($m) {
+                                $date = $m->NgayHop ?: $m->ThoiGianBatDau;
+                                return $date ? date('Y', strtotime($date)) : 'Khác';
+                            });
+                        @endphp
+                        @foreach($groupedMeetings as $yearGroup => $mList)
+                            <optgroup label="📅 Các phiên họp năm {{ $yearGroup }} ({{ $mList->count() }} phiên)">
+                                @foreach($mList as $m)
+                                    @php
+                                        $meetingDate = $m->NgayHop ?: $m->ThoiGianBatDau;
+                                        $dateFormatted = $meetingDate ? \Carbon\Carbon::parse($meetingDate)->format('d/m/Y') : 'Chưa xếp ngày';
+                                        $statusText = match($m->TrangThai) {
+                                            'DA_KET_THUC', 'COMPLETED' => 'Đã kết thúc',
+                                            'DANG_DIEN_RA', 'IN_PROGRESS' => 'Đang diễn ra',
+                                            'CHUAN_BI', 'SCHEDULED' => 'Chuẩn bị',
+                                            default => $m->TrangThai ?: 'Phiên họp'
+                                        };
+                                    @endphp
+                                    <option 
+                                        value="{{ $m->MaPhienHop }}"
+                                        data-id="{{ $m->MaPhienHop }}"
+                                        data-title="{{ $m->TenPhienHop }}"
+                                        data-date="{{ $dateFormatted }}"
+                                        data-status="{{ $statusText }}"
+                                        data-location="{{ $m->DiaDiem ?: 'Hội trường STU' }}"
+                                    >
+                                        #{{ $m->MaPhienHop }} - {{ Str::limit($m->TenPhienHop, 48) }} ({{ $dateFormatted }})
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
-            <div class="stu-form-group">
+            <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
                 <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
                     Ngày ban hành <span style="color: var(--color-danger);">*</span>
                 </label>
@@ -338,6 +374,27 @@
                     required
                     style="height: 38px; font-size: 13px;"
                 >
+            </div>
+        </div>
+
+        {{-- Thẻ xem trước phiên họp được chọn (BR-10 & BR-15) --}}
+        <div id="modalMeetingPreview" style="display: none; background: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid var(--color-primary); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 12.5px; animation: fadeIn 0.2s ease; width: 100%; box-sizing: border-box;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span id="modalMeetingPreviewCodeBadge" style="background: var(--color-primary); color: #fff; font-weight: 700; font-size: 11px; padding: 2px 7px; border-radius: 4px;">#PH</span>
+                    <span id="modalMeetingPreviewStatusBadge" style="background: #E0F2FE; color: #0369A1; font-weight: 600; font-size: 11px; padding: 2px 7px; border-radius: 4px;">Đã kết thúc</span>
+                </div>
+                <div style="color: var(--color-text-muted); font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span id="modalMeetingPreviewDate">24/11/2026</span>
+                </div>
+            </div>
+            <div id="modalMeetingPreviewTitle" style="font-weight: 700; color: #1E293B; line-height: 1.4; margin-bottom: 3px; font-size: 13px;">
+                <!-- Tên phiên họp -->
+            </div>
+            <div style="color: var(--color-text-muted); font-size: 11.5px; display: flex; align-items: center; gap: 4px;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span id="modalMeetingPreviewLocation">Hội trường STU</span>
             </div>
         </div>
 
@@ -444,6 +501,43 @@
                 if (fromEl) fromEl.value = '';
                 if (toEl) toEl.value = '';
             });
+        }
+
+        // Tương tác xem trước phiên họp khi chọn kỳ họp ban hành (BR-10 & BR-15)
+        const modalMeetingSelect = document.getElementById('modalMaPhienHopSelect');
+        const modalMeetingPreview = document.getElementById('modalMeetingPreview');
+        const previewCodeBadge = document.getElementById('modalMeetingPreviewCodeBadge');
+        const previewStatusBadge = document.getElementById('modalMeetingPreviewStatusBadge');
+        const previewDate = document.getElementById('modalMeetingPreviewDate');
+        const previewTitle = document.getElementById('modalMeetingPreviewTitle');
+        const previewLocation = document.getElementById('modalMeetingPreviewLocation');
+        const modalTrichYeu = document.getElementById('modalTrichYeu');
+
+        function updateModalMeetingPreview() {
+            if (!modalMeetingSelect || !modalMeetingPreview) return;
+            const opt = modalMeetingSelect.options[modalMeetingSelect.selectedIndex];
+            if (opt && opt.value) {
+                if (previewCodeBadge) previewCodeBadge.textContent = '#' + (opt.dataset.id || opt.value);
+                if (previewStatusBadge) previewStatusBadge.textContent = opt.dataset.status || 'Phiên họp';
+                if (previewDate) previewDate.textContent = opt.dataset.date || '';
+                if (previewTitle) previewTitle.textContent = opt.dataset.title || '';
+                if (previewLocation) previewLocation.textContent = opt.dataset.location || 'Hội trường STU';
+                modalMeetingPreview.style.display = 'block';
+
+                if (modalTrichYeu && !modalTrichYeu.value.trim()) {
+                    modalTrichYeu.value = 'Nghị quyết thông qua tại phiên họp: ' + (opt.dataset.title || '');
+                }
+            } else {
+                modalMeetingPreview.style.display = 'none';
+            }
+        }
+
+        if (modalMeetingSelect && modalMeetingPreview) {
+            modalMeetingSelect.addEventListener('change', updateModalMeetingPreview);
+            // Kích hoạt ngay nếu đã có giá trị được chọn (e.g. reload hoặc old input)
+            if (modalMeetingSelect.value) {
+                updateModalMeetingPreview();
+            }
         }
     });
 </script>

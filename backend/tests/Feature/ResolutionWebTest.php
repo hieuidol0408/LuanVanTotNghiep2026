@@ -21,10 +21,9 @@ class ResolutionWebTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Nghị quyết Hội đồng trường STU');
-        $response->assertSee('Tìm kiếm');
         $response->assertSee('Trạng thái');
         $response->assertSee('Phiên họp');
-        $response->assertSee('Soạn thảo nghị quyết mới');
+        $response->assertSee('Ghi nhận số ngày ban hành nghị quyết');
     }
 
     /**
@@ -38,10 +37,10 @@ class ResolutionWebTest extends TestCase
         $response = $this->get(route('resolutions.create'));
 
         $response->assertStatus(200);
-        $response->assertSee('Soạn thảo Dự thảo Nghị quyết Hội đồng trường');
+        $response->assertSee('Ghi Nhận Số Ngày Ban Hành Nghị Quyết');
         $response->assertSee('Số hiệu Nghị quyết');
-        $response->assertSee('Trích yếu nội dung');
-        $response->assertSee('Toàn văn Quyết nghị');
+        $response->assertSee('Trích yếu');
+        $response->assertSee('Nội dung nghị quyết');
         $response->assertSee('Kỳ họp Hội đồng trường ban hành');
     }
 

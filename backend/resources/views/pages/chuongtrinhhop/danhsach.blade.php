@@ -273,12 +273,26 @@
                 <label class="stu-form-label" style="font-weight: 600; margin-bottom: 6px; display: block;">
                     Phiên họp Hội đồng trường <span style="color: #dc2626;">*</span>
                 </label>
-                <select name="MaPhienHop" required class="stu-form-control">
+                <select name="MaPhienHop" required class="stu-form-control" style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 38px; font-size: 13px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 32px; background-color: #F8FAFC;">
                     <option value="">-- Chọn phiên họp --</option>
-                    @foreach($meetings as $m)
-                        <option value="{{ $m->MaPhienHop }}" {{ ($selectedMeeting && $selectedMeeting->MaPhienHop == $m->MaPhienHop) ? 'selected' : '' }}>
-                            {{ $m->TenPhienHop }} ({{ $m->ThoiGianBatDau ? date('d/m/Y', strtotime($m->ThoiGianBatDau)) : '' }})
-                        </option>
+                    @php
+                        $groupedMeetings = collect($meetings ?? [])->groupBy(function($m) {
+                            $date = $m->NgayHop ?: $m->ThoiGianBatDau;
+                            return $date ? date('Y', strtotime($date)) : 'Khác';
+                        });
+                    @endphp
+                    @foreach($groupedMeetings as $yearGroup => $mList)
+                        <optgroup label="📅 Các phiên họp năm {{ $yearGroup }} ({{ $mList->count() }} phiên)">
+                            @foreach($mList as $m)
+                                @php
+                                    $meetingDate = $m->NgayHop ?: $m->ThoiGianBatDau;
+                                    $dateFormatted = $meetingDate ? \Carbon\Carbon::parse($meetingDate)->format('d/m/Y') : 'Chưa xếp ngày';
+                                @endphp
+                                <option value="{{ $m->MaPhienHop }}" {{ ($selectedMeeting && $selectedMeeting->MaPhienHop == $m->MaPhienHop) ? 'selected' : '' }}>
+                                    #{{ $m->MaPhienHop }} - {{ Str::limit($m->TenPhienHop, 48) }} ({{ $dateFormatted }})
+                                </option>
+                            @endforeach
+                        </optgroup>
                     @endforeach
                 </select>
             </div>

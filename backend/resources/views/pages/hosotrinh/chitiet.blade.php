@@ -482,14 +482,16 @@
                 <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
                     Chọn phiên họp Hội đồng trường tiếp nhận <span style="color: var(--color-danger);">*</span>
                 </label>
-                <select name="MaPhienHop" class="stu-form-control" required>
+                <select name="MaPhienHop" class="stu-form-control" required style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 38px; font-size: 13px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 32px; background-color: #F8FAFC;">
                     <option value="">-- Chọn phiên họp nhận hồ sơ --</option>
                     @foreach($upcomingMeetings as $m)
                         @php
                             $alreadyInMeeting = $dossier->chuongTrinhHop->contains('MaPhienHop', $m->MaPhienHop);
+                            $meetingDate = $m->NgayHop ?: $m->ThoiGianBatDau;
+                            $dateFormatted = $meetingDate ? \Carbon\Carbon::parse($meetingDate)->format('d/m/Y') : 'Chưa xếp ngày';
                         @endphp
                         <option value="{{ $m->MaPhienHop }}" {{ $alreadyInMeeting ? 'disabled' : '' }}>
-                            {{ $m->TenPhienHop }} (Ngày {{ \Carbon\Carbon::parse($m->NgayHop)->format('d/m/Y') }}) {{ $alreadyInMeeting ? '— [Đã có trong phiên]' : '' }}
+                            #{{ $m->MaPhienHop }} - {{ Str::limit($m->TenPhienHop, 48) }} ({{ $dateFormatted }}) {{ $alreadyInMeeting ? '— [Đã có trong phiên]' : '' }}
                         </option>
                     @endforeach
                 </select>
