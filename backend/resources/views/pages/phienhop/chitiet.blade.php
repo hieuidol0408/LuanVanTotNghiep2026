@@ -804,26 +804,87 @@
 </x-hop-thoai>
 
 <!-- Modal 5: Khởi tạo nội dung biểu quyết cho phiên họp -->
-<x-hop-thoai id="addVotingModal" title="Khởi Tạo Nội Dung Biểu Quyết" size="md">
-    <form method="POST" action="{{ route('votes.store') }}">
+<x-hop-thoai id="addVotingModal" title="Khởi Tạo Nội Dung Biểu Quyết Cho Phiên Họp" size="lg">
+    <form method="POST" action="{{ route('votes.store') }}" style="max-width: 100%;">
         @csrf
-        <x-bieu-mau.o-chon name="MaChuongTrinh" label="Mục chương trình họp liên kết" required>
-            <option value="">-- Chọn mục chương trình họp --</option>
-            @foreach($meeting->chuongTrinhHop->sortBy('ThuTu') as $agendaItem)
-                <option value="{{ $agendaItem->MaChuongTrinh }}">
-                    Mục {{ $agendaItem->ThuTu }} ({{ $agendaItem->hoSoTrinh?->ma_ho_so_hien_thi ?? ('#HS-' . $agendaItem->MaHoSo) }}): {{ $agendaItem->hoSoTrinh?->TieuDe ?? 'Nội dung thảo luận' }}
-                </option>
-            @endforeach
-        </x-bieu-mau.o-chon>
+        <div class="stu-form-group" style="margin-bottom: 16px;">
+            <label class="stu-form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block;">
+                Mục chương trình họp liên kết <span style="color: #dc2626;">*</span>
+            </label>
+            <select name="MaChuongTrinh" id="phienhop_select_agenda" required class="stu-form-control" style="font-size: 13px; border-radius: 6px; width: 100%; max-width: 100%; text-overflow: ellipsis;">
+                <option value="">-- Chọn mục chương trình họp --</option>
+                @foreach($meeting->chuongTrinhHop->sortBy('ThuTu') as $agendaItem)
+                    @php
+                        $itemTitle = $agendaItem->hoSoTrinh?->TieuDe ?? 'Nội dung thảo luận';
+                        $itemHoSo = $agendaItem->hoSoTrinh?->ma_ho_so_hien_thi ?? ($agendaItem->MaHoSo ? '#HS-' . $agendaItem->MaHoSo : null);
+                    @endphp
+                    <option value="{{ $agendaItem->MaChuongTrinh }}"
+                            data-title="{{ $itemTitle }}">
+                        Mục {{ $agendaItem->ThuTu }}: {{ Str::limit($itemTitle, 65) }} {{ $itemHoSo ? "($itemHoSo)" : '' }}
+                    </option>
+                @endforeach
+            </select>
+            <small style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px; display: block;">
+                Nội dung biểu quyết sẽ được gắn với mục thảo luận này trong phiên họp.
+            </small>
+        </div>
 
-        <x-bieu-mau.o-nhap name="NoiDung" label="Câu hỏi / Nội dung biểu quyết" placeholder="Ví dụ: Thông qua Đề án thành lập Viện Nghiên cứu Ứng dụng AI STU" required />
+        <div class="stu-form-group" style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label class="stu-form-label" style="font-weight: 600; font-size: 13px; margin: 0; display: block;">
+                    Câu hỏi / Nội dung biểu quyết <span style="color: #dc2626;">*</span>
+                </label>
+                <button type="button" id="btnAutoFillPhienHopTitle" style="background: none; border: none; color: #0284c7; font-size: 11.5px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0;">
+                    Lấy theo tên tờ trình ✍️
+                </button>
+            </div>
+            <textarea name="NoiDung" id="phienhop_vote_title" placeholder="Ví dụ: Thông qua Đề án thành lập Viện Nghiên cứu Ứng dụng AI STU" required minlength="5" maxlength="255" rows="2" class="stu-form-control" style="font-size: 13px; border-radius: 6px; resize: vertical; height: auto; line-height: 1.5;"></textarea>
+        </div>
 
-        <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: var(--space-4);">
+        <div class="stu-flex stu-justify-end stu-gap-3" style="margin-top: var(--space-4); border-top: 1px solid var(--color-border); padding-top: 14px;">
             <x-nut-bam variant="secondary" data-modal-close>Đóng</x-nut-bam>
             <x-nut-bam type="submit" variant="primary">Khởi tạo biểu quyết</x-nut-bam>
         </div>
     </form>
 </x-hop-thoai>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const agendaSelect = document.getElementById('phienhop_select_agenda');
+        const titleInput = document.getElementById('phienhop_vote_title');
+        const autoFillBtn = document.getElementById('btnAutoFillPhienHopTitle');
+
+        if (agendaSelect && titleInput) {
+            agendaSelect.addEventListener('change', function () {
+                const opt = this.options[this.selectedIndex];
+                if (opt && opt.value) {
+                    const title = opt.getAttribute('data-title');
+                    if (title && (!titleInput.value.trim() || titleInput.dataset.autoFilled === 'true')) {
+                        titleInput.value = 'Thông qua: ' + title;
+                        titleInput.dataset.autoFilled = 'true';
+                    }
+                }
+            });
+
+            titleInput.addEventListener('input', function () {
+                this.dataset.autoFilled = 'false';
+            });
+
+            if (autoFillBtn) {
+                autoFillBtn.addEventListener('click', function () {
+                    const opt = agendaSelect.options[agendaSelect.selectedIndex];
+                    if (opt && opt.value) {
+                        const title = opt.getAttribute('data-title');
+                        if (title) {
+                            titleInput.value = 'Thông qua: ' + title;
+                            titleInput.focus();
+                        }
+                    }
+                });
+            }
+        }
+    });
+</script>
 
 <!-- Modal 6: Cập nhật từng mục chương trình họp (Thứ tự, Trạng thái, Ghi chú) -->
 @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))

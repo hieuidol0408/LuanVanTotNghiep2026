@@ -1167,15 +1167,22 @@ export default function VotingRoomPage() {
                 </label>
                 <select
                   className="input"
-                  style={{ width: "100%" }}
+                  style={{ width: "100%", textOverflow: "ellipsis" }}
                   required
                   value={createFormData.agenda_id}
-                  onChange={(e) => setCreateFormData({ ...createFormData, agenda_id: e.target.value })}
+                  onChange={(e) => {
+                    const selectedAg = currentMeetingAgendas.find(a => String(a.id) === String(e.target.value));
+                    setCreateFormData({
+                      ...createFormData,
+                      agenda_id: e.target.value,
+                      title: (!createFormData.title || createFormData.title.startsWith("Biểu quyết thông qua:")) && selectedAg ? `Biểu quyết thông qua: ${selectedAg.title}` : createFormData.title
+                    });
+                  }}
                 >
                   <option value="">-- Chọn mục chương trình --</option>
                   {currentMeetingAgendas.map((ag) => (
-                    <option key={ag.id} value={ag.id}>
-                      {ag.item_order ? `Mục ${ag.item_order}: ` : ""}{ag.title}
+                    <option key={ag.id} value={ag.id} title={ag.title}>
+                      {ag.item_order ? `Mục ${ag.item_order}: ` : ""}{ag.title?.length > 70 ? `${ag.title.slice(0, 70)}...` : ag.title}
                     </option>
                   ))}
                 </select>
