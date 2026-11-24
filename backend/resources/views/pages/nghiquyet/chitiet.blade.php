@@ -300,15 +300,24 @@
             @csrf
             @method('PUT')
 
-            <div class="stu-grid" style="grid-template-columns: 1.1fr 1.6fr 1fr; gap: 16px; width: 100%; max-width: 100%; box-sizing: border-box;" class="stu-mb-4">
-                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
+            {{-- 1. Hàng 1: Số hiệu & Ngày ban hành --}}
+            <div class="stu-grid" style="grid-template-columns: 1.2fr 1fr; gap: 16px; width: 100%; max-width: 100%; box-sizing: border-box;" class="stu-mb-4">
+                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box; margin-bottom: 0;">
                     <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Số hiệu Nghị quyết <span style="color: var(--color-danger);">*</span></label>
                     <input type="text" name="SoNghiQuyet" value="{{ old('SoNghiQuyet', $resolution->SoNghiQuyet) }}" class="stu-form-control" required>
                 </div>
 
-                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
-                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Phiên họp ban hành <span style="color: var(--color-danger);">*</span></label>
-                    <select name="MaPhienHop" class="stu-form-control" required style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 38px; font-size: 13px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 32px; background-color: #F8FAFC;">
+                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box; margin-bottom: 0;">
+                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Ngày ban hành <span style="color: var(--color-danger);">*</span></label>
+                    <input type="date" name="NgayBanHanh" value="{{ old('NgayBanHanh', $resolution->NgayBanHanh ? \Carbon\Carbon::parse($resolution->NgayBanHanh)->format('Y-m-d') : '') }}" class="stu-form-control" required>
+                </div>
+            </div>
+
+            {{-- 2. Hàng 2: Phiên họp ban hành (Full width bám dính) --}}
+            <div class="stu-form-group stu-mb-4" style="margin-top: 14px; width: 100%; max-width: 100%; box-sizing: border-box;">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Phiên họp Hội đồng trường ban hành <span style="color: var(--color-danger);">*</span></label>
+                <div style="position: relative; width: 100%; max-width: 100%; box-sizing: border-box;">
+                    <select name="MaPhienHop" class="stu-form-control" required style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 40px; font-size: 13.5px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 36px; background-color: #F8FAFC;">
                         @php
                             $groupedMeetings = collect($meetings ?? [])->groupBy(function($m) {
                                 $date = $m->NgayHop ?: $m->ThoiGianBatDau;
@@ -323,17 +332,12 @@
                                         $dateFormatted = $meetingDate ? \Carbon\Carbon::parse($meetingDate)->format('d/m/Y') : 'Chưa xếp ngày';
                                     @endphp
                                     <option value="{{ $m->MaPhienHop }}" {{ old('MaPhienHop', $resolution->MaPhienHop) == $m->MaPhienHop ? 'selected' : '' }}>
-                                        #{{ $m->MaPhienHop }} - {{ Str::limit($m->TenPhienHop, 48) }} ({{ $dateFormatted }})
+                                        #{{ $m->MaPhienHop }} - {{ Str::limit($m->TenPhienHop, 52) }} ({{ $dateFormatted }})
                                     </option>
                                 @endforeach
                             </optgroup>
                         @endforeach
                     </select>
-                </div>
-
-                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
-                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Ngày ban hành <span style="color: var(--color-danger);">*</span></label>
-                    <input type="date" name="NgayBanHanh" value="{{ old('NgayBanHanh', $resolution->NgayBanHanh ? \Carbon\Carbon::parse($resolution->NgayBanHanh)->format('Y-m-d') : '') }}" class="stu-form-control" required>
                 </div>
             </div>
 

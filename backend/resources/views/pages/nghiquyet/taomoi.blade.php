@@ -47,9 +47,9 @@
         <form method="POST" action="{{ route('resolutions.store') }}" enctype="multipart/form-data">
             @csrf
 
-            {{-- 1. Số hiệu & Ngày ban hành & Phiên họp (3 cột) --}}
-            <div class="stu-grid" style="grid-template-columns: 1.1fr 1.6fr 1fr; gap: 16px; width: 100%; max-width: 100%; box-sizing: border-box;" class="stu-mb-5">
-                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
+            {{-- 1. Hàng 1: Số hiệu Nghị quyết & Ngày ký ban hành (2 cột) --}}
+            <div class="stu-grid" style="grid-template-columns: 1.2fr 1fr; gap: 16px; width: 100%; max-width: 100%; box-sizing: border-box;" class="stu-mb-4">
+                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box; margin-bottom: 0;">
                     <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
                         Số hiệu Nghị quyết <span style="color: var(--color-danger);">*</span>
                     </label>
@@ -66,44 +66,7 @@
                     @enderror
                 </div>
 
-                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
-                    <label class="stu-form-label" style="font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: space-between;">
-                        <span>Kỳ họp Hội đồng trường ban hành <span style="color: var(--color-danger);">*</span></span>
-                        <span style="font-size: 11px; font-weight: normal; color: var(--color-text-muted);">Tự động nạp căn cứ</span>
-                    </label>
-                    <div style="position: relative; width: 100%; max-width: 100%; box-sizing: border-box;">
-                        <select 
-                            name="MaPhienHop" 
-                            class="stu-form-control @error('MaPhienHop') is-invalid @enderror" 
-                            required 
-                            onchange="window.location.href='{{ route('resolutions.create') }}?meeting_id=' + this.value;"
-                            style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 40px; font-size: 13px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 32px; background-color: #F8FAFC;"
-                        >
-                            <option value="">-- Chọn phiên họp --</option>
-                            @php
-                                $groupedMeetings = ($meetings ?? collect([]))->groupBy(function($m) {
-                                    $date = $m->NgayHop ?: $m->ThoiGianBatDau;
-                                    return $date ? date('Y', strtotime($date)) : 'Khác';
-                                });
-                            @endphp
-                            @foreach($groupedMeetings as $yearGroup => $mList)
-                                <optgroup label="📅 Các phiên họp năm {{ $yearGroup }} ({{ $mList->count() }} phiên)">
-                                    @foreach($mList as $m)
-                                        @php
-                                            $meetingDate = $m->NgayHop ?: $m->ThoiGianBatDau;
-                                            $dateFormatted = $meetingDate ? \Carbon\Carbon::parse($meetingDate)->format('d/m/Y') : 'Chưa xếp ngày';
-                                        @endphp
-                                        <option value="{{ $m->MaPhienHop }}" {{ (old('MaPhienHop', $selectedMeetingId) == $m->MaPhienHop) ? 'selected' : '' }}>
-                                            #{{ $m->MaPhienHop }} - {{ Str::limit($m->TenPhienHop, 48) }} ({{ $dateFormatted }})
-                                        </option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box;">
+                <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box; margin-bottom: 0;">
                     <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">
                         Ngày ký / ban hành <span style="color: var(--color-danger);">*</span>
                     </label>
@@ -114,6 +77,44 @@
                         class="stu-form-control @error('NgayBanHanh') is-invalid @enderror" 
                         required
                     >
+                </div>
+            </div>
+
+            {{-- 2. Hàng 2: Kỳ họp Hội đồng trường ban hành (Toàn bộ chiều rộng 100% bám dính) --}}
+            <div class="stu-form-group stu-mb-4" style="margin-top: 14px; width: 100%; max-width: 100%; box-sizing: border-box;">
+                <label class="stu-form-label" style="font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: space-between;">
+                    <span>Kỳ họp Hội đồng trường ban hành <span style="color: var(--color-danger);">*</span></span>
+                    <span style="font-size: 11px; font-weight: normal; color: var(--color-text-muted);">Tự động nạp căn cứ phiên họp</span>
+                </label>
+                <div style="position: relative; width: 100%; max-width: 100%; box-sizing: border-box;">
+                    <select 
+                        name="MaPhienHop" 
+                        class="stu-form-control @error('MaPhienHop') is-invalid @enderror" 
+                        required 
+                        onchange="window.location.href='{{ route('resolutions.create') }}?meeting_id=' + this.value;"
+                        style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 40px; font-size: 13.5px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 36px; background-color: #F8FAFC;"
+                    >
+                        <option value="">-- Chọn phiên họp --</option>
+                        @php
+                            $groupedMeetings = ($meetings ?? collect([]))->groupBy(function($m) {
+                                $date = $m->NgayHop ?: $m->ThoiGianBatDau;
+                                return $date ? date('Y', strtotime($date)) : 'Khác';
+                            });
+                        @endphp
+                        @foreach($groupedMeetings as $yearGroup => $mList)
+                            <optgroup label="📅 Các phiên họp năm {{ $yearGroup }} ({{ $mList->count() }} phiên)">
+                                @foreach($mList as $m)
+                                    @php
+                                        $meetingDate = $m->NgayHop ?: $m->ThoiGianBatDau;
+                                        $dateFormatted = $meetingDate ? \Carbon\Carbon::parse($meetingDate)->format('d/m/Y') : 'Chưa xếp ngày';
+                                    @endphp
+                                    <option value="{{ $m->MaPhienHop }}" {{ (old('MaPhienHop', $selectedMeetingId) == $m->MaPhienHop) ? 'selected' : '' }}>
+                                        #{{ $m->MaPhienHop }} - {{ Str::limit($m->TenPhienHop, 52) }} ({{ $dateFormatted }})
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
