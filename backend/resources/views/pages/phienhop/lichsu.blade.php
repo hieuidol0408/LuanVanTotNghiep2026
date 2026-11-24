@@ -77,32 +77,18 @@
 <div class="stu-card" style="padding: 18px 24px; margin-bottom: var(--space-6); border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
     <form method="GET" action="{{ route('meetings.history') }}">
         <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
-        <!-- Hàng 1: Từ khóa, Mã phiên họp, Khóa nhiệm kỳ, Năm, Loại phiên họp -->
-        <div style="display: grid; grid-template-columns: 2fr 1.1fr 1.2fr 1fr 1.1fr; gap: 12px; margin-bottom: 12px;">
-            <!-- Ô tìm kiếm từ khóa -->
+        <!-- Hàng 1: Từ khóa & Mã phiên họp, Khóa nhiệm kỳ, Năm, Loại phiên họp -->
+        <div style="display: grid; grid-template-columns: 2.2fr 1.2fr 1.2fr 1.2fr; gap: 12px; margin-bottom: 12px;">
+            <!-- Ô tìm kiếm từ khóa & mã phiên họp (#1, #21,...) -->
             <div style="position: relative;">
                 <svg width="15" height="15" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input 
                     type="text" 
                     name="search" 
-                    placeholder="Nhập tên phiên họp, địa điểm, từ khóa..." 
+                    placeholder="Nhập tên phiên họp, mã phiên (#1, #21), địa điểm, từ khóa..." 
                     value="{{ request('search') }}" 
                     class="stu-form-control"
                     style="padding-left: 36px; height: 38px;"
-                >
-            </div>
-
-            <!-- Ô tìm kiếm theo Mã phiên họp -->
-            <div style="position: relative;">
-                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: 700; color: #94A3B8; font-size: 13px; pointer-events: none;">#</span>
-                <input 
-                    type="text" 
-                    name="code" 
-                    placeholder="Mã phiên (#50, 21)..." 
-                    value="{{ request('code') }}" 
-                    class="stu-form-control"
-                    style="padding-left: 28px; height: 38px;"
-                    title="Tìm kiếm chính xác hoặc tương đối theo mã phiên họp"
                 >
             </div>
 
@@ -225,8 +211,11 @@
             <!-- Cột Mã -->
             <td style="font-weight: 700; white-space: nowrap;">
                 @php
-                    $isCodeMatch = (request('code') && preg_replace('/[^0-9]/', '', request('code')) == $meeting->MaPhienHop)
-                        || (request('search') && preg_replace('/[^0-9]/', '', request('search')) == $meeting->MaPhienHop);
+                    $searchVal = trim((string) request('search'));
+                    $isCodeMatch = false;
+                    if ($searchVal !== '' && preg_match('/^(?:#|ph-?|ma\s*|mã\s*)?([0-9]+)$/iu', $searchVal, $m)) {
+                        $isCodeMatch = ((int) $m[1] === (int) $meeting->MaPhienHop);
+                    }
                 @endphp
                 @if($isCodeMatch)
                     <span class="stu-badge stu-badge-primary" style="font-size: 12.5px; font-weight: 800; padding: 2px 8px; border-radius: 6px;">

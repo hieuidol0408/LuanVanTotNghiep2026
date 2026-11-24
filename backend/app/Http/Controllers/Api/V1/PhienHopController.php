@@ -26,18 +26,22 @@ class PhienHopController extends Controller
         $query = PhienHop::query()
             ->withCount(['chuongTrinhHop as agendas_count', 'thamDu as attendees_count', 'taiLieu as documents_count']);
 
-        // 1. Lọc từ khóa tìm kiếm (tên, địa điểm, ghi chú, mã phiên họp)
+        // 1. Lọc từ khóa tìm kiếm (tên, địa điểm, ghi chú, mã phiên họp dạng #1, 1, PH-1...)
         if ($search = trim((string) $request->input('search'))) {
-            $numericId = preg_replace('/[^0-9]/', '', $search);
+            $parsedId = null;
+            if (preg_match('/^(?:#|ph-?|ma\s*|mã\s*)?([0-9]+)$/iu', $search, $m)) {
+                $parsedId = (int) $m[1];
+            } elseif (preg_match('/#([0-9]+)/', $search, $m)) {
+                $parsedId = (int) $m[1];
+            }
 
-            $query->where(function ($q) use ($search, $numericId) {
+            $query->where(function ($q) use ($search, $parsedId) {
                 $q->where('TenPhienHop', 'like', "%{$search}%")
                     ->orWhere('DiaDiem', 'like', "%{$search}%")
                     ->orWhere('GhiChu', 'like', "%{$search}%");
 
-                if ($numericId !== '') {
-                    $q->orWhere('MaPhienHop', (int) $numericId)
-                      ->orWhereRaw('CAST(MaPhienHop AS CHAR) LIKE ?', ["%{$numericId}%"]);
+                if ($parsedId !== null) {
+                    $q->orWhere('MaPhienHop', $parsedId);
                 }
             });
         }
