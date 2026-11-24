@@ -345,7 +345,8 @@ class BieuQuyetWebController extends Controller
         $vote = NoiDungBieuQuyet::with('chuongTrinhHop.phienHop')->findOrFail($id);
 
         // 1. Kiểm tra trạng thái mở
-        if (! in_array($vote->TrangThai, ['OPENING', 'Đang mở', 'Đang mở biểu quyết'])) {
+        $rawStatus = strtoupper(trim((string) ($vote->getRawOriginal('TrangThai') ?: $vote->TrangThai)));
+        if (! in_array($rawStatus, ['OPENING', 'ĐANG MỞ', 'ĐANG MỞ BIỂU QUYẾT']) && ! in_array($vote->TrangThai, ['OPENING', 'Đang mở', 'Đang mở biểu quyết'])) {
             return back()->with('error', 'Biểu quyết này hiện không ở trạng thái mở để nhận phiếu.');
         }
 

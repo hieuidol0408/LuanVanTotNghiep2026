@@ -706,12 +706,12 @@ class PhienHopController extends Controller
                     'role_in_council' => $td->thanhVienHdt?->ChucDanhHoiDongTruong ?? 'Thành viên HĐT',
                     'department' => $user?->donVi?->TenDonVi ?? 'Hội đồng trường',
                     'attendee_type' => 'OFFICIAL',
-                    'can_vote' => $td->TrangThaiThamDu === 'PRESENT',
-                    'attendance_status' => $td->TrangThaiThamDu,
+                    'can_vote' => in_array($td->TrangThaiThamDu, ['PRESENT', 'Có mặt']) && ($td->thanhVienHdt?->CoQuyenBieuQuyet ?? true),
+                    'attendance_status' => in_array($td->TrangThaiThamDu, ['PRESENT', 'Có mặt']) ? 'PRESENT' : (in_array($td->TrangThaiThamDu, ['ABSENT', 'Vắng', 'Vắng không phép', 'Không xin phép']) ? 'ABSENT' : (in_array($td->TrangThaiThamDu, ['EXCUSED', 'Có xin phép', 'Vắng có lý do', 'Vắng có phép']) ? 'EXCUSED' : 'INVITED')),
                     'attendance_label' => match ($td->TrangThaiThamDu) {
-                        'PRESENT' => 'Có mặt',
-                        'ABSENT' => 'Vắng mặt',
-                        'EXCUSED' => 'Vắng có lý do',
+                        'PRESENT', 'Có mặt' => 'Có mặt',
+                        'ABSENT', 'Vắng', 'Vắng không phép', 'Không xin phép' => 'Vắng mặt',
+                        'EXCUSED', 'Có xin phép', 'Vắng có lý do', 'Vắng có phép' => 'Vắng có lý do',
                         default => 'Đã mời'
                     },
                     'checkin_time' => $td->ThoiDiemXacNhan ? date('Y-m-d H:i', strtotime($td->ThoiDiemXacNhan)) : null,
@@ -732,11 +732,11 @@ class PhienHopController extends Controller
                     'department' => $km?->DonViCongTac ?? 'Đơn vị ngoài',
                     'attendee_type' => 'GUEST',
                     'can_vote' => false, // Tuyệt đối không có quyền biểu quyết
-                    'attendance_status' => $kmph->TrangThaiThamDu,
+                    'attendance_status' => in_array($kmph->TrangThaiThamDu, ['PRESENT', 'Có mặt']) ? 'PRESENT' : (in_array($kmph->TrangThaiThamDu, ['ABSENT', 'Vắng', 'Vắng không phép', 'Không xin phép']) ? 'ABSENT' : (in_array($kmph->TrangThaiThamDu, ['EXCUSED', 'Có xin phép', 'Vắng có lý do', 'Vắng có phép']) ? 'EXCUSED' : 'INVITED')),
                     'attendance_label' => match ($kmph->TrangThaiThamDu) {
-                        'PRESENT' => 'Có mặt',
-                        'ABSENT' => 'Vắng mặt',
-                        'EXCUSED' => 'Vắng có lý do',
+                        'PRESENT', 'Có mặt' => 'Có mặt',
+                        'ABSENT', 'Vắng', 'Vắng không phép', 'Không xin phép' => 'Vắng mặt',
+                        'EXCUSED', 'Có xin phép', 'Vắng có lý do', 'Vắng có phép' => 'Vắng có lý do',
                         default => 'Đã mời'
                     },
                     'checkin_time' => null,

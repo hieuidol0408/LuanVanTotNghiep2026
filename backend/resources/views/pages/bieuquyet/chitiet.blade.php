@@ -8,8 +8,9 @@
     <x-thanh-dieu-huong :items="['Biểu quyết & Bỏ phiếu' => route('votes.index'), '#BQ-' . str_pad($vote->MaNoiDung, 3, '0', STR_PAD_LEFT) => null]" />
 
     @php
-        $isOpening = in_array($vote->TrangThai, ['OPENING', 'Đang mở biểu quyết', 'Đang mở']);
-        $isClosed = in_array($vote->TrangThai, ['CLOSED', 'Đã đóng']);
+        $rawStatus = strtoupper(trim((string) ($vote->getRawOriginal('TrangThai') ?: $vote->TrangThai)));
+        $isOpening = in_array($vote->TrangThai, ['OPENING', 'Đang mở biểu quyết', 'Đang mở']) || in_array($rawStatus, ['OPENING', 'ĐANG MỞ', 'ĐANG MỞ BIỂU QUYẾT']);
+        $isClosed = in_array($vote->TrangThai, ['CLOSED', 'Đã đóng']) || in_array($rawStatus, ['CLOSED', 'ĐÃ ĐÓNG']);
     @endphp
 
     {{-- Header --}}

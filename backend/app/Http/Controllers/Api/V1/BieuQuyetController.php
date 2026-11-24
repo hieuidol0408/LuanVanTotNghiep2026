@@ -138,7 +138,7 @@ class BieuQuyetController extends Controller
                 ->where('MaThanhVien', $thanhVien->MaThanhVien)
                 ->first();
 
-            if ($thamDu && $thamDu->TrangThaiThamDu === 'PRESENT') {
+            if ($thamDu && in_array($thamDu->TrangThaiThamDu, ['PRESENT', 'Có mặt']) && ($thanhVien->CoQuyenBieuQuyet ?? true)) {
                 $canVote = true;
 
                 // Kiểm tra lá phiếu trực tiếp của chính mình (MaUyQuyen = null)
@@ -149,7 +149,7 @@ class BieuQuyetController extends Controller
 
                 if ($daBoPhieu) {
                     $hasVoted = true;
-                    $userChoice = $daBoPhieu->LuaChon;
+                    $userChoice = in_array($daBoPhieu->LuaChon, ['VOTE_FOR', 'Tán thành']) ? 'VOTE_FOR' : (in_array($daBoPhieu->LuaChon, ['VOTE_AGAINST', 'Không tán thành']) ? 'VOTE_AGAINST' : 'VOTE_ABSTAIN');
                 }
 
                 // 2. Kiểm tra các quyền ủy quyền mà thành viên này được nhận
@@ -171,7 +171,7 @@ class BieuQuyetController extends Controller
                         'scope' => $auth->PhamViUyQuyen,
                         'document' => $auth->TaiLieuUyQuyen,
                         'has_voted' => (bool) $proxyVote,
-                        'choice' => $proxyVote?->LuaChon,
+                        'choice' => $proxyVote ? (in_array($proxyVote->LuaChon, ['VOTE_FOR', 'Tán thành']) ? 'VOTE_FOR' : (in_array($proxyVote->LuaChon, ['VOTE_AGAINST', 'Không tán thành']) ? 'VOTE_AGAINST' : 'VOTE_ABSTAIN')) : null,
                     ];
                 }
             }
@@ -240,7 +240,7 @@ class BieuQuyetController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'choice' => ['required', 'string', 'in:VOTE_FOR,VOTE_AGAINST,VOTE_ABSTAIN'],
+            'choice' => ['required', 'string', 'in:VOTE_FOR,VOTE_AGAINST,VOTE_ABSTAIN,Tán thành,Không tán thành,Không có ý kiến,Không ý kiến'],
             'authorization_id' => ['nullable', 'integer', 'exists:uy_quyen_bieu_quyet,MaUyQuyen'],
         ], [
             'choice.required' => 'Vui lòng chọn phương án biểu quyết (Tán thành, Không tán thành, Không ý kiến).',
@@ -257,7 +257,13 @@ class BieuQuyetController extends Controller
         }
 
         // 1. Kiểm tra trạng thái: Biểu quyết phải đang mở
-        if ($vote->TrangThai !== 'OPENING') {
+        $rawStatus = strtoupper(trim((string) ($vote->getRawOriginal('TrangThai') ?: $vote->TrangThai)));
+        $isOpening = in_array($rawStatus, ['OPENING', 'ĐANG MỞ', 'ĐANG MỞ BIỂU QUYẾT'])
+            || in_array($vote->TrangThai, ['OPENING', 'Đang mở', 'Đang mở biểu quyết'])
+            || str_contains($rawStatus, 'OPEN')
+            || str_contains($rawStatus, 'MỞ');
+
+        if (! $isOpening) {
             return response()->json([
                 'success' => false,
                 'message' => 'Biểu quyết này hiện không ở trạng thái mở để nhận phiếu.',
@@ -278,7 +284,7 @@ class BieuQuyetController extends Controller
         }
 
         // [BR-07] Kiểm tra quyền biểu quyết chính thức của thành viên HĐ trường (CoQuyenBieuQuyet)
-        if (! $thanhVien->CoQuyenBieuQuyet) {
+        if (! ($thanhVien->CoQuyenBieuQuyet ?? true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tài khoản thành viên này không có quyền tham gia biểu quyết theo quy chế (BR-07).',
@@ -301,10 +307,10 @@ class BieuQuyetController extends Controller
             ->where('MaThanhVien', $thanhVien->MaThanhVien)
             ->first();
 
-        if (! $thamDu || $thamDu->TrangThaiThamDu !== 'PRESENT') {
+        if (! $thamDu || ! in_array($thamDu->TrangThaiThamDu, ['PRESENT', 'Có mặt'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Bạn chưa được xác nhận có mặt (PRESENT) tại phiên họp nên không thể thực hiện biểu quyết.',
+                'message' => 'Bạn chưa được xác nhận có mặt tại phiên họp nên không thể thực hiện biểu quyết.',
                 'data' => null,
                 'errors' => null,
             ], 403);
@@ -445,14 +451,20 @@ class BieuQuyetController extends Controller
         // Tổng hợp phiếu
         $votes = $vote->ketQuaBieuQuyet;
         $totalCast = $votes->count();
-        $votesFor = $votes->where('LuaChon', 'VOTE_FOR')->count();
+        $votesFor = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_FOR', 'Tán thành']))->count();
 
-        // Lấy số thành viên HĐT có mặt tại phiên họp
+        // Lấy số thành viên HĐT có quyền biểu quyết và có mặt tại phiên họp (BR-07)
         $phienHop = $vote->chuongTrinhHop?->phienHop;
         $presentOfficialCount = 0;
         if ($phienHop) {
             $presentOfficialCount = ThamDu::where('MaPhienHop', $phienHop->MaPhienHop)
-                ->where('TrangThaiThamDu', 'PRESENT')
+                ->whereIn('TrangThaiThamDu', ['PRESENT', 'Có mặt'])
+                ->whereHas('thanhVienHdt', function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->whereNull('CoQuyenBieuQuyet')
+                            ->orWhere('CoQuyenBieuQuyet', 1);
+                    });
+                })
                 ->count();
         }
 
@@ -583,19 +595,33 @@ class BieuQuyetController extends Controller
 
         $votes = $vote->ketQuaBieuQuyet ?? collect([]);
         $totalCast = $votes->count();
-        $votesFor = $votes->where('LuaChon', 'VOTE_FOR')->count();
-        $votesAgainst = $votes->where('LuaChon', 'VOTE_AGAINST')->count();
-        $votesAbstain = $votes->where('LuaChon', 'VOTE_ABSTAIN')->count();
+        $votesFor = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_FOR', 'Tán thành']))->count();
+        $votesAgainst = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_AGAINST', 'Không tán thành']))->count();
+        $votesAbstain = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_ABSTAIN', 'Không có ý kiến', 'Không ý kiến']))->count();
 
         $percentageFor = $totalCast > 0 ? round(($votesFor / $totalCast) * 100, 1) : 0;
         $percentageAgainst = $totalCast > 0 ? round(($votesAgainst / $totalCast) * 100, 1) : 0;
         $percentageAbstain = $totalCast > 0 ? round(($votesAbstain / $totalCast) * 100, 1) : 0;
+
+        $rawStatus = strtoupper(trim((string) ($vote->getRawOriginal('TrangThai') ?: $vote->TrangThai)));
+        $statusKey = match (true) {
+            str_contains($rawStatus, 'OPEN') || str_contains($rawStatus, 'MỞ') => 'OPENING',
+            str_contains($rawStatus, 'CLOSE') || str_contains($rawStatus, 'ĐÓNG') => 'CLOSED',
+            default => 'PENDING',
+        };
 
         $statusLabels = [
             'PENDING' => 'Chưa mở',
             'OPENING' => 'Đang mở biểu quyết',
             'CLOSED' => 'Đã đóng',
         ];
+
+        $rawResult = strtoupper(trim((string) ($vote->getRawOriginal('KetQua') ?: $vote->KetQua)));
+        $resultKey = match (true) {
+            str_contains($rawResult, 'PASS') || (str_contains($rawResult, 'THÔNG QUA') && ! str_contains($rawResult, 'KHÔNG')) => 'PASSED',
+            str_contains($rawResult, 'REJECT') || str_contains($rawResult, 'KHÔNG THÔNG QUA') => 'REJECTED',
+            default => 'PENDING',
+        };
 
         $resultLabels = [
             'PASSED' => 'Đã thông qua',
@@ -630,10 +656,10 @@ class BieuQuyetController extends Controller
             'voting_type' => $votingType,
             'voting_type_label' => $votingType === 'SECRET' ? 'Bỏ phiếu kín' : 'Biểu quyết công khai',
             'pass_threshold' => $passThreshold,
-            'status' => $vote->TrangThai,
-            'status_label' => $statusLabels[$vote->TrangThai] ?? $vote->TrangThai,
-            'result' => $vote->KetQua,
-            'result_label' => $resultLabels[$vote->KetQua] ?? $vote->KetQua,
+            'status' => $statusKey,
+            'status_label' => $statusLabels[$statusKey] ?? $vote->TrangThai,
+            'result' => $resultKey,
+            'result_label' => $resultLabels[$resultKey] ?? $vote->KetQua,
             'opened_at' => $vote->ThoiGianMo ? date('Y-m-d H:i', strtotime($vote->ThoiGianMo)) : null,
             'closed_at' => $vote->ThoiGianDong ? date('Y-m-d H:i', strtotime($vote->ThoiGianDong)) : null,
             'stats' => [

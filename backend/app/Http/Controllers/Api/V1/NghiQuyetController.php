@@ -405,7 +405,7 @@ class NghiQuyetController extends Controller
         // Lấy biên bản từ ghi chú hoặc tạo cấu trúc biên bản mặc định
         $minutesData = json_decode($meeting->GhiChu ?? '{}', true) ?: [];
 
-        $presentCount = $meeting->thamDu->where('TrangThaiThamDu', 'PRESENT')->count();
+        $presentCount = $meeting->thamDu->filter(fn ($td) => in_array($td->TrangThaiThamDu, ['PRESENT', 'Có mặt']))->count();
         $totalMembers = $meeting->thamDu->count();
 
         return response()->json([

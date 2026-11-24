@@ -630,7 +630,7 @@ export default function VotingRoomPage() {
                         <div style={{ fontSize: "12px", color: "#047857" }}>
                           {selectedVoting.voting_type === "SECRET"
                             ? "Lá phiếu được mã hóa niêm phong kín để bảo vệ quyền tự do biểu quyết."
-                            : `Ý kiến đã chọn: ${currentPersonaChoice === "VOTE_FOR" ? "Tán thành" : currentPersonaChoice === "VOTE_AGAINST" ? "Không tán thành" : "Không ý kiến"}`}
+                            : `Ý kiến đã chọn: ${currentPersonaChoice === "VOTE_FOR" || currentPersonaChoice === "Tán thành" ? "Tán thành" : currentPersonaChoice === "VOTE_AGAINST" || currentPersonaChoice === "Không tán thành" ? "Không tán thành" : "Không ý kiến"}`}
                         </div>
                       </div>
                     </div>
@@ -906,9 +906,9 @@ export default function VotingRoomPage() {
                                   >
                                     Đã niêm phong kín
                                   </span>
-                                ) : b.choice === "VOTE_FOR" ? (
+                                ) : b.choice === "VOTE_FOR" || b.choice === "Tán thành" ? (
                                   <span style={{ color: "#059669", fontWeight: "700" }}>Tán thành</span>
-                                ) : b.choice === "VOTE_AGAINST" ? (
+                                ) : b.choice === "VOTE_AGAINST" || b.choice === "Không tán thành" ? (
                                   <span style={{ color: "#DC2626", fontWeight: "700" }}>Không tán thành</span>
                                 ) : (
                                   <span style={{ color: "#64748B", fontWeight: "600" }}>Không ý kiến</span>
