@@ -52,18 +52,6 @@
         </div>
     </div>
 
-    {{-- Alerts --}}
-    @if(session('success'))
-        <x-canh-bao type="success" :dismissible="true" class="stu-mb-6">
-            {{ session('success') }}
-        </x-canh-bao>
-    @endif
-    @if(session('error'))
-        <x-canh-bao type="danger" :dismissible="true" class="stu-mb-6">
-            {{ session('error') }}
-        </x-canh-bao>
-    @endif
-
     <div class="stu-flex stu-flex-col stu-gap-6">
         {{-- 1. Thông tin thuộc tính trong bảng ho_so_trinh --}}
         <div class="stu-card" style="padding: 24px;">

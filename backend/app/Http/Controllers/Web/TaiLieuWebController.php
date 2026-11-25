@@ -82,10 +82,14 @@ class TaiLieuWebController extends Controller
         }
 
         // Fallback: Trả về file văn bản bảo mật nếu là file minh họa
+        $fallbackName = $doc->TenTaiLieu;
+        if (!str_ends_with(strtolower($fallbackName), '.pdf')) {
+            $fallbackName .= '.pdf';
+        }
         $content = "%PDF-1.4\n% STU Council Official Document: {$doc->TenTaiLieu}\n1 0 obj\n<< /Title ({$doc->TenTaiLieu}) >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF";
         return response($content, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $doc->TenTaiLieu . '.pdf"',
+            'Content-Disposition' => 'attachment; filename="' . $fallbackName . '"',
         ]);
     }
 

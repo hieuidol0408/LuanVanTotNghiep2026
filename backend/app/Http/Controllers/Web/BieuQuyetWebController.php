@@ -74,14 +74,13 @@ class BieuQuyetWebController extends Controller
         $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
 
         // Thống kê nhanh
-        $allVotes = NoiDungBieuQuyet::with('ketQuaBieuQuyet')->get();
+        $allVotes = NoiDungBieuQuyet::with([
+            'chuongTrinhHop.phienHop.thamDu.thanhVienHdt',
+            'ketQuaBieuQuyet',
+        ])->get();
         $passedCount = $allVotes->filter(function ($v) {
-            $total = $v->ketQuaBieuQuyet->count();
-            if ($total === 0) {
-                return false;
-            }
-            $agree = $v->ketQuaBieuQuyet->filter(fn ($k) => in_array($k->LuaChon, ['VOTE_FOR', 'Tán thành']))->count();
-            return ($agree / $total) >= 0.5;
+            $stats = $v->calculateStats();
+            return $stats['total'] > 0 && $stats['is_passed'];
         })->count();
 
         $stats = [
@@ -141,46 +140,10 @@ class BieuQuyetWebController extends Controller
         $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
         $meeting = $vote->chuongTrinhHop?->phienHop;
 
-        // Đọc cấu hình ngưỡng thông qua & hình thức biểu quyết từ GhiChu
-        $meta = json_decode($vote->GhiChu ?? '{}', true) ?: [];
-        $votingType = $meta['voting_type'] ?? 'SECRET'; // 'SECRET' (bỏ phiếu kín) | 'OPEN' (công khai)
-        $passThreshold = (int) ($meta['pass_threshold'] ?? 50);
-
-        // 1. Tổng hợp kết quả bỏ phiếu (Tuyệt đối không lộ danh tính cá nhân - BR-09)
-        $votes = $vote->ketQuaBieuQuyet;
-        $totalVotes = $votes->count();
-        $agreeVotes = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_FOR', 'Tán thành']))->count();
-        $disagreeVotes = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_AGAINST', 'Không tán thành']))->count();
-        $abstainVotes = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_ABSTAIN', 'Không có ý kiến', 'Không ý kiến']))->count();
-
-        // Tính mẫu số theo số thành viên có quyền biểu quyết và có mặt tại phiên họp (BR-07)
-        $presentOfficialCount = 0;
-        if ($meeting) {
-            $presentOfficialCount = ThamDu::where('MaPhienHop', $meeting->MaPhienHop)
-                ->whereIn('TrangThaiThamDu', ['PRESENT', 'Có mặt'])
-                ->whereHas('thanhVienHdt', function ($q) {
-                    $q->where(function ($sub) {
-                        $sub->whereNull('CoQuyenBieuQuyet')
-                            ->orWhere('CoQuyenBieuQuyet', 1);
-                    });
-                })
-                ->count();
-        }
-        $denominator = $presentOfficialCount > 0 ? $presentOfficialCount : max($totalVotes, 1);
-        $agreePercent = round(($agreeVotes / $denominator) * 100, 1);
-
-        $voteStats = [
-            'total' => $totalVotes,
-            'present_count' => $presentOfficialCount,
-            'agree' => $agreeVotes,
-            'agree_percent' => $agreePercent,
-            'disagree' => $disagreeVotes,
-            'disagree_percent' => round(($disagreeVotes / max($totalVotes, 1)) * 100, 1),
-            'abstain' => $abstainVotes,
-            'abstain_percent' => round(($abstainVotes / max($totalVotes, 1)) * 100, 1),
-            'pass_threshold' => $passThreshold,
-            'is_passed' => $agreePercent >= $passThreshold,
-        ];
+        // Đọc cấu hình ngưỡng thông qua & hình thức biểu quyết từ GhiChu và tổng hợp kết quả thống nhất (BR-07, BR-09)
+        $voteStats = $vote->calculateStats();
+        $votingType = $voteStats['voting_type'];
+        $passThreshold = $voteStats['pass_threshold'];
 
         // 2. Kiểm tra điều kiện bỏ phiếu của người dùng hiện tại
         $canVoteDirect = false;
@@ -238,6 +201,13 @@ class BieuQuyetWebController extends Controller
         // Danh sách thành viên phục vụ Modal tạo ủy quyền mới (BR-04)
         $officialMembers = $meeting ? ThanhVienHdt::with('nguoiDung')->get() : collect([]);
 
+        // Kiểm tra quyền quyết định khi hòa phiếu: chỉ người đã mở cổng biểu quyết (hoặc người điều hành nếu dữ liệu cũ chưa lưu người mở)
+        $openedByUserId = $voteStats['opened_by_user_id'] ?? null;
+        $canDecideTie = $user && (
+            ($openedByUserId && (int) $user->MaNguoiDung === (int) $openedByUserId)
+            || (! $openedByUserId && in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+        );
+
         return view('pages.bieuquyet.chitiet', compact(
             'vote',
             'meeting',
@@ -249,6 +219,7 @@ class BieuQuyetWebController extends Controller
             'directChoice',
             'validDelegations',
             'officialMembers',
+            'canDecideTie',
             'role'
         ));
     }
@@ -263,17 +234,31 @@ class BieuQuyetWebController extends Controller
             return back()->with('error', 'Bạn không có thẩm quyền mở biểu quyết.');
         }
 
-        $vote = NoiDungBieuQuyet::findOrFail($id);
+        $vote = NoiDungBieuQuyet::with('chuongTrinhHop')->findOrFail($id);
+        $user = Auth::user();
+        $meta = $vote->decodeMeta();
+        $meta['opened_by_user_id'] = $user?->MaNguoiDung;
+        $meta['opened_by_name'] = $user?->HoTen ?? 'Người mở cổng biểu quyết';
+        unset($meta['tie_decision'], $meta['decided_by_user_id'], $meta['decided_by_name'], $meta['decided_at']);
+
         $vote->update([
             'TrangThai' => 'Đang mở biểu quyết',
             'ThoiGianMo' => now(),
+            'KetQua' => null,
+            'GhiChu' => json_encode($meta, JSON_UNESCAPED_UNICODE),
         ]);
 
-        return back()->with('success', 'Đã mở cổng biểu quyết thành công. Các thành viên có mặt có thể tiến hành bỏ phiếu.');
+        $msg = 'Đã mở cổng biểu quyết thành công. Các thành viên có mặt có thể tiến hành bỏ phiếu.';
+        if (str_contains((string) url()->previous(), '/meetings/') && $vote->chuongTrinhHop?->MaPhienHop) {
+            return redirect()->route('meetings.show', ['id' => $vote->chuongTrinhHop->MaPhienHop, 'tab' => 'voting'])->with('success', $msg);
+        }
+
+        return back()->with('success', $msg);
     }
 
     /**
      * Đóng cổng biểu quyết và tính toán kết quả tự động (BR-09)
+     * Nếu hòa phiếu (Tán thành == Không tán thành > 0), chuyển sang chờ người mở cổng quyết định.
      */
     public function close(int|string $id): RedirectResponse
     {
@@ -282,40 +267,94 @@ class BieuQuyetWebController extends Controller
             return back()->with('error', 'Bạn không có thẩm quyền đóng biểu quyết.');
         }
 
-        $vote = NoiDungBieuQuyet::with(['chuongTrinhHop.phienHop', 'ketQuaBieuQuyet'])->findOrFail($id);
-        $passThreshold = 50;
+        $vote = NoiDungBieuQuyet::with(['chuongTrinhHop.phienHop.thamDu.thanhVienHdt', 'ketQuaBieuQuyet'])->findOrFail($id);
+        $stats = $vote->calculateStats();
+        $passThreshold = $stats['pass_threshold'];
+        $agreePercent = $stats['agree_percent'];
 
-        $votes = $vote->ketQuaBieuQuyet;
-        $totalCast = $votes->count();
-        $votesFor = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_FOR', 'Tán thành']))->count();
+        if ($stats['is_tied'] && $stats['tie_decision'] === null) {
+            $vote->update([
+                'TrangThai' => 'Đã đóng',
+                'ThoiGianDong' => now(),
+                'KetQua' => 'Chờ quyết định',
+            ]);
 
-        // Lấy số thành viên HĐT có quyền biểu quyết và có mặt tại phiên họp (BR-07)
-        $phienHop = $vote->chuongTrinhHop?->phienHop;
-        $presentOfficialCount = 0;
-        if ($phienHop) {
-            $presentOfficialCount = ThamDu::where('MaPhienHop', $phienHop->MaPhienHop)
-                ->whereIn('TrangThaiThamDu', ['PRESENT', 'Có mặt'])
-                ->whereHas('thanhVienHdt', function ($q) {
-                    $q->where(function ($sub) {
-                        $sub->whereNull('CoQuyenBieuQuyet')
-                            ->orWhere('CoQuyenBieuQuyet', 1);
-                    });
-                })
-                ->count();
+            $openerName = $stats['opened_by_name'] ?? 'người mở cổng biểu quyết';
+            $tieMsg = "Đã đóng cổng biểu quyết! Số phiếu Tán thành ({$stats['agree']}) và Không tán thành ({$stats['disagree']}) đang bằng nhau. Kết quả cuối cùng sẽ do {$openerName} (người mở cổng biểu quyết) quyết định.";
+
+            if (str_contains((string) url()->previous(), '/meetings/') && $vote->chuongTrinhHop?->MaPhienHop) {
+                return redirect()->route('meetings.show', ['id' => $vote->chuongTrinhHop->MaPhienHop, 'tab' => 'voting'])->with('warning', $tieMsg);
+            }
+
+            return back()->with('warning', $tieMsg);
         }
 
-        $denominator = $presentOfficialCount > 0 ? $presentOfficialCount : max($totalCast, 1);
-        $agreePercent = round(($votesFor / $denominator) * 100, 1);
-
-        $isPassed = $agreePercent >= $passThreshold;
-        $resultVietnamese = $isPassed ? 'Đã thông qua' : 'Không thông qua';
+        $resultVietnamese = $stats['is_passed'] ? 'Đã thông qua' : 'Không thông qua';
 
         $vote->update([
             'TrangThai' => 'Đã đóng',
             'ThoiGianDong' => now(),
+            'KetQua' => $resultVietnamese,
         ]);
 
-        return back()->with('success', "Đã kết thúc biểu quyết! Kết quả: {$resultVietnamese} (Tỷ lệ tán thành: {$agreePercent}% - Ngưỡng yêu cầu: {$passThreshold}%).");
+        $closeMsg = "Đã kết thúc biểu quyết! Kết quả: {$resultVietnamese} (Tỷ lệ tán thành: {$agreePercent}% - Ngưỡng yêu cầu: {$passThreshold}%).";
+        if (str_contains((string) url()->previous(), '/meetings/') && $vote->chuongTrinhHop?->MaPhienHop) {
+            return redirect()->route('meetings.show', ['id' => $vote->chuongTrinhHop->MaPhienHop, 'tab' => 'voting'])->with('success', $closeMsg);
+        }
+
+        return back()->with('success', $closeMsg);
+    }
+
+    /**
+     * Chốt kết quả cuối cùng trong trường hợp hòa phiếu (tỷ lệ Tán thành == Không tán thành)
+     * Quyền thuộc về người đã mở cổng biểu quyết.
+     */
+    public function decideTie(Request $request, int|string $id): RedirectResponse
+    {
+        $validated = $request->validate([
+            'decision' => ['required', 'string', 'in:PASSED,REJECTED'],
+        ]);
+
+        $vote = NoiDungBieuQuyet::with(['chuongTrinhHop.phienHop.thamDu.thanhVienHdt', 'ketQuaBieuQuyet'])->findOrFail($id);
+        $rawStatus = strtoupper(trim((string) ($vote->getRawOriginal('TrangThai') ?: $vote->TrangThai)));
+        $isClosed = in_array($vote->TrangThai, ['CLOSED', 'Đã đóng']) || in_array($rawStatus, ['CLOSED', 'ĐÃ ĐÓNG']);
+
+        if (! $isClosed) {
+            return back()->with('error', 'Vui lòng đóng cổng biểu quyết trước khi đưa ra quyết định hòa phiếu.');
+        }
+
+        $stats = $vote->calculateStats();
+        if (! $stats['is_tied']) {
+            return back()->with('error', 'Nội dung biểu quyết này không ở trạng thái hòa phiếu.');
+        }
+
+        $user = Auth::user();
+        $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
+        $openedByUserId = $stats['opened_by_user_id'] ?? null;
+
+        if ($openedByUserId && (int) $user?->MaNguoiDung !== (int) $openedByUserId) {
+            $openerName = $stats['opened_by_name'] ?? 'người mở cổng biểu quyết';
+            return back()->with('error', "Chỉ người đã mở cổng biểu quyết ({$openerName}) mới có quyền quyết định kết quả khi tỷ lệ phiếu bằng nhau.");
+        }
+
+        if (! $openedByUserId && ! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Bạn không có thẩm quyền quyết định kết quả biểu quyết.');
+        }
+
+        $meta = $vote->decodeMeta();
+        $meta['tie_decision'] = $validated['decision'];
+        $meta['decided_by_user_id'] = $user?->MaNguoiDung;
+        $meta['decided_by_name'] = $user?->HoTen ?? ($stats['opened_by_name'] ?? 'Người mở cổng biểu quyết');
+        $meta['decided_at'] = now()->format('H:i d/m/Y');
+
+        $resultVietnamese = $validated['decision'] === 'PASSED' ? 'Đã thông qua' : 'Không thông qua';
+
+        $vote->update([
+            'KetQua' => $resultVietnamese,
+            'GhiChu' => json_encode($meta, JSON_UNESCAPED_UNICODE),
+        ]);
+
+        return back()->with('success', "Đã ghi nhận quyết định của người mở cổng biểu quyết: {$resultVietnamese} (Hòa phiếu {$stats['agree']} - {$stats['disagree']}).");
     }
 
     /**

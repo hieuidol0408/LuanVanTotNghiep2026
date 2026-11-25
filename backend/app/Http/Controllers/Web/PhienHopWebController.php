@@ -497,22 +497,16 @@ class PhienHopWebController extends Controller
             ->orderByDesc('MaHoSo')
             ->get();
 
-        // Thống kê kết quả biểu quyết bảo mật (BR-09): Tính tổng số phiếu, tuyệt đối không lộ danh tính
+        // Thống kê kết quả biểu quyết bảo mật (BR-09): Tính thống nhất theo số thành viên có quyền biểu quyết và có mặt (BR-07)
+        $presentOfficialCount = $meeting->thamDu->filter(function ($att) {
+            $hasRight = (bool) ($att->thanhVienHdt?->CoQuyenBieuQuyet ?? true);
+            $isPresent = in_array($att->TrangThaiThamDu, ['PRESENT', 'Có mặt']);
+            return $hasRight && $isPresent;
+        })->count();
+
         $votingSummaries = [];
         foreach ($meeting->noiDungBieuQuyet as $voteContent) {
-            $votes = $voteContent->ketQuaBieuQuyet;
-            $totalVotes = $votes->count();
-            $agree = $votes->where('LuaChon', 'Tán thành')->count();
-            $disagree = $votes->where('LuaChon', 'Không tán thành')->count();
-            $abstain = $votes->where('LuaChon', 'Không có ý kiến')->count();
-
-            $votingSummaries[$voteContent->MaNoiDung] = [
-                'total' => $totalVotes,
-                'agree' => $agree,
-                'disagree' => $disagree,
-                'abstain' => $abstain,
-                'agree_percent' => $totalVotes > 0 ? round(($agree / $totalVotes) * 100, 1) : 0,
-            ];
+            $votingSummaries[$voteContent->MaNoiDung] = $voteContent->calculateStats($presentOfficialCount);
         }
 
         $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
@@ -684,9 +678,11 @@ class PhienHopWebController extends Controller
                     'ThoiDiemXacNhan' => $validated['TrangThaiThamDu'] === 'Có mặt' ? now() : null,
                     'GhiChu' => $validated['GhiChu'] ?? null,
                 ]);
-                return back()->with('success', 'Đã thêm lại thành viên vào danh sách tham dự phiên họp thành công.');
+                return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'members'])
+                    ->with('success', 'Đã thêm lại thành viên vào danh sách tham dự phiên họp thành công.');
             }
-            return back()->with('warning', 'Thành viên này đã có trong danh sách mời của phiên họp (Tuân thủ BR-02).');
+            return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'members'])
+                ->with('warning', 'Thành viên này đã có trong danh sách mời của phiên họp (Tuân thủ BR-02).');
         }
 
         ThamDu::create([
@@ -697,7 +693,8 @@ class PhienHopWebController extends Controller
             'GhiChu' => $validated['GhiChu'] ?? null,
         ]);
 
-        return back()->with('success', 'Đã thêm thành viên vào danh sách tham dự phiên họp thành công.');
+        return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'members'])
+            ->with('success', 'Đã thêm thành viên vào danh sách tham dự phiên họp thành công.');
     }
 
     /**
@@ -735,7 +732,8 @@ class PhienHopWebController extends Controller
         $memberName = $attendee->thanhVienHdt?->nguoiDung?->HoTen ?? "Thành viên #{$attendee->MaThanhVien}";
         $attendee->delete();
 
-        return back()->with('success', "Đã bớt thành viên \"{$memberName}\" khỏi danh sách tham dự phiên họp thành công.");
+        return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'members'])
+            ->with('success', "Đã bớt thành viên \"{$memberName}\" khỏi danh sách tham dự phiên họp thành công.");
     }
 
     /**
@@ -753,7 +751,8 @@ class PhienHopWebController extends Controller
             'ThoiDiemXacNhan' => $validated['TrangThaiThamDu'] === 'Có mặt' ? now() : $thamDu->ThoiDiemXacNhan,
         ]);
 
-        return back()->with('success', 'Đã cập nhật trạng thái điểm danh.');
+        return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'members'])
+            ->with('success', 'Đã cập nhật trạng thái điểm danh.');
     }
 
     /**
@@ -806,9 +805,11 @@ class PhienHopWebController extends Controller
                     'NoiDungMoi' => $validated['NoiDungMoi'],
                     'TrangThaiThamDu' => $validated['TrangThaiThamDu'],
                 ]);
-                return back()->with('success', "Đã thêm lại khách mời \"{$guest->HoTen}\" vào phiên họp thành công.");
+                return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'guests'])
+                    ->with('success', "Đã thêm lại khách mời \"{$guest->HoTen}\" vào phiên họp thành công.");
             }
-            return back()->with('warning', 'Khách mời này đã được mời tham gia phiên họp (Tuân thủ BR-03).');
+            return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'guests'])
+                ->with('warning', 'Khách mời này đã được mời tham gia phiên họp (Tuân thủ BR-03).');
         }
 
         KhachMoiPhienHop::create([
@@ -818,7 +819,8 @@ class PhienHopWebController extends Controller
             'TrangThaiThamDu' => $validated['TrangThaiThamDu'],
         ]);
 
-        return back()->with('success', "Đã thêm khách mời \"{$guest->HoTen}\" vào phiên họp thành công.");
+        return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'guests'])
+            ->with('success', "Đã thêm khách mời \"{$guest->HoTen}\" vào phiên họp thành công.");
     }
 
     /**
@@ -839,7 +841,8 @@ class PhienHopWebController extends Controller
         $guestName = $invite->khachMoi?->HoTen ?? 'Khách mời';
         $invite->delete();
 
-        return back()->with('success', "Đã hủy lời mời và bớt khách mời \"{$guestName}\" khỏi phiên họp thành công.");
+        return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'guests'])
+            ->with('success', "Đã hủy lời mời và bớt khách mời \"{$guestName}\" khỏi phiên họp thành công.");
     }
 
     /**
@@ -895,7 +898,8 @@ class PhienHopWebController extends Controller
             'MaNguoiDung' => Auth::id(),
         ]);
 
-        return back()->with('success', "Đã đưa hồ sơ trình vào chương trình họp (Thứ tự: #{$thuTu}).");
+        return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'agenda'])
+            ->with('success', "Đã đưa hồ sơ trình vào chương trình họp (Thứ tự: #{$thuTu}).");
     }
 
     /**

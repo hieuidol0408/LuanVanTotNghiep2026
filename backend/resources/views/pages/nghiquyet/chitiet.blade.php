@@ -14,8 +14,8 @@
     @endphp
 
     {{-- Header --}}
-    <div class="stu-page-header stu-flex stu-items-start stu-justify-between stu-mb-6" style="gap: 16px;">
-        <div style="flex: 1;">
+    <div class="stu-page-header stu-flex stu-items-start stu-justify-between stu-mb-6" style="gap: 16px; flex-wrap: wrap;">
+        <div style="flex: 1 1 420px; min-width: 0;">
             <div class="stu-flex stu-items-center stu-gap-2 stu-mb-2">
                 <span style="font-weight: 800; color: var(--color-primary); font-size: 14px; background: rgba(0, 43, 91, 0.08); padding: 3px 8px; border-radius: var(--radius-sm);">
                     {{ $resolution->SoNghiQuyet }}
@@ -66,7 +66,7 @@
                 </a>
             @endif
 
-            @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+            @if($isDraft && in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
                 <button type="button" class="stu-btn stu-btn-outline" style="height: 38px;" data-modal-open="editResolutionModal">
                     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     <span>Sửa dự thảo</span>
@@ -79,20 +79,8 @@
         </div>
     </div>
 
-    {{-- Alerts --}}
-    @if(session('success'))
-        <x-canh-bao type="success" :dismissible="true" class="stu-mb-6">
-            {{ session('success') }}
-        </x-canh-bao>
-    @endif
-    @if(session('error'))
-        <x-canh-bao type="danger" :dismissible="true" class="stu-mb-6">
-            {{ session('error') }}
-        </x-canh-bao>
-    @endif
-
     {{-- Bố cục 2 Cột --}}
-    <div class="stu-grid" style="grid-template-columns: 2fr 1fr; gap: 24px; align-items: flex-start;">
+    <div class="stu-grid" style="grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; align-items: flex-start;">
         {{-- Cột trái: Toàn văn quyết nghị + Tài liệu văn bản + Danh sách nhiệm vụ phân rã --}}
         <div class="stu-flex stu-flex-col stu-gap-6">
             {{-- 1. Toàn văn Nghị quyết --}}
@@ -122,7 +110,7 @@
                 </h3>
 
                 @if($resolution->taiLieu->count() > 0)
-                    <div class="stu-table-container">
+                    <div class="stu-table-wrapper">
                         <table class="stu-table">
                             <thead>
                                 <tr>
@@ -181,7 +169,7 @@
                 </div>
 
                 @if($totalTasks > 0)
-                    <div class="stu-table-container">
+                    <div class="stu-table-wrapper">
                         <table class="stu-table">
                             <thead>
                                 <tr>

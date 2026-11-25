@@ -27,21 +27,9 @@
         </div>
     </div>
 
-    {{-- Alerts --}}
-    @if(session('success'))
-        <x-canh-bao type="success" :dismissible="true" class="stu-mb-4">
-            {{ session('success') }}
-        </x-canh-bao>
-    @endif
-    @if(session('error'))
-        <x-canh-bao type="danger" :dismissible="true" class="stu-mb-4">
-            {{ session('error') }}
-        </x-canh-bao>
-    @endif
-
     {{-- Bộ lọc đa tiêu chí (Search & Filter) --}}
     <div class="stu-card stu-mb-6" style="padding: 20px 24px; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
-        <form method="GET" action="{{ route('submissions.index') }}" class="stu-grid" style="grid-template-columns: 2fr 1.6fr 1.4fr 1.5fr auto auto; gap: 14px; align-items: flex-end;">
+        <form method="GET" action="{{ route('submissions.index') }}" class="stu-grid" style="grid-template-columns: minmax(160px, 1.6fr) minmax(155px, 1.5fr) minmax(145px, 1.35fr) minmax(145px, 1.3fr) auto auto; gap: 10px; align-items: flex-end;">
             <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
             {{-- Từ khóa --}}
             <div class="stu-form-group" style="margin-bottom: 0;">

@@ -83,6 +83,7 @@ Route::prefix('votes')->name('votes.')->group(function () {
     Route::delete('/{id}', [BieuQuyetWebController::class, 'destroy'])->name('destroy');
     Route::post('/{id}/open', [BieuQuyetWebController::class, 'open'])->name('open');
     Route::post('/{id}/close', [BieuQuyetWebController::class, 'close'])->name('close');
+    Route::post('/{id}/decide-tie', [BieuQuyetWebController::class, 'decideTie'])->name('decide-tie');
     Route::post('/{id}/vote', [BieuQuyetWebController::class, 'vote'])->name('vote');
     Route::post('/delegations', [BieuQuyetWebController::class, 'storeDelegation'])->name('delegations.store');
 });

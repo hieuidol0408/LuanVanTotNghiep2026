@@ -25,22 +25,7 @@
         @endif
     </div>
 
-    {{-- Alerts --}}
-    @if(session('success'))
-        <x-canh-bao type="success" :dismissible="true" class="stu-mb-4">
-            {{ session('success') }}
-        </x-canh-bao>
-    @endif
-    @if(session('warning'))
-        <x-canh-bao type="warning" :dismissible="true" class="stu-mb-4">
-            {{ session('warning') }}
-        </x-canh-bao>
-    @endif
-    @if(session('error'))
-        <x-canh-bao type="danger" :dismissible="true" class="stu-mb-4">
-            {{ session('error') }}
-        </x-canh-bao>
-    @endif
+    {{-- Thông báo session đã hiển thị tập trung ở layout chính --}}
 
     {{-- Thống kê nhanh 4 thẻ KPI --}}
     <div class="stu-grid stu-grid-cols-4 stu-mb-6" style="gap: 16px;">
@@ -64,7 +49,7 @@
 
     {{-- Bộ lọc tìm kiếm --}}
     <div class="stu-card stu-mb-6" style="padding: 20px 24px; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
-        <form method="GET" action="{{ route('votes.index') }}" class="stu-grid" style="grid-template-columns: 2fr 1.5fr 1fr auto auto; gap: 14px; align-items: flex-end;">
+        <form method="GET" action="{{ route('votes.index') }}" class="stu-grid" style="grid-template-columns: minmax(180px, 1.8fr) minmax(170px, 1.5fr) minmax(160px, 1.25fr) auto auto; gap: 12px; align-items: flex-end;">
             <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
             {{-- Từ khóa --}}
             <div class="stu-form-group" style="margin-bottom: 0;">
@@ -186,6 +171,8 @@
                         <span class="stu-badge stu-badge-success">Đã thông qua</span>
                     @elseif(in_array($v->KetQua, ['REJECTED', 'Không thông qua']))
                         <span class="stu-badge stu-badge-danger">Không thông qua</span>
+                    @elseif(in_array($v->KetQua, ['TIE_PENDING', 'Chờ quyết định']))
+                        <span class="stu-badge stu-badge-warning">Hòa phiếu · Chờ QĐ</span>
                     @else
                         <span style="font-size: 12px; color: var(--color-text-muted);">{{ $v->ketQuaBieuQuyet->count() }} phiếu đã gửi</span>
                     @endif

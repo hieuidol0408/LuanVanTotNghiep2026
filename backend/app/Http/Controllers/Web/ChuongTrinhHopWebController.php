@@ -223,7 +223,12 @@ class ChuongTrinhHopWebController extends Controller
             'GhiChu' => $validated['GhiChu'] ?? null,
         ]);
 
-        return back()->with('success', "Đã cập nhật mục chương trình họp (Thứ tự #{$agenda->ThuTu} - {$agenda->TrangThai}) thành công!");
+        $msg = "Đã cập nhật mục chương trình họp (Thứ tự #{$agenda->ThuTu} - {$agenda->TrangThai}) thành công!";
+        if (str_contains((string) url()->previous(), '/meetings/')) {
+            return redirect()->route('meetings.show', ['id' => $agenda->MaPhienHop, 'tab' => 'agenda'])->with('success', $msg);
+        }
+
+        return back()->with('success', $msg);
     }
 
     /**
@@ -237,8 +242,14 @@ class ChuongTrinhHopWebController extends Controller
         }
 
         $agenda = ChuongTrinhHop::findOrFail($id);
+        $meetingId = $agenda->MaPhienHop;
         $agenda->update(['TrangThai' => 'Đã ẩn']);
         $agenda->delete();
+
+        if (str_contains((string) url()->previous(), '/meetings/')) {
+            return redirect()->route('meetings.show', ['id' => $meetingId, 'tab' => 'agenda'])
+                ->with('success', 'Đã ẩn mục khỏi chương trình họp (Soft Delete).');
+        }
 
         return back()->with('success', 'Đã ẩn mục khỏi chương trình họp (Soft Delete).');
     }

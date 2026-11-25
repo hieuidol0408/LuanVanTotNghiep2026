@@ -187,6 +187,8 @@ class PhienHopController extends Controller
             'thamDu.thanhVienHdt.nguoiDung.donVi',
             'khachMoiPhienHop.khachMoi',
             'chuongTrinhHop.hoSoTrinh.donVi',
+            'chuongTrinhHop.hoSoTrinh.nguoiDung',
+            'chuongTrinhHop.nguoiDung.vaiTro',
             'chuongTrinhHop.noiDungBieuQuyet.ketQuaBieuQuyet',
             'taiLieu',
         ])->find($id);
@@ -365,6 +367,7 @@ class PhienHopController extends Controller
             'GhiChu' => $validated['title'],
             'MaPhienHop' => $id,
             'MaHoSo' => $dossierId,
+            'MaNguoiDung' => auth()->id(),
         ]);
 
         return response()->json([
@@ -375,6 +378,7 @@ class PhienHopController extends Controller
                 'item_order' => $agenda->ThuTu,
                 'title' => $validated['title'],
                 'presenter' => $validated['presenter'] ?? 'Đang cập nhật',
+                'added_by' => auth()->user()?->HoTen ?? 'Thư ký Hội đồng trường',
                 'duration_minutes' => (int) ($validated['duration_minutes'] ?? 30),
                 'dossier_id' => $dossierId,
                 'is_voting_required' => (bool) ($validated['is_voting_required'] ?? false),
@@ -679,12 +683,16 @@ class PhienHopController extends Controller
         $summary = $this->formatMeetingSummary($meeting);
 
         // Agendas
-        $agendas = $meeting->chuongTrinhHop ? $meeting->chuongTrinhHop->map(function ($ch) {
+        $agendas = $meeting->chuongTrinhHop ? $meeting->chuongTrinhHop->map(function ($ch) use ($meeting) {
+            $adder = $ch->nguoiDung ?? $meeting->nguoiDung;
+
             return [
                 'id' => (string) $ch->MaChuongTrinh,
                 'item_order' => (int) $ch->ThuTu,
                 'title' => $ch->GhiChu ?: ($ch->hoSoTrinh?->TieuDe ?? 'Nội dung thảo luận'),
-                'presenter' => 'Đại diện phụ trách',
+                'presenter' => $ch->hoSoTrinh?->nguoiDung?->HoTen ?? 'Đại diện phụ trách',
+                'department' => $ch->hoSoTrinh?->donVi?->TenDonVi ?? null,
+                'added_by' => $adder?->HoTen ?? 'Thư ký Hội đồng trường',
                 'duration_minutes' => 30,
                 'dossier_id' => $ch->MaHoSo ? (string) $ch->MaHoSo : null,
                 'dossier_title' => $ch->hoSoTrinh?->TieuDe ?? null,

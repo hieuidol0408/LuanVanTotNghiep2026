@@ -26,7 +26,7 @@
 
 <!-- THANH TÌM KIẾM & BỘ LỌC ĐA TIÊU CHÍ -->
 <div class="stu-card" style="padding: 18px 24px; margin-bottom: var(--space-6); border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
-    <form method="GET" action="{{ route('meetings.index') }}" style="display: grid; grid-template-columns: 2.2fr 1.2fr 1.2fr 1.2fr auto auto; gap: 12px; align-items: center;">
+    <form method="GET" action="{{ route('meetings.index') }}" style="display: grid; grid-template-columns: minmax(170px, 2fr) minmax(125px, 1fr) minmax(145px, 1.15fr) minmax(155px, 1.25fr) auto auto; gap: 10px; align-items: center;">
         <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
         <!-- Ô tìm kiếm -->
         <div style="position: relative;">
@@ -44,7 +44,7 @@
         <!-- Lọc theo năm -->
         <div>
             <select name="year" class="stu-form-control" style="height: 38px;">
-                <option value="">-- Tất cả các năm --</option>
+                <option value="">Tất cả năm</option>
                 @foreach($years as $y)
                     <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>Năm {{ $y }}</option>
                 @endforeach
@@ -54,7 +54,7 @@
         <!-- Lọc theo hình thức -->
         <div>
             <select name="format" class="stu-form-control" style="height: 38px;">
-                <option value="">-- Hình thức họp --</option>
+                <option value="">Tất cả hình thức</option>
                 <option value="Trực tiếp" {{ request('format') == 'Trực tiếp' ? 'selected' : '' }}>Trực tiếp</option>
                 <option value="Trực tuyến" {{ request('format') == 'Trực tuyến' ? 'selected' : '' }}>Trực tuyến</option>
                 <option value="Kết hợp" {{ request('format') == 'Kết hợp' ? 'selected' : '' }}>Kết hợp</option>
@@ -64,7 +64,7 @@
         <!-- Lọc theo trạng thái -->
         <div>
             <select name="status" class="stu-form-control" style="height: 38px;">
-                <option value="">-- Trạng thái họp --</option>
+                <option value="">Tất cả trạng thái</option>
                 <option value="Đang chuẩn bị" {{ request('status') == 'Đang chuẩn bị' ? 'selected' : '' }}>Đang chuẩn bị</option>
                 <option value="Sắp diễn ra" {{ request('status') == 'Sắp diễn ra' ? 'selected' : '' }}>Sắp diễn ra</option>
                 <option value="Đang diễn ra" {{ request('status') == 'Đang diễn ra' ? 'selected' : '' }}>Đang diễn ra</option>

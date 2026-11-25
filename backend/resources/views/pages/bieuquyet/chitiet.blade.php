@@ -14,8 +14,8 @@
     @endphp
 
     {{-- Header --}}
-    <div class="stu-page-header stu-flex stu-items-start stu-justify-between stu-mb-6" style="gap: 16px;">
-        <div style="flex: 1;">
+    <div class="stu-page-header stu-flex stu-items-start stu-justify-between stu-mb-6" style="gap: 16px; flex-wrap: wrap;">
+        <div style="flex: 1 1 460px; min-width: 0;">
             <div class="stu-flex stu-items-center stu-gap-2 stu-mb-2" style="flex-wrap: wrap;">
                 <span style="font-weight: 800; color: var(--color-primary); font-size: 13px; background: rgba(0, 43, 91, 0.08); padding: 4px 10px; border-radius: var(--radius-sm); letter-spacing: 0.5px;">
                     #BQ-{{ str_pad($vote->MaNoiDung, 3, '0', STR_PAD_LEFT) }}
@@ -37,7 +37,9 @@
                 @endif
 
                 @if($isClosed)
-                    @if($voteStats['is_passed'])
+                    @if($voteStats['needs_tie_decision'] ?? false)
+                        <span class="stu-badge stu-badge-warning" style="font-weight: 700;">⚖ Hòa phiếu · Chờ quyết định</span>
+                    @elseif($voteStats['is_passed'])
                         <span class="stu-badge stu-badge-success" style="font-weight: 700; background: #ecfdf5; border-color: #a7f3d0; color: #047857;">✓ Đã thông qua</span>
                     @else
                         <span class="stu-badge stu-badge-danger" style="font-weight: 700;">✗ Không thông qua</span>
@@ -55,11 +57,14 @@
                     <span><strong>Mục chương trình:</strong> Mục số {{ $vote->chuongTrinhHop->ThuTu }}</span>
                 @endif
                 <span><strong>Ngưỡng thông qua:</strong> {{ $passThreshold }}% tổng số đại biểu có mặt</span>
+                @if(! empty($voteStats['opened_by_name']))
+                    <span><strong>Người mở cổng BQ:</strong> {{ $voteStats['opened_by_name'] }}</span>
+                @endif
             </div>
         </div>
 
         {{-- Các nút điều hành biểu quyết (Dành cho Chủ tịch, Thư ký, Quản trị viên) --}}
-        <div class="stu-flex stu-items-center stu-gap-2">
+        <div class="stu-flex stu-items-center stu-gap-2" style="flex-wrap: wrap; flex-shrink: 0;">
             @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
                 @if(! $isOpening && ! $isClosed)
                     <form method="POST" action="{{ route('votes.open', $vote->MaNoiDung) }}">
@@ -79,10 +84,12 @@
                     </form>
                 @endif
 
-                <button type="button" class="stu-btn stu-btn-outline" style="height: 38px;" data-modal-open="delegationModal">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                    <span>Ủy quyền biểu quyết (BR-04)</span>
-                </button>
+                @if(! $isClosed)
+                    <button type="button" class="stu-btn stu-btn-outline" style="height: 38px;" data-modal-open="delegationModal">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                        <span>Ủy quyền biểu quyết (BR-04)</span>
+                    </button>
+                @endif
             @endif
 
             <a href="{{ route('votes.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px;">
@@ -91,22 +98,7 @@
         </div>
     </div>
 
-    {{-- Alerts --}}
-    @if(session('success'))
-        <x-canh-bao type="success" :dismissible="true" class="stu-mb-6">
-            {{ session('success') }}
-        </x-canh-bao>
-    @endif
-    @if(session('warning'))
-        <x-canh-bao type="warning" :dismissible="true" class="stu-mb-6">
-            {{ session('warning') }}
-        </x-canh-bao>
-    @endif
-    @if(session('error'))
-        <x-canh-bao type="danger" :dismissible="true" class="stu-mb-6">
-            {{ session('error') }}
-        </x-canh-bao>
-    @endif
+    {{-- Thông báo session đã hiển thị tập trung ở layout chính --}}
 
     {{-- Thống kê nhanh 4 thẻ KPI Tổng quan kiểm phiếu --}}
     <div class="stu-grid stu-grid-cols-4 stu-mb-6" style="gap: 16px;">
@@ -142,19 +134,44 @@
                 {{ $voteStats['agree_percent'] }}%
                 <span style="font-size: 13px; font-weight: 600; color: var(--color-text-muted);">({{ $voteStats['agree'] }} phiếu)</span>
             </div>
-            <div style="font-size: 12px; color: {{ $voteStats['is_passed'] ? '#16a34a' : '#dc2626' }}; font-weight: 600; margin-top: 4px;">
-                {{ $voteStats['is_passed'] ? '✓ Đạt ngưỡng quy chế (≥' . $passThreshold . '%)' : '✗ Chưa đạt ngưỡng quy chế' }}
-            </div>
+            @if($isClosed && ($voteStats['needs_tie_decision'] ?? false))
+                <div style="font-size: 12px; color: #d97706; font-weight: 600; margin-top: 4px;">
+                    ⚖ Hòa phiếu ({{ $voteStats['agree'] }} - {{ $voteStats['disagree'] }}) · Chờ quyết định
+                </div>
+            @elseif($voteStats['is_passed'])
+                <div style="font-size: 12px; color: #16a34a; font-weight: 600; margin-top: 4px;">
+                    {{ $isClosed ? '✓ Đạt ngưỡng quy chế (≥' . $passThreshold . '%)' : '✓ Tạm đạt ngưỡng quy chế (≥' . $passThreshold . '%)' }}
+                </div>
+            @elseif($isClosed)
+                <div style="font-size: 12px; color: #dc2626; font-weight: 600; margin-top: 4px;">
+                    ✗ Không đạt ngưỡng quy chế
+                </div>
+            @else
+                <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-top: 4px;">
+                    ⏳ Đang chờ bỏ phiếu (cần ≥ {{ $passThreshold }}%)
+                </div>
+            @endif
         </div>
 
         <!-- KPI 4: Kết luận biểu quyết -->
-        <div class="stu-card" style="padding: 18px 20px; border-left: 4px solid {{ $voteStats['is_passed'] ? 'var(--color-success)' : 'var(--color-danger)' }}; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+        @php
+            $needsTieDecision = $isClosed && ($voteStats['needs_tie_decision'] ?? false);
+            $kpi4Border = $needsTieDecision ? '#f59e0b' : ($isClosed ? ($voteStats['is_passed'] ? 'var(--color-success)' : 'var(--color-danger)') : ($isOpening ? '#0284c7' : '#94a3b8'));
+            $kpi4Color = $needsTieDecision ? '#d97706' : ($isClosed ? ($voteStats['is_passed'] ? 'var(--color-success)' : 'var(--color-danger)') : ($isOpening ? '#0284c7' : '#64748b'));
+            $kpi4Title = $needsTieDecision ? 'CHỜ QUYẾT ĐỊNH' : ($isClosed ? ($voteStats['is_passed'] ? 'ĐÃ THÔNG QUA' : 'KHÔNG THÔNG QUA') : ($isOpening ? 'ĐANG BỎ PHIẾU' : 'CHƯA MỞ PHIẾU'));
+            $kpi4Sub = $needsTieDecision
+                ? "Hòa phiếu ({$voteStats['agree']} - {$voteStats['disagree']}) · Chờ người mở cổng chốt"
+                : ($isClosed
+                    ? (($voteStats['is_tied'] ?? false) ? 'Đã chốt theo quyết định người mở cổng' : 'Biên bản đã niêm phong')
+                    : ($isOpening ? 'Chờ đóng cổng & chốt kiểm phiếu' : 'Chờ phát lệnh mở biểu quyết'));
+        @endphp
+        <div class="stu-card" style="padding: 18px 20px; border-left: 4px solid {{ $kpi4Border }}; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
             <div style="font-size: 11px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Kết luận biểu quyết</div>
-            <div style="font-size: 20px; font-weight: 800; color: {{ $voteStats['is_passed'] ? 'var(--color-success)' : 'var(--color-danger)' }}; margin-top: 6px; letter-spacing: -0.3px;">
-                {{ $voteStats['is_passed'] ? 'ĐÃ THÔNG QUA' : 'CHƯA THÔNG QUA' }}
+            <div style="font-size: 20px; font-weight: 800; color: {{ $kpi4Color }}; margin-top: 6px; letter-spacing: -0.3px;">
+                {{ $kpi4Title }}
             </div>
             <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 6px;">
-                {{ $isClosed ? 'Biên bản đã niêm phong' : 'Đang trong phiên bỏ phiếu' }}
+                {{ $kpi4Sub }}
             </div>
         </div>
     </div>
@@ -196,9 +213,19 @@
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-muted); margin-top: 6px;">
                         <span>Ngưỡng yêu cầu quy chế: <strong>{{ $passThreshold }}%</strong></span>
-                        <span style="color: {{ $voteStats['is_passed'] ? '#16a34a' : '#dc2626' }}; font-weight: 600;">
-                            {{ $voteStats['is_passed'] ? '✓ Đạt ngưỡng thông qua' : '✗ Chưa đạt ngưỡng quy định' }}
-                        </span>
+                        @if($voteStats['is_passed'])
+                            <span style="color: #16a34a; font-weight: 600;">
+                                {{ $isClosed ? '✓ Đạt ngưỡng thông qua' : '✓ Tạm đạt ngưỡng thông qua' }}
+                            </span>
+                        @elseif($isClosed)
+                            <span style="color: #dc2626; font-weight: 600;">
+                                ✗ Không đạt ngưỡng quy định
+                            </span>
+                        @else
+                            <span style="color: #64748b; font-weight: 600;">
+                                ⏳ Đang chờ bỏ phiếu (cần ≥ {{ $passThreshold }}%)
+                            </span>
+                        @endif
                     </div>
                 </div>
 
@@ -234,29 +261,115 @@
                     </div>
                 </div>
 
-                {{-- Khung Kết luận kiểm phiếu chính thức --}}
-                <div style="padding: 20px; border-radius: var(--radius-lg); background: {{ $voteStats['is_passed'] ? '#f0fdf4' : '#fef2f2' }}; border: 1.5px solid {{ $voteStats['is_passed'] ? '#86efac' : '#fca5a5' }};">
-                    <div style="display: flex; align-items: flex-start; gap: 14px;">
-                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: {{ $voteStats['is_passed'] ? '#dcfce7' : '#fee2e2' }}; color: {{ $voteStats['is_passed'] ? '#16a34a' : '#dc2626' }}; flex-shrink: 0; margin-top: 2px;">
-                            @if($voteStats['is_passed'])
-                                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            @else
-                                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                            @endif
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: {{ $voteStats['is_passed'] ? '#15803d' : '#b91c1c' }};">
-                                KẾT LUẬN KIỂM PHIẾU CHÍNH THỨC
+                {{-- Khung Kết luận kiểm phiếu (Chỉ kết luận chính thức khi Đã đóng phiếu) --}}
+                @if($isClosed && ($voteStats['needs_tie_decision'] ?? false))
+                    <div style="padding: 20px; border-radius: var(--radius-lg); background: #fffbeb; border: 1.5px solid #fcd34d;">
+                        <div style="display: flex; align-items: flex-start; gap: 14px;">
+                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #fef3c7; color: #d97706; flex-shrink: 0; margin-top: 2px; font-weight: 800; font-size: 18px;">
+                                ⚖
                             </div>
-                            <div style="font-size: 17px; font-weight: 800; color: {{ $voteStats['is_passed'] ? '#14532d' : '#7f1d1d' }}; margin-top: 4px; line-height: 1.4;">
-                                {{ $voteStats['is_passed'] ? '✓ ĐỦ ĐIỀU KIỆN BAN HÀNH NGHỊ QUYẾT HỘI ĐỒNG TRƯỜNG' : '✗ KHÔNG ĐỦ ĐIỀU KIỆN THÔNG QUA NGHỊ QUYẾT' }}
-                            </div>
-                            <div style="font-size: 13px; color: {{ $voteStats['is_passed'] ? '#166534' : '#991b1b' }}; margin-top: 6px; line-height: 1.5;">
-                                Căn cứ Điều 12 Quy chế tổ chức Hội đồng trường STU: Đạt tỷ lệ <strong>{{ $voteStats['agree_percent'] }}%</strong> số phiếu tán thành trên tổng số <strong>{{ $voteStats['present_count'] }} đại biểu có mặt</strong> (ngưỡng tối thiểu: {{ $passThreshold }}%). Kết quả kiểm phiếu có giá trị pháp lý thi hành ngay.
+                            <div style="flex: 1;">
+                                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #b45309;">
+                                    HÒA PHIẾU — CHỜ QUYẾT ĐỊNH CỦA NGƯỜI MỞ CỔNG BIỂU QUYẾT
+                                </div>
+                                <div style="font-size: 16px; font-weight: 800; color: #78350f; margin-top: 4px; line-height: 1.4;">
+                                    TỶ LỆ PHIẾU TÁN THÀNH VÀ KHÔNG TÁN THÀNH BẰNG NHAU ({{ $voteStats['agree'] }} - {{ $voteStats['disagree'] }})
+                                </div>
+                                <div style="font-size: 13px; color: #92400e; margin-top: 6px; line-height: 1.5;">
+                                    Tổng thu <strong>{{ $voteStats['total'] }} / {{ $voteStats['present_count'] }}</strong> phiếu (Tán thành: <strong>{{ $voteStats['agree'] }}</strong>, Không tán thành: <strong>{{ $voteStats['disagree'] }}</strong>, Không ý kiến: <strong>{{ $voteStats['abstain'] }}</strong>). Theo quy định khi số phiếu bằng nhau, kết quả cuối cùng sẽ do <strong>{{ $voteStats['opened_by_name'] ?? 'người mở cổng biểu quyết' }}</strong> quyết định.
+                                </div>
+
+                                @if($canDecideTie)
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+                                        <form method="POST" action="{{ route('votes.decide-tie', $vote->MaNoiDung) }}" style="margin: 0;" onsubmit="return confirm('Xác nhận quyết định kết quả cuối cùng là ĐÃ THÔNG QUA?');">
+                                            @csrf
+                                            <input type="hidden" name="decision" value="PASSED">
+                                            <button type="submit" class="stu-btn stu-btn-success" style="font-weight: 700;">
+                                                ✓ Quyết định: ĐÃ THÔNG QUA
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ route('votes.decide-tie', $vote->MaNoiDung) }}" style="margin: 0;" onsubmit="return confirm('Xác nhận quyết định kết quả cuối cùng là KHÔNG THÔNG QUA?');">
+                                            @csrf
+                                            <input type="hidden" name="decision" value="REJECTED">
+                                            <button type="submit" class="stu-btn stu-btn-danger" style="font-weight: 700;">
+                                                ✗ Quyết định: KHÔNG THÔNG QUA
+                                            </button>
+                                        </form>
+                                    </div>
+                                @else
+                                    <div style="margin-top: 12px; padding: 10px 12px; background: rgba(255,255,255,0.7); border: 1px dashed #f59e0b; border-radius: 6px; font-size: 12.5px; color: #92400e; font-weight: 600;">
+                                        ⏳ Đang chờ <strong>{{ $voteStats['opened_by_name'] ?? 'người mở cổng biểu quyết' }}</strong> xác nhận quyết định cuối cùng.
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
-                </div>
+                @elseif($isClosed)
+                    <div style="padding: 20px; border-radius: var(--radius-lg); background: {{ $voteStats['is_passed'] ? '#f0fdf4' : '#fef2f2' }}; border: 1.5px solid {{ $voteStats['is_passed'] ? '#86efac' : '#fca5a5' }};">
+                        <div style="display: flex; align-items: flex-start; gap: 14px;">
+                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: {{ $voteStats['is_passed'] ? '#dcfce7' : '#fee2e2' }}; color: {{ $voteStats['is_passed'] ? '#16a34a' : '#dc2626' }}; flex-shrink: 0; margin-top: 2px;">
+                                @if($voteStats['is_passed'])
+                                    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                @else
+                                    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                @endif
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: {{ $voteStats['is_passed'] ? '#15803d' : '#b91c1c' }};">
+                                    KẾT LUẬN KIỂM PHIẾU CHÍNH THỨC
+                                </div>
+                                <div style="font-size: 17px; font-weight: 800; color: {{ $voteStats['is_passed'] ? '#14532d' : '#7f1d1d' }}; margin-top: 4px; line-height: 1.4;">
+                                    {{ $voteStats['is_passed'] ? '✓ ĐỦ ĐIỀU KIỆN BAN HÀNH NGHỊ QUYẾT HỘI ĐỒNG TRƯỜNG' : '✗ KHÔNG ĐỦ ĐIỀU KIỆN THÔNG QUA NGHỊ QUYẾT' }}
+                                </div>
+                                <div style="font-size: 13px; color: {{ $voteStats['is_passed'] ? '#166534' : '#991b1b' }}; margin-top: 6px; line-height: 1.5;">
+                                    @if(($voteStats['is_tied'] ?? false) && ! empty($voteStats['tie_decision']))
+                                        Do kết quả kiểm phiếu hòa (<strong>{{ $voteStats['agree'] }} Tán thành - {{ $voteStats['disagree'] }} Không tán thành</strong>), người mở cổng biểu quyết (<strong>{{ $voteStats['decided_by_name'] ?? $voteStats['opened_by_name'] ?? 'Người điều hành' }}</strong>) đã quyết định kết quả cuối cùng{{ ! empty($voteStats['decided_at']) ? ' lúc ' . $voteStats['decided_at'] : '' }}: <strong>{{ $voteStats['is_passed'] ? 'ĐÃ THÔNG QUA' : 'KHÔNG THÔNG QUA' }}</strong>.
+                                    @else
+                                        Căn cứ Điều 12 Quy chế tổ chức Hội đồng trường STU: Đạt tỷ lệ <strong>{{ $voteStats['agree_percent'] }}%</strong> số phiếu tán thành trên tổng số <strong>{{ $voteStats['present_count'] }} đại biểu có mặt</strong> (ngưỡng tối thiểu: {{ $passThreshold }}%). Kết quả kiểm phiếu có giá trị pháp lý thi hành ngay.
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @elseif($isOpening)
+                    <div style="padding: 20px; border-radius: var(--radius-lg); background: #f0f9ff; border: 1.5px solid #7dd3fc;">
+                        <div style="display: flex; align-items: flex-start; gap: 14px;">
+                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #e0f2fe; color: #0284c7; flex-shrink: 0; margin-top: 2px;">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #0369a1;">
+                                    TIẾN ĐỘ KIỂM PHIẾU TẠM THỜI (ĐANG MỞ BỎ PHIẾU)
+                                </div>
+                                <div style="font-size: 16px; font-weight: 800; color: #0c4a6e; margin-top: 4px; line-height: 1.4;">
+                                    ⏳ PHIÊN BỎ PHIẾU ĐANG DIỄN RA — CHƯA CHỐT KẾT QUẢ CHÍNH THỨC
+                                </div>
+                                <div style="font-size: 13px; color: #075985; margin-top: 6px; line-height: 1.5;">
+                                    Hiện đã tiếp nhận <strong>{{ $voteStats['total'] }} / {{ $voteStats['present_count'] }}</strong> phiếu (tỷ lệ tán thành tạm thời: <strong>{{ $voteStats['agree_percent'] }}%</strong>, ngưỡng quy định: {{ $passThreshold }}%). Kết luận chính thức chỉ được xác lập sau khi nhấn <strong>Đóng &amp; Chốt kiểm phiếu</strong>.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div style="padding: 20px; border-radius: var(--radius-lg); background: #f8fafc; border: 1.5px solid #cbd5e1;">
+                        <div style="display: flex; align-items: flex-start; gap: 14px;">
+                            <div style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #e2e8f0; color: #475569; flex-shrink: 0; margin-top: 2px;">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #475569;">
+                                    TRẠNG THÁI BIỂU QUYẾT
+                                </div>
+                                <div style="font-size: 16px; font-weight: 800; color: #334155; margin-top: 4px; line-height: 1.4;">
+                                    🕒 CHƯA MỞ CỔNG BIỂU QUYẾT
+                                </div>
+                                <div style="font-size: 13px; color: #475569; margin-top: 6px; line-height: 1.5;">
+                                    Nội dung biểu quyết đã sẵn sàng với <strong>{{ $voteStats['present_count'] }} đại biểu có mặt</strong> (ngưỡng thông qua: {{ $passThreshold }}%). Chủ tịch hoặc Thư ký cần bấm <strong>Mở cổng biểu quyết</strong> để các thành viên bắt đầu bỏ phiếu.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             {{-- Thẻ Cam kết bảo mật BR-09 --}}
@@ -544,7 +657,7 @@
             <select name="MaThanhVienUyQuyen" class="stu-form-control" required>
                 <option value="">-- Chọn thành viên ủy quyền --</option>
                 @foreach($officialMembers as $m)
-                    <option value="{{ $m->MaThanhVien }}">{{ $m->nguoiDung?->HoTen }} ({{ $m->ChucVu }})</option>
+                    <option value="{{ $m->MaThanhVien }}">{{ $m->nguoiDung?->HoTen }} ({{ $m->ChucDanhHoiDongTruong ?: ($m->ChucDanh ?: 'Thành viên HĐT') }})</option>
                 @endforeach
             </select>
         </div>
@@ -554,7 +667,7 @@
             <select name="MaThanhVienNhanUyQuyen" class="stu-form-control" required>
                 <option value="">-- Chọn người nhận ủy quyền --</option>
                 @foreach($officialMembers as $m)
-                    <option value="{{ $m->MaThanhVien }}">{{ $m->nguoiDung?->HoTen }} ({{ $m->ChucVu }})</option>
+                    <option value="{{ $m->MaThanhVien }}">{{ $m->nguoiDung?->HoTen }} ({{ $m->ChucDanhHoiDongTruong ?: ($m->ChucDanh ?: 'Thành viên HĐT') }})</option>
                 @endforeach
             </select>
         </div>

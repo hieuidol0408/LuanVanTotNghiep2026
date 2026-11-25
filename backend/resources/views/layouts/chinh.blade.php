@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
 
     <!-- STU Enterprise Design System CSS -->
-    <link rel="stylesheet" href="{{ asset('css/stu-enterprise.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/stu-enterprise.css') }}?v={{ file_exists(public_path('css/stu-enterprise.css')) ? filemtime(public_path('css/stu-enterprise.css')) : '1' }}">
 
     @stack('styles')
 </head>
@@ -59,7 +59,7 @@
     </div>
 
     <!-- STU Enterprise Dashboard JavaScript -->
-    <script src="{{ asset('js/stu-enterprise.js') }}"></script>
+    <script src="{{ asset('js/stu-enterprise.js') }}?v={{ file_exists(public_path('js/stu-enterprise.js')) ? filemtime(public_path('js/stu-enterprise.js')) : '1' }}"></script>
     <x-trinh-xem-tai-lieu />
     @stack('scripts')
 </body>

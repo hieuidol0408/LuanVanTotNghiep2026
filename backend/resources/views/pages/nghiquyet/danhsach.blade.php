@@ -27,18 +27,6 @@
         </div>
     </div>
 
-    {{-- Alerts --}}
-    @if(session('success'))
-        <x-canh-bao type="success" :dismissible="true" class="stu-mb-4">
-            {{ session('success') }}
-        </x-canh-bao>
-    @endif
-    @if(session('error'))
-        <x-canh-bao type="danger" :dismissible="true" class="stu-mb-4">
-            {{ session('error') }}
-        </x-canh-bao>
-    @endif
-
     {{-- Bộ lọc tìm kiếm đa tiêu chí & Tìm kiếm nâng cao --}}
     @php
         $hasAdvancedFilter = request()->filled('from_date') || request()->filled('to_date');
@@ -47,10 +35,10 @@
         <form method="GET" action="{{ route('resolutions.index') }}" id="resolutionFilterForm">
             <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
             
-            <div class="stu-grid" style="grid-template-columns: 2fr 1.5fr 1fr 1fr auto auto auto; gap: 12px; align-items: flex-end;">
+            <div class="stu-grid" style="grid-template-columns: minmax(160px, 1.6fr) minmax(150px, 1.4fr) minmax(160px, 1.3fr) minmax(125px, 1fr) auto auto auto; gap: 10px; align-items: flex-end;">
                 {{-- Từ khóa --}}
                 <div class="stu-form-group" style="margin-bottom: 0;">
-                    <label class="stu-form-label">
+                    <label class="stu-form-label" style="white-space: nowrap;">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         <span>Tìm theo từ khóa</span>
                     </label>
@@ -60,7 +48,7 @@
                             type="text" 
                             name="search" 
                             value="{{ request('search') }}" 
-                            placeholder="Nhập tiêu đề, trích yếu, số hiệu..." 
+                            placeholder="Tiêu đề, trích yếu, số hiệu..." 
                             class="stu-form-control"
                             style="padding-left: 36px;"
                             title="Tra cứu nhanh theo từ khóa trong tiêu đề hoặc trích yếu nội dung"
@@ -70,7 +58,7 @@
 
                 {{-- Phiên họp --}}
                 <div class="stu-form-group" style="margin-bottom: 0;">
-                    <label class="stu-form-label">
+                    <label class="stu-form-label" style="white-space: nowrap;">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         <span>Phiên họp</span>
                     </label>
@@ -86,7 +74,7 @@
 
                 {{-- Trạng thái --}}
                 <div class="stu-form-group" style="margin-bottom: 0;">
-                    <label class="stu-form-label">
+                    <label class="stu-form-label" style="white-space: nowrap;">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span>Trạng thái</span>
                     </label>
@@ -100,12 +88,12 @@
 
                 {{-- Năm --}}
                 <div class="stu-form-group" style="margin-bottom: 0;">
-                    <label class="stu-form-label">
+                    <label class="stu-form-label" style="white-space: nowrap;">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         <span>Năm ban hành</span>
                     </label>
                     <select name="year" class="stu-form-control">
-                        <option value="">Tất cả các năm</option>
+                        <option value="">Tất cả năm</option>
                         @foreach($years as $y)
                             <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>Năm {{ $y }}</option>
                         @endforeach
@@ -167,63 +155,51 @@
         </form>
     </div>
 
-    {{-- Bảng danh sách Nghị quyết (Áp dụng layout chống tràn) --}}
+    {{-- Bảng danh sách Nghị quyết (Hiển thị đúng các cột của bảng NGHI_QUYET trong CSDL) --}}
     <x-bang-du-lieu 
         cardTitle="Danh sách Nghị quyết Hội đồng trường (Tổng: {{ $resolutions->total() }})"
-        :headers="['Số hiệu', 'Trích yếu', 'Phiên họp và Ngày', 'Trạng thái', 'Tiến độ thực hiện']" 
+        :headers="['Mã NQ', 'Số nghị quyết', 'Ngày ban hành', 'Trích yếu', 'Nội dung', 'Trạng thái', 'Phiên họp']" 
         :hasActions="true"
         actionTitle="Thao tác"
     >
         @forelse($resolutions as $res)
             @php
-                $tasks = $res->nhiemVu;
-                $totalTasks = $tasks->count();
-                $completedTasks = $tasks->filter(fn ($t) => in_array($t->TrangThai, ['COMPLETED', 'Hoàn thành']))->count();
-                $progress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 1) : 0;
                 $isDraft = in_array($res->TrangThai, ['DRAFT', 'Dự thảo']);
                 $isSigned = in_array($res->TrangThai, ['SIGNED', 'Đã ký ban hành', 'Đã ký']);
-                $isPublished = in_array($res->TrangThai, ['PUBLISHED', 'Đã công bố hiệu lực', 'Đã công bố']);
+                $noiDungTomTat = trim((string) preg_replace('/\s+/', ' ', strip_tags((string) $res->NoiDung)));
             @endphp
             <tr>
+                <td style="font-weight: 700; color: var(--color-text-muted); white-space: nowrap; text-align: center; width: 70px;">
+                    #{{ $res->MaNghiQuyet }}
+                </td>
                 <td style="font-weight: 700; color: var(--color-primary); white-space: nowrap;">
                     <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" style="color: var(--color-primary); text-decoration: none;">
                         {{ $res->SoNghiQuyet }}
                     </a>
                 </td>
-                <td style="max-width: 340px;">
-                    <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none; line-height: 1.5; display: block;" class="hover:text-primary">
+                <td style="font-size: 13px; white-space: nowrap; color: var(--color-text-primary);">
+                    {{ $res->NgayBanHanh ? \Carbon\Carbon::parse($res->NgayBanHanh)->format('d/m/Y') : '-' }}
+                </td>
+                <td style="min-width: 150px; max-width: 210px;">
+                    <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none; line-height: 1.45; display: block;" class="hover:text-primary" title="{{ $res->TrichYeu }}">
                         {{ $res->TrichYeu }}
                     </a>
-                    @if($res->taiLieu->count() > 0)
-                        <div style="font-size: 11px; color: var(--color-accent); margin-top: 3px; display: flex; align-items: center; gap: 4px;">
-                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                            <span>Có {{ $res->taiLieu->count() }} văn bản chính thức</span>
-                        </div>
-                    @endif
                 </td>
-                <td style="max-width: 210px;">
-                    <div style="font-weight: 500; font-size: 13px; line-height: 1.4;">
-                        {{ $res->phienHop?->TenPhienHop ?? 'Phiên họp #' . $res->MaPhienHop }}
-                    </div>
-                    <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
-                        {{ $res->NgayBanHanh ? \Carbon\Carbon::parse($res->NgayBanHanh)->format('d/m/Y') : 'Chưa ấn định' }}
+                <td style="min-width: 150px; max-width: 220px; font-size: 12.5px; color: var(--color-text-muted); line-height: 1.45;" title="{{ $res->NoiDung }}">
+                    <div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                        {{ $noiDungTomTat ?: '-' }}
                     </div>
                 </td>
                 <td style="text-align: center; white-space: nowrap;">
                     <x-nhan-trang-thai :status="$res->TrangThai" />
                 </td>
-                <td style="text-align: center; min-width: 120px;">
-                    @if($totalTasks > 0)
-                        <div style="font-size: 12px; font-weight: 700; color: var(--color-primary); margin-bottom: 4px;">
-                            {{ $progress }}% ({{ $completedTasks }}/{{ $totalTasks }} NV)
-                        </div>
-                        <div style="height: 6px; background: var(--color-bg-muted); border-radius: var(--radius-full); overflow: hidden;">
-                            <div style="height: 100%; width: {{ $progress }}%; background: {{ $progress == 100 ? 'var(--color-success)' : 'var(--color-primary)' }};"></div>
-                        </div>
-                    @else
-                        <a href="{{ route('tasks.create', ['resolution_id' => $res->MaNghiQuyet]) }}" style="font-size: 12px; color: var(--color-text-muted); text-decoration: none;" class="hover:text-primary" title="Bấm để phân rã nhiệm vụ">
-                            Chưa phân rã NV ↗
+                <td style="min-width: 140px; max-width: 190px; font-size: 12.5px; line-height: 1.4;">
+                    @if($res->phienHop)
+                        <a href="{{ route('meetings.show', $res->MaPhienHop) }}" style="font-weight: 500; color: var(--color-primary); text-decoration: none;" title="{{ $res->phienHop->TenPhienHop }}">
+                            #{{ $res->MaPhienHop }} - {{ $res->phienHop->TenPhienHop }}
                         </a>
+                    @else
+                        <span style="color: var(--color-text-muted);">#{{ $res->MaPhienHop }}</span>
                     @endif
                 </td>
                 <td class="col-actions" style="text-align: right; white-space: nowrap;">
@@ -275,7 +251,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="6" style="text-align: center; padding: 48px; color: var(--color-text-muted);">
+                <td colspan="8" style="text-align: center; padding: 48px; color: var(--color-text-muted);">
                     <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 12px; color: var(--color-border);"><path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
                     <div style="font-weight: 600; font-size: 15px;">Chưa có Nghị quyết nào</div>
                     <div style="font-size: 13px; margin-top: 4px;">Các Nghị quyết được ban hành từ phiên họp sẽ xuất hiện tại đây.</div>

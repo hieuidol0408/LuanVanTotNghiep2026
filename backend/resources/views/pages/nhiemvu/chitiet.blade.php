@@ -74,12 +74,6 @@
         </div>
     </div>
 
-    @if (session('success'))
-        <x-canh-bao type="success" :dismissible="true" class="stu-mb-6">
-            {{ session('success') }}
-        </x-canh-bao>
-    @endif
-
     {{-- Main Grid Layout: 2 cột (Trái 2fr, Phải 1fr) --}}
     <div class="stu-grid" style="grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;">
         {{-- CỘT TRÁI (2fr): Tiến độ, Chi tiết nhiệm vụ, Nhật ký báo cáo --}}

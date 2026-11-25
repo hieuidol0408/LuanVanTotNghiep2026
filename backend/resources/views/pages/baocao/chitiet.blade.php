@@ -45,20 +45,6 @@
         </div>
     </div>
 
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    @if (session('error'))
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
     <div class="row g-4 mb-4">
         {{-- Cột trái: Nội dung báo cáo & Tệp minh chứng --}}
         <div class="col-lg-8">

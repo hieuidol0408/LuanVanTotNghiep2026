@@ -14,6 +14,7 @@
                 type="button" 
                 class="stu-tab-btn {{ $isActive ? 'active' : '' }}" 
                 data-tab-target="{{ $targetId }}"
+                @if(!empty($tab['key'])) data-tab-key="{{ $tab['key'] }}" @endif
                 role="tab"
                 aria-selected="{{ $isActive ? 'true' : 'false' }}"
             >

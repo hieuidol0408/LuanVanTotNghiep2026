@@ -139,11 +139,11 @@
                 @else
                     <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--font-size-sm); table-layout: fixed;">
                         <colgroup>
-                            <col style="width: 32%;">
+                            <col style="width: 30%;">
                             <col style="width: 15%;">
-                            <col style="width: 20%;">
-                            <col style="width: 21%;">
-                            <col style="width: 12%;">
+                            <col style="width: 18%;">
+                            <col style="width: 22%;">
+                            <col style="width: 15%;">
                         </colgroup>
                         <thead>
                             <tr>

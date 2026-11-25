@@ -104,13 +104,14 @@
 
             <!-- Năm tổ chức -->
             <div>
+                @php
+                    $allYears = collect($years ?? [])->concat([2025, 2024])->map(fn($y) => (int) $y)->filter()->unique()->sortDesc();
+                @endphp
                 <select name="year" class="stu-form-control" style="height: 38px;">
-                    <option value="">-- Tất cả các năm --</option>
-                    @foreach($years as $y)
+                    <option value="">Tất cả các năm</option>
+                    @foreach($allYears as $y)
                         <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>Năm {{ $y }}</option>
                     @endforeach
-                    <option value="2025" {{ request('year') == '2025' ? 'selected' : '' }}>Năm 2025</option>
-                    <option value="2024" {{ request('year') == '2024' ? 'selected' : '' }}>Năm 2024</option>
                 </select>
             </div>
 

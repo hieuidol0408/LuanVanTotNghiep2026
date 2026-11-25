@@ -88,15 +88,28 @@
       const tabContainer = tabBtn.closest('.stu-tabs-wrapper');
       if (!tabContainer) return;
 
-      // Deactivate all sibling buttons
-      tabContainer.querySelectorAll('.stu-tab-btn').forEach(btn => btn.classList.remove('active'));
+      // Deactivate all sibling buttons and update aria-selected
+      tabContainer.querySelectorAll('.stu-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      });
       tabBtn.classList.add('active');
+      tabBtn.setAttribute('aria-selected', 'true');
 
       // Deactivate all sibling panes
       tabContainer.querySelectorAll('.stu-tab-pane').forEach(pane => pane.classList.remove('active'));
       const targetPane = tabContainer.querySelector(targetId);
       if (targetPane) {
         targetPane.classList.add('active');
+      }
+
+      // Sync ?tab= param in URL without reload if data-tab-key is present
+      const tabKey = tabBtn.getAttribute('data-tab-key');
+      if (tabKey && window.history && window.history.replaceState) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', tabKey);
+        url.searchParams.delete('upload_doc');
+        window.history.replaceState({}, '', url.toString());
       }
     });
   }

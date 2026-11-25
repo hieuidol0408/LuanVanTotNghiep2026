@@ -39,18 +39,21 @@
 </div>
 
 <!-- HỆ THỐNG 7 TABS NGHIỆP VỤ CHUYÊN SÂU -->
+@php
+    $activeTab = in_array(request('tab'), ['info', 'members', 'guests', 'agenda', 'docs', 'voting', 'resolutions']) ? request('tab') : 'info';
+@endphp
 <x-the-chuyen :tabs="[
-    ['id' => 'tab-info', 'target' => '#pane-info', 'label' => '1. Thông tin chung', 'active' => true],
-    ['id' => 'tab-members', 'target' => '#pane-members', 'label' => '2. Thành viên & Điểm danh', 'badge' => $meeting->thamDu->count()],
-    ['id' => 'tab-guests', 'target' => '#pane-guests', 'label' => '3. Khách mời', 'badge' => $meeting->khachMoiPhienHop->count()],
-    ['id' => 'tab-agenda', 'target' => '#pane-agenda', 'label' => '4. Chương trình họp', 'badge' => $meeting->chuongTrinhHop->count()],
-    ['id' => 'tab-docs', 'target' => '#pane-docs', 'label' => '5. Tài liệu phiên họp', 'badge' => $meeting->taiLieu->count()],
-    ['id' => 'tab-voting', 'target' => '#pane-voting', 'label' => '6. Biểu quyết & Kết quả', 'badge' => $meeting->noiDungBieuQuyet->count()],
-    ['id' => 'tab-resolutions', 'target' => '#pane-resolutions', 'label' => '7. Nghị quyết ban hành', 'badge' => $resolutions->count()],
+    ['id' => 'tab-info', 'key' => 'info', 'target' => '#pane-info', 'label' => '1. Thông tin chung', 'active' => $activeTab === 'info'],
+    ['id' => 'tab-members', 'key' => 'members', 'target' => '#pane-members', 'label' => '2. Thành viên & Điểm danh', 'badge' => $meeting->thamDu->count(), 'active' => $activeTab === 'members'],
+    ['id' => 'tab-guests', 'key' => 'guests', 'target' => '#pane-guests', 'label' => '3. Khách mời', 'badge' => $meeting->khachMoiPhienHop->count(), 'active' => $activeTab === 'guests'],
+    ['id' => 'tab-agenda', 'key' => 'agenda', 'target' => '#pane-agenda', 'label' => '4. Chương trình họp', 'badge' => $meeting->chuongTrinhHop->count(), 'active' => $activeTab === 'agenda'],
+    ['id' => 'tab-docs', 'key' => 'docs', 'target' => '#pane-docs', 'label' => '5. Tài liệu phiên họp', 'badge' => $meeting->taiLieu->count(), 'active' => $activeTab === 'docs'],
+    ['id' => 'tab-voting', 'key' => 'voting', 'target' => '#pane-voting', 'label' => '6. Biểu quyết & Kết quả', 'badge' => $meeting->noiDungBieuQuyet->count(), 'active' => $activeTab === 'voting'],
+    ['id' => 'tab-resolutions', 'key' => 'resolutions', 'target' => '#pane-resolutions', 'label' => '7. Nghị quyết ban hành', 'badge' => $resolutions->count(), 'active' => $activeTab === 'resolutions'],
 ]">
 
     <!-- ==================== TAB 1: THÔNG TIN CHUNG ==================== -->
-    <div class="stu-tab-pane active" id="pane-info">
+    <div class="stu-tab-pane {{ $activeTab === 'info' ? 'active' : '' }}" id="pane-info">
         <div class="stu-grid stu-grid-cols-2">
             <div class="stu-card" style="padding: var(--space-6);">
                 <h3 class="stu-card-title" style="margin-bottom: var(--space-4);">Chi tiết tổ chức</h3>
@@ -123,7 +126,7 @@
     </div>
 
     <!-- ==================== TAB 2: THÀNH VIÊN THAM DỰ & ĐIỂM DANH (BR-02) ==================== -->
-    <div class="stu-tab-pane" id="pane-members">
+    <div class="stu-tab-pane {{ $activeTab === 'members' ? 'active' : '' }}" id="pane-members">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4);">
             <div>
                 <h3 style="font-size: var(--font-size-base); font-weight: 700; color: var(--color-primary); margin-bottom: 2px;">
@@ -190,7 +193,7 @@
                             <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
                                 <form method="POST" action="{{ route('meetings.attendance', [$meeting->MaPhienHop, $attendee->MaThamDu]) }}" style="display: inline-flex; gap: 4px;">
                                     @csrf
-                                    <select name="TrangThaiThamDu" onchange="this.form.submit()" class="stu-select" style="padding: 3px 8px; font-size: 11px; width: auto;" title="Cập nhật điểm danh">
+                                    <select name="TrangThaiThamDu" onchange="this.form.submit()" class="stu-select" style="padding: 3px 30px 3px 8px; height: 28px; font-size: 11px; width: auto;" title="Cập nhật điểm danh">
                                         <option value="Có mặt" {{ $attendee->TrangThaiThamDu == 'Có mặt' ? 'selected' : '' }}>Có mặt</option>
                                         <option value="Vắng" {{ $attendee->TrangThaiThamDu == 'Vắng' ? 'selected' : '' }}>Vắng</option>
                                         <option value="Có xin phép" {{ $attendee->TrangThaiThamDu == 'Có xin phép' ? 'selected' : '' }}>Có xin phép</option>
@@ -214,7 +217,7 @@
     </div>
 
     <!-- ==================== TAB 3: KHÁCH MỜI (BR-03) ==================== -->
-    <div class="stu-tab-pane" id="pane-guests">
+    <div class="stu-tab-pane {{ $activeTab === 'guests' ? 'active' : '' }}" id="pane-guests">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4);">
             <div>
                 <h3 style="font-size: var(--font-size-base); font-weight: 700; color: var(--color-primary); margin-bottom: 2px;">
@@ -275,7 +278,7 @@
     </div>
 
     <!-- ==================== TAB 4: CHƯƠNG TRÌNH HỌP (BR-08) ==================== -->
-    <div class="stu-tab-pane" id="pane-agenda">
+    <div class="stu-tab-pane {{ $activeTab === 'agenda' ? 'active' : '' }}" id="pane-agenda">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4);">
             <div>
                 <h3 style="font-size: var(--font-size-base); font-weight: 700; color: var(--color-primary); margin-bottom: 2px;">
@@ -385,14 +388,14 @@
     </div>
 
     <!-- ==================== TAB 5: TÀI LIỆU PHIÊN HỌP (BR-05) ==================== -->
-    <div class="stu-tab-pane" id="pane-docs">
+    <div class="stu-tab-pane {{ $activeTab === 'docs' ? 'active' : '' }}" id="pane-docs">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4);">
             <div>
                 <h3 style="font-size: var(--font-size-base); font-weight: 700; color: var(--color-primary); margin-bottom: 2px;">
                     Kho Tài liệu Phiên họp (Độc lập với Hồ sơ trình)
                 </h3>
                 <p style="font-size: var(--font-size-xs); color: var(--color-text-muted);">
-                    Tuân thủ <strong>BR-05</strong>: Tài liệu phiên họp lưu tại bảng liên kết riêng `tai_lieu_phien_hop`, phục vụ kịch bản, dự thảo kết luận.
+                    Tuân thủ <strong>BR-05</strong>: Tài liệu phiên họp được quản lý tách biệt hoàn toàn với hồ sơ trình, phục vụ kịch bản điều hành và dự thảo kết luận.
                 </p>
             </div>
             @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
@@ -465,7 +468,7 @@
     </div>
 
     <!-- ==================== TAB 6: NỘI DUNG BIỂU QUYẾT (BR-09 BẢO MẬT BỎ PHIẾU KÍN) ==================== -->
-    <div class="stu-tab-pane" id="pane-voting">
+    <div class="stu-tab-pane {{ $activeTab === 'voting' ? 'active' : '' }}" id="pane-voting">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4);">
             <div>
                 <h3 style="font-size: var(--font-size-base); font-weight: 700; color: var(--color-primary); margin-bottom: 2px;">
@@ -511,7 +514,20 @@
         @else
             <div style="display: flex; flex-direction: column; gap: var(--space-4);">
                 @foreach($meeting->noiDungBieuQuyet as $vote)
-                    @php $summary = $votingSummaries[$vote->MaNoiDung] ?? ['total' => 0, 'agree' => 0, 'disagree' => 0, 'abstain' => 0, 'agree_percent' => 0]; @endphp
+                    @php
+                        $summary = $votingSummaries[$vote->MaNoiDung] ?? [
+                            'total' => 0,
+                            'present_count' => $eligibleVotersCount,
+                            'agree' => 0,
+                            'agree_percent' => 0,
+                            'disagree' => 0,
+                            'disagree_percent' => 0,
+                            'abstain' => 0,
+                            'abstain_percent' => 0,
+                            'pass_threshold' => 50,
+                            'is_passed' => false,
+                        ];
+                    @endphp
                     <div class="stu-card" style="padding: var(--space-6);">
                         <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4);">
                             <div>
@@ -523,18 +539,24 @@
                                     {{ $vote->NoiDung }}
                                 </h4>
                             </div>
-                            <span class="stu-badge stu-badge-success" style="font-size: var(--font-size-sm); padding: 4px 12px;">
-                                {{ $summary['agree_percent'] }}% Tán thành
-                            </span>
+                            @if($summary['needs_tie_decision'] ?? false)
+                                <span class="stu-badge stu-badge-warning" style="font-size: var(--font-size-sm); padding: 4px 12px; white-space: nowrap;">
+                                    {{ $summary['agree_percent'] }}% Tán thành (Hòa phiếu · Chờ QĐ)
+                                </span>
+                            @else
+                                <span class="stu-badge {{ $summary['is_passed'] ? 'stu-badge-success' : 'stu-badge-warning' }}" style="font-size: var(--font-size-sm); padding: 4px 12px; white-space: nowrap;">
+                                    {{ $summary['agree_percent'] }}% Tán thành
+                                </span>
+                            @endif
                         </div>
 
-                        <!-- Tiến độ biểu quyết tổng hợp -->
+                        <!-- Tiến độ biểu quyết tổng hợp (Tính trên tổng đại biểu có mặt theo quy chế) -->
                         <div style="margin-bottom: var(--space-4);">
                             <div style="height: 10px; width: 100%; display: flex; border-radius: var(--radius-full); overflow: hidden; background: var(--color-bg-subtle);">
                                 @if($summary['total'] > 0)
-                                    <div style="width: {{ ($summary['agree'] / $summary['total']) * 100 }}%; background-color: var(--color-success);" title="Tán thành: {{ $summary['agree'] }}"></div>
-                                    <div style="width: {{ ($summary['disagree'] / $summary['total']) * 100 }}%; background-color: var(--color-danger);" title="Không tán thành: {{ $summary['disagree'] }}"></div>
-                                    <div style="width: {{ ($summary['abstain'] / $summary['total']) * 100 }}%; background-color: var(--color-warning);" title="Không ý kiến: {{ $summary['abstain'] }}"></div>
+                                    <div style="width: {{ min($summary['agree_percent'], 100) }}%; background-color: var(--color-success);" title="Tán thành: {{ $summary['agree'] }} ({{ $summary['agree_percent'] }}%)"></div>
+                                    <div style="width: {{ min($summary['disagree_percent'], 100) }}%; background-color: var(--color-danger);" title="Không tán thành: {{ $summary['disagree'] }} ({{ $summary['disagree_percent'] }}%)"></div>
+                                    <div style="width: {{ min($summary['abstain_percent'], 100) }}%; background-color: var(--color-warning);" title="Không ý kiến: {{ $summary['abstain'] }} ({{ $summary['abstain_percent'] }}%)"></div>
                                 @else
                                     <div style="width: 100%; background-color: var(--color-border);"></div>
                                 @endif
@@ -545,7 +567,7 @@
                         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); background: var(--color-bg-subtle); padding: var(--space-3); border-radius: var(--radius-md); font-size: var(--font-size-xs); text-align: center;">
                             <div>
                                 <span style="color: var(--color-text-muted);">Tổng số phiếu:</span>
-                                <div><strong>{{ $summary['total'] }}</strong></div>
+                                <div><strong>{{ $summary['total'] }} / {{ $summary['present_count'] ?? $eligibleVotersCount }}</strong></div>
                             </div>
                             <div>
                                 <span style="color: var(--color-success);">Tán thành:</span>
@@ -553,11 +575,11 @@
                             </div>
                             <div>
                                 <span style="color: var(--color-danger);">Không tán thành:</span>
-                                <div><strong>{{ $summary['disagree'] }}</strong></div>
+                                <div><strong>{{ $summary['disagree'] }}</strong> ({{ $summary['disagree_percent'] }}%)</div>
                             </div>
                             <div>
                                 <span style="color: var(--color-warning);">Không ý kiến:</span>
-                                <div><strong>{{ $summary['abstain'] }}</strong></div>
+                                <div><strong>{{ $summary['abstain'] }}</strong> ({{ $summary['abstain_percent'] }}%)</div>
                             </div>
                         </div>
 
@@ -586,7 +608,7 @@
                                 @endif
                             @endif
                             <a href="{{ route('votes.show', $vote->MaNoiDung) }}" class="stu-btn {{ $isVoteOpening ? 'stu-btn-primary' : 'stu-btn-outline' }} stu-btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-                                <span>{{ $isVoteOpening ? 'Vào phòng bỏ phiếu &rarr;' : 'Xem chi tiết kiểm phiếu &rarr;' }}</span>
+                                <span>{{ $isVoteOpening ? 'Vào phòng bỏ phiếu' : 'Xem chi tiết kiểm phiếu' }} &rarr;</span>
                             </a>
                         </div>
                     </div>
@@ -596,7 +618,7 @@
     </div>
 
     <!-- ==================== TAB 7: NGHỊ QUYẾT LIÊN QUAN ==================== -->
-    <div class="stu-tab-pane" id="pane-resolutions">
+    <div class="stu-tab-pane {{ $activeTab === 'resolutions' ? 'active' : '' }}" id="pane-resolutions">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4);">
             <h3 style="font-size: var(--font-size-base); font-weight: 700; color: var(--color-primary); margin-bottom: 2px;">
                 Nghị quyết được ban hành từ Phiên họp này
@@ -778,7 +800,7 @@
                                     $dossierTitle = $d->TieuDe;
                                     $submitter = $d->nguoiDung?->HoTen ?: 'Cán bộ đơn vị';
                                     $unit = $d->donVi?->TenDonVi ?: 'Chưa rõ đơn vị';
-                                    $summary = $d->TomTat ?: 'Chưa có tóm tắt nội dung';
+                                    $summary = $d->NoiDungTomTat ?: 'Chưa có tóm tắt nội dung';
                                 @endphp
                                 <option 
                                     value="{{ $d->MaHoSo }}"
@@ -880,7 +902,7 @@
                         @php
                             $dossierTitle = $agendaItem->hoSoTrinh?->TieuDe ?? 'Nội dung thảo luận chương trình';
                             $dossierCode = $agendaItem->hoSoTrinh?->ma_ho_so_hien_thi ?? ('#HS-' . $agendaItem->MaHoSo);
-                            $submitter = $agendaItem->hoSoTrinh?->nguoiTrinh?->HoTen ?? ($agendaItem->hoSoTrinh?->donVi?->TenDonVi ?? 'Ban Giám hiệu');
+                            $submitter = $agendaItem->hoSoTrinh?->nguoiDung?->HoTen ?? ($agendaItem->hoSoTrinh?->donVi?->TenDonVi ?? 'Ban Giám hiệu');
                         @endphp
                         <option 
                             value="{{ $agendaItem->MaChuongTrinh }}"

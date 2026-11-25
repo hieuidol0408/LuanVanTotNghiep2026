@@ -217,10 +217,16 @@ class BieuQuyetController extends Controller
             ], 404);
         }
 
+        $meta = $vote->decodeMeta();
+        $meta['opened_by_user_id'] = $user?->MaNguoiDung;
+        $meta['opened_by_name'] = $user?->HoTen ?? 'Người mở cổng biểu quyết';
+        unset($meta['tie_decision'], $meta['decided_by_user_id'], $meta['decided_by_name'], $meta['decided_at']);
+
         $vote->update([
             'TrangThai' => 'OPENING',
             'ThoiGianMo' => now(),
             'KetQua' => 'PENDING',
+            'GhiChu' => json_encode($meta, JSON_UNESCAPED_UNICODE),
         ]);
 
         return response()->json([
@@ -444,36 +450,15 @@ class BieuQuyetController extends Controller
             ], 404);
         }
 
-        // Đọc cấu hình ngưỡng thông qua từ GhiChu
-        $meta = json_decode($vote->GhiChu ?? '{}', true) ?: [];
-        $passThreshold = (int) ($meta['pass_threshold'] ?? 50);
-
-        // Tổng hợp phiếu
-        $votes = $vote->ketQuaBieuQuyet;
-        $totalCast = $votes->count();
-        $votesFor = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_FOR', 'Tán thành']))->count();
-
-        // Lấy số thành viên HĐT có quyền biểu quyết và có mặt tại phiên họp (BR-07)
         $phienHop = $vote->chuongTrinhHop?->phienHop;
-        $presentOfficialCount = 0;
-        if ($phienHop) {
-            $presentOfficialCount = ThamDu::where('MaPhienHop', $phienHop->MaPhienHop)
-                ->whereIn('TrangThaiThamDu', ['PRESENT', 'Có mặt'])
-                ->whereHas('thanhVienHdt', function ($q) {
-                    $q->where(function ($sub) {
-                        $sub->whereNull('CoQuyenBieuQuyet')
-                            ->orWhere('CoQuyenBieuQuyet', 1);
-                    });
-                })
-                ->count();
+        $stats = $vote->calculateStats();
+        if ($stats['is_tied'] && $stats['tie_decision'] === null) {
+            $finalResult = 'TIE_PENDING';
+            $resultMsg = 'HÒA PHIẾU - CHỜ NGƯỜI MỞ CỔNG QUYẾT ĐỊNH';
+        } else {
+            $finalResult = $stats['is_passed'] ? 'PASSED' : 'REJECTED';
+            $resultMsg = $finalResult === 'PASSED' ? 'THÔNG QUA' : 'KHÔNG THÔNG QUA';
         }
-
-        // Mẫu số: tính theo số thành viên có mặt, nếu không có thì tính trên tổng số phiếu đã bỏ
-        $denominator = $presentOfficialCount > 0 ? $presentOfficialCount : max($totalCast, 1);
-        $percentageFor = ($votesFor / $denominator) * 100;
-
-        // Xác định kết quả: Đạt ngưỡng thì PASSED, không đạt thì REJECTED
-        $finalResult = $percentageFor >= $passThreshold ? 'PASSED' : 'REJECTED';
 
         $vote->update([
             'TrangThai' => 'CLOSED',
@@ -483,7 +468,7 @@ class BieuQuyetController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Đã đóng biểu quyết. Kết quả: ' . ($finalResult === 'PASSED' ? 'THÔNG QUA' : 'KHÔNG THÔNG QUA'),
+            'message' => 'Đã đóng biểu quyết. Kết quả: ' . $resultMsg,
             'data' => $this->formatVotingSummary($vote->fresh(), $phienHop?->MaPhienHop ?? 1, $user),
             'errors' => null,
         ]);
@@ -589,19 +574,19 @@ class BieuQuyetController extends Controller
      */
     private function formatVotingSummary(NoiDungBieuQuyet $vote, ?int $meetingId = null, $currentUser = null): array
     {
-        $meta = json_decode($vote->GhiChu ?? '{}', true) ?: [];
-        $votingType = $meta['voting_type'] ?? 'SECRET';
-        $passThreshold = (int) ($meta['pass_threshold'] ?? 50);
+        $stats = $vote->calculateStats();
+        $votingType = $stats['voting_type'];
+        $passThreshold = $stats['pass_threshold'];
 
         $votes = $vote->ketQuaBieuQuyet ?? collect([]);
-        $totalCast = $votes->count();
-        $votesFor = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_FOR', 'Tán thành']))->count();
-        $votesAgainst = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_AGAINST', 'Không tán thành']))->count();
-        $votesAbstain = $votes->filter(fn ($v) => in_array($v->LuaChon, ['VOTE_ABSTAIN', 'Không có ý kiến', 'Không ý kiến']))->count();
+        $totalCast = $stats['total'];
+        $votesFor = $stats['agree'];
+        $votesAgainst = $stats['disagree'];
+        $votesAbstain = $stats['abstain'];
 
-        $percentageFor = $totalCast > 0 ? round(($votesFor / $totalCast) * 100, 1) : 0;
-        $percentageAgainst = $totalCast > 0 ? round(($votesAgainst / $totalCast) * 100, 1) : 0;
-        $percentageAbstain = $totalCast > 0 ? round(($votesAbstain / $totalCast) * 100, 1) : 0;
+        $percentageFor = $stats['agree_percent'];
+        $percentageAgainst = $stats['disagree_percent'];
+        $percentageAbstain = $stats['abstain_percent'];
 
         $rawStatus = strtoupper(trim((string) ($vote->getRawOriginal('TrangThai') ?: $vote->TrangThai)));
         $statusKey = match (true) {
