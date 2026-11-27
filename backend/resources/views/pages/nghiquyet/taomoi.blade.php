@@ -163,7 +163,7 @@
                         @forelse($dossiers as $dos)
                             <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; margin-bottom: 6px; cursor: pointer;">
                                 <input type="checkbox" name="dossier_ids[]" value="{{ $dos->MaHoSo }}" style="margin-top: 2px;">
-                                <span>#HS-{{ str_pad($dos->MaHoSo, 3, '0', STR_PAD_LEFT) }}: {{ $dos->TieuDe }}</span>
+                                <span>{{ $dos->ma_ho_so_hien_thi }}: {{ $dos->TieuDe }}</span>
                             </label>
                         @empty
                             <span style="font-size: 12px; color: var(--color-text-muted);">Phiên họp này chưa có hồ sơ trình liên kết.</span>

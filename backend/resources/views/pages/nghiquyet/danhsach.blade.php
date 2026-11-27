@@ -2,6 +2,18 @@
 
 @section('title', 'Quản lý Nghị quyết Hội đồng trường STU')
 
+@push('styles')
+<style>
+    #resolutionsTableWrap .stu-table th,
+    #resolutionsTableWrap .stu-table td {
+        padding: 10px 8px;
+    }
+    #resolutionsTableWrap .stu-table th {
+        font-size: 11px;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="stu-page-container">
     {{-- Breadcrumb --}}
@@ -31,13 +43,13 @@
     @php
         $hasAdvancedFilter = request()->filled('from_date') || request()->filled('to_date');
     @endphp
-    <div class="stu-card stu-mb-6" style="padding: 20px 24px; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
+    <div class="stu-card stu-mb-6" style="padding: 18px 20px; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
         <form method="GET" action="{{ route('resolutions.index') }}" id="resolutionFilterForm">
             <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
             
-            <div class="stu-grid" style="grid-template-columns: minmax(160px, 1.6fr) minmax(150px, 1.4fr) minmax(160px, 1.3fr) minmax(125px, 1fr) auto auto auto; gap: 10px; align-items: flex-end;">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;">
                 {{-- Từ khóa --}}
-                <div class="stu-form-group" style="margin-bottom: 0;">
+                <div class="stu-form-group" style="margin-bottom: 0; flex: 1.5 1 180px; min-width: 165px;">
                     <label class="stu-form-label" style="white-space: nowrap;">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         <span>Tìm theo từ khóa</span>
@@ -48,16 +60,16 @@
                             type="text" 
                             name="search" 
                             value="{{ request('search') }}" 
-                            placeholder="Mã NQ (#NQ-...), số hiệu, trích yếu, nội dung..." 
+                            placeholder="Mã NQ (#NQ-...), số hiệu, trích yếu..." 
                             class="stu-form-control"
                             style="padding-left: 36px;"
-                            title="Tra cứu nhanh theo từ khóa trong tiêu đề hoặc trích yếu nội dung"
+                            title="Tra cứu nhanh theo mã, số hiệu, trích yếu hoặc nội dung"
                         >
                     </div>
                 </div>
 
                 {{-- Phiên họp --}}
-                <div class="stu-form-group" style="margin-bottom: 0;">
+                <div class="stu-form-group" style="margin-bottom: 0; flex: 1.2 1 150px; min-width: 140px;">
                     <label class="stu-form-label" style="white-space: nowrap;">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         <span>Phiên họp</span>
@@ -66,14 +78,14 @@
                         <option value="">Tất cả phiên họp</option>
                         @foreach($meetings as $m)
                             <option value="{{ $m->MaPhienHop }}" {{ request('meeting_id') == $m->MaPhienHop ? 'selected' : '' }}>
-                                {{ $m->TenPhienHop }}
+                                #{{ $m->MaPhienHop }} - {{ Str::limit($m->TenPhienHop, 42) }}
                             </option>
                         @endforeach
                     </select>
                 </div>
 
                 {{-- Trạng thái --}}
-                <div class="stu-form-group" style="margin-bottom: 0;">
+                <div class="stu-form-group" style="margin-bottom: 0; flex: 1 1 130px; min-width: 120px;">
                     <label class="stu-form-label" style="white-space: nowrap;">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span>Trạng thái</span>
@@ -87,7 +99,7 @@
                 </div>
 
                 {{-- Năm --}}
-                <div class="stu-form-group" style="margin-bottom: 0;">
+                <div class="stu-form-group" style="margin-bottom: 0; flex: 0.75 1 105px; min-width: 100px;">
                     <label class="stu-form-label" style="white-space: nowrap;">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         <span>Năm ban hành</span>
@@ -100,25 +112,20 @@
                     </select>
                 </div>
 
-                {{-- Nút Tìm kiếm nâng cao (Lọc theo khoảng thời gian) --}}
-                <div>
-                    <button type="button" id="btnToggleAdvanced" class="stu-btn {{ $hasAdvancedFilter ? 'stu-btn-primary' : 'stu-btn-secondary' }}" style="height: 38px; padding: 0 12px; font-size: 12px; white-space: nowrap; gap: 6px;" title="Lọc theo khoảng thời gian ban hành">
+                {{-- Nhóm nút hành động --}}
+                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; white-space: nowrap;">
+                    <button type="button" id="btnToggleAdvanced" class="stu-btn {{ $hasAdvancedFilter ? 'stu-btn-primary' : 'stu-btn-secondary' }}" style="height: 38px; padding: 0 11px; font-size: 12px; white-space: nowrap; gap: 5px;" title="Lọc theo khoảng thời gian ban hành">
                         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                         <span>Nâng cao</span>
                         <svg width="12" height="12" id="advancedIconChevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="transition: transform 0.2s ease; transform: {{ $hasAdvancedFilter ? 'rotate(180deg)' : 'rotate(0)' }};"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                </div>
 
-                {{-- Nút bấm Lọc --}}
-                <div>
-                    <button type="submit" class="stu-btn stu-btn-primary" style="height: 38px; padding: 0 16px; font-weight: 600; box-shadow: 0 1px 2px 0 rgba(0, 58, 140, 0.2);">
+                    <button type="submit" class="stu-btn stu-btn-primary" style="height: 38px; padding: 0 14px; font-weight: 600; white-space: nowrap; box-shadow: 0 1px 2px 0 rgba(0, 58, 140, 0.2);">
                         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <span>Lọc</span>
                     </button>
-                </div>
 
-                <div>
-                    <a href="{{ route('resolutions.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px; padding: 0 14px;" title="Đặt lại bộ lọc về mặc định">
+                    <a href="{{ route('resolutions.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px; padding: 0 12px; white-space: nowrap;" title="Đặt lại bộ lọc về mặc định">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         <span>Đặt lại</span>
                     </a>
@@ -154,109 +161,111 @@
     </div>
 
     {{-- Bảng danh sách Nghị quyết (Hiển thị đúng các cột của bảng NGHI_QUYET trong CSDL) --}}
-    <x-bang-du-lieu 
-        cardTitle="Danh sách Nghị quyết Hội đồng trường (Tổng: {{ $resolutions->total() }})"
-        :headers="['Mã NQ', 'Số nghị quyết', 'Ngày ban hành', 'Trích yếu', 'Nội dung', 'Trạng thái', 'Phiên họp']" 
-        :hasActions="true"
-        actionTitle="Thao tác"
-    >
-        @forelse($resolutions as $res)
-            @php
-                $isDraft = in_array($res->TrangThai, ['DRAFT', 'Dự thảo']);
-                $isSigned = in_array($res->TrangThai, ['SIGNED', 'Đã ký ban hành', 'Đã ký']);
-                $noiDungTomTat = trim((string) preg_replace('/\s+/', ' ', strip_tags((string) $res->NoiDung)));
-            @endphp
-            <tr>
-                <td style="font-weight: 700; color: var(--color-text-muted); white-space: nowrap; text-align: center; width: 70px;">
-                    #{{ $res->MaNghiQuyet }}
-                </td>
-                <td style="font-weight: 700; color: var(--color-primary); white-space: nowrap;">
-                    <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" style="color: var(--color-primary); text-decoration: none;">
-                        {{ $res->SoNghiQuyet }}
-                    </a>
-                </td>
-                <td style="font-size: 13px; white-space: nowrap; color: var(--color-text-primary);">
-                    {{ $res->NgayBanHanh ? \Carbon\Carbon::parse($res->NgayBanHanh)->format('d/m/Y') : '-' }}
-                </td>
-                <td style="min-width: 150px; max-width: 210px;">
-                    <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none; line-height: 1.45; display: block;" class="hover:text-primary" title="{{ $res->TrichYeu }}">
-                        {{ $res->TrichYeu }}
-                    </a>
-                </td>
-                <td style="min-width: 150px; max-width: 220px; font-size: 12.5px; color: var(--color-text-muted); line-height: 1.45;" title="{{ $res->NoiDung }}">
-                    <div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
-                        {{ $noiDungTomTat ?: '-' }}
-                    </div>
-                </td>
-                <td style="text-align: center; white-space: nowrap;">
-                    <x-nhan-trang-thai :status="$res->TrangThai" />
-                </td>
-                <td style="min-width: 140px; max-width: 190px; font-size: 12.5px; line-height: 1.4;">
-                    @if($res->phienHop)
-                        <a href="{{ route('meetings.show', $res->MaPhienHop) }}" style="font-weight: 500; color: var(--color-primary); text-decoration: none;" title="{{ $res->phienHop->TenPhienHop }}">
-                            #{{ $res->MaPhienHop }} - {{ $res->phienHop->TenPhienHop }}
+    <div id="resolutionsTableWrap">
+        <x-bang-du-lieu 
+            cardTitle="Danh sách Nghị quyết Hội đồng trường (Tổng: {{ $resolutions->total() }})"
+            :headers="['Mã NQ', 'Số nghị quyết', 'Ngày ban hành', 'Trích yếu', 'Nội dung', 'Trạng thái', 'Phiên họp']" 
+            :hasActions="true"
+            actionTitle="Thao tác"
+        >
+            @forelse($resolutions as $res)
+                @php
+                    $isDraft = in_array($res->TrangThai, ['DRAFT', 'Dự thảo']);
+                    $isSigned = in_array($res->TrangThai, ['SIGNED', 'Đã ký ban hành', 'Đã ký']);
+                    $noiDungTomTat = trim((string) preg_replace('/\s+/', ' ', strip_tags((string) $res->NoiDung)));
+                @endphp
+                <tr>
+                    <td style="font-weight: 700; color: var(--color-text-muted); white-space: nowrap; text-align: center; width: 52px;">
+                        #{{ $res->MaNghiQuyet }}
+                    </td>
+                    <td style="font-weight: 700; color: var(--color-primary); white-space: nowrap; width: 118px;">
+                        <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" style="color: var(--color-primary); text-decoration: none;">
+                            {{ $res->SoNghiQuyet }}
                         </a>
-                    @else
-                        <span style="color: var(--color-text-muted);">#{{ $res->MaPhienHop }}</span>
-                    @endif
-                </td>
-                <td class="col-actions" style="text-align: right; white-space: nowrap;">
-                    <div class="stu-actions-2x2">
-                        {{-- Hàng 1 (Trên): Xem & Sửa --}}
-                        <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" class="stu-btn-2x2 btn-view" title="Xem chi tiết toàn văn">
-                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                            <span>Xem</span>
+                    </td>
+                    <td style="font-size: 12.5px; white-space: nowrap; color: var(--color-text-primary); width: 92px;">
+                        {{ $res->NgayBanHanh ? \Carbon\Carbon::parse($res->NgayBanHanh)->format('d/m/Y') : '-' }}
+                    </td>
+                    <td style="max-width: 175px;">
+                        <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" style="font-weight: 600; font-size: 13px; color: var(--color-text-primary); text-decoration: none; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;" class="hover:text-primary" title="{{ $res->TrichYeu }}">
+                            {{ $res->TrichYeu }}
                         </a>
-
-                        @if($isDraft && in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                            <a href="{{ route('resolutions.edit', $res->MaNghiQuyet) }}" class="stu-btn-2x2 btn-update" title="Chỉnh sửa dự thảo">
-                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                <span>Sửa</span>
+                    </td>
+                    <td style="max-width: 175px; font-size: 12px; color: var(--color-text-muted); line-height: 1.4;" title="{{ $res->NoiDung }}">
+                        <div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                            {{ $noiDungTomTat ?: '-' }}
+                        </div>
+                    </td>
+                    <td style="text-align: center; white-space: nowrap;">
+                        <x-nhan-trang-thai :status="$res->TrangThai" />
+                    </td>
+                    <td style="max-width: 145px; font-size: 12px; line-height: 1.35;">
+                        @if($res->phienHop)
+                            <a href="{{ route('meetings.show', $res->MaPhienHop) }}" style="font-weight: 500; color: var(--color-primary); text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="{{ $res->phienHop->TenPhienHop }}">
+                                #{{ $res->MaPhienHop }} - {{ $res->phienHop->TenPhienHop }}
                             </a>
+                        @else
+                            <span style="color: var(--color-text-muted);">#{{ $res->MaPhienHop }}</span>
                         @endif
+                    </td>
+                    <td class="col-actions" style="text-align: right; white-space: nowrap; width: 108px;">
+                        <div class="stu-actions-2x2">
+                            {{-- Hàng 1 (Trên): Xem & Sửa --}}
+                            <a href="{{ route('resolutions.show', $res->MaNghiQuyet) }}" class="stu-btn-2x2 btn-view" title="Xem chi tiết toàn văn">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <span>Xem</span>
+                            </a>
 
-                        {{-- Hàng 2 (Dưới): Ký / Công bố & Ẩn --}}
-                        @if($isDraft && in_array($role, ['CHAIR', 'ADMIN']))
-                            <form method="POST" action="{{ route('resolutions.sign', $res->MaNghiQuyet) }}" style="display: inline-block;">
-                                @csrf
-                                <button type="submit" class="stu-btn-2x2 btn-success" title="Chủ tịch ký ban hành">
-                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                    <span>Ký</span>
-                                </button>
-                            </form>
-                        @elseif($isSigned && in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                            <form method="POST" action="{{ route('resolutions.publish', $res->MaNghiQuyet) }}" style="display: inline-block;">
-                                @csrf
-                                <button type="submit" class="stu-btn-2x2 btn-primary" title="Công bố hiệu lực toàn trường">
-                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                    <span>Công bố</span>
-                                </button>
-                            </form>
-                        @endif
+                            @if($isDraft && in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                                <a href="{{ route('resolutions.edit', $res->MaNghiQuyet) }}" class="stu-btn-2x2 btn-update" title="Chỉnh sửa dự thảo">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    <span>Sửa</span>
+                                </a>
+                            @endif
 
-                        @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
-                            <form method="POST" action="{{ route('resolutions.destroy', $res->MaNghiQuyet) }}" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn Nghị quyết {{ $res->SoNghiQuyet }} khỏi giao diện? (Dữ liệu vẫn được bảo toàn trong hệ thống)');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="stu-btn-2x2 btn-delete" title="Ẩn Nghị quyết (Bảo toàn dữ liệu)">
-                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
-                                    <span>Ẩn</span>
-                                </button>
-                            </form>
-                        @endif
-                    </div>
-                </td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="8" style="text-align: center; padding: 48px; color: var(--color-text-muted);">
-                    <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 12px; color: var(--color-border);"><path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
-                    <div style="font-weight: 600; font-size: 15px;">Chưa có Nghị quyết nào</div>
-                    <div style="font-size: 13px; margin-top: 4px;">Các Nghị quyết được ban hành từ phiên họp sẽ xuất hiện tại đây.</div>
-                </td>
-            </tr>
-        @endforelse
-    </x-bang-du-lieu>
+                            {{-- Hàng 2 (Dưới): Ký / Công bố & Ẩn --}}
+                            @if($isDraft && in_array($role, ['CHAIR', 'ADMIN']))
+                                <form method="POST" action="{{ route('resolutions.sign', $res->MaNghiQuyet) }}" style="display: inline-block;">
+                                    @csrf
+                                    <button type="submit" class="stu-btn-2x2 btn-success" title="Chủ tịch ký ban hành">
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                        <span>Ký</span>
+                                    </button>
+                                </form>
+                            @elseif($isSigned && in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                                <form method="POST" action="{{ route('resolutions.publish', $res->MaNghiQuyet) }}" style="display: inline-block;">
+                                    @csrf
+                                    <button type="submit" class="stu-btn-2x2 btn-primary" title="Công bố hiệu lực toàn trường">
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                        <span>Công bố</span>
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                                <form method="POST" action="{{ route('resolutions.destroy', $res->MaNghiQuyet) }}" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn Nghị quyết {{ $res->SoNghiQuyet }} khỏi giao diện? (Dữ liệu vẫn được bảo toàn trong hệ thống)');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="stu-btn-2x2 btn-delete" title="Ẩn Nghị quyết (Bảo toàn dữ liệu)">
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                                        <span>Ẩn</span>
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 48px; color: var(--color-text-muted);">
+                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 0 auto 12px; color: var(--color-border);"><path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                        <div style="font-weight: 600; font-size: 15px;">Chưa có Nghị quyết nào</div>
+                        <div style="font-size: 13px; margin-top: 4px;">Các Nghị quyết được ban hành từ phiên họp sẽ xuất hiện tại đây.</div>
+                    </td>
+                </tr>
+            @endforelse
+        </x-bang-du-lieu>
+    </div>
 
     {{-- Phân trang --}}
     <div class="stu-mt-6" style="width: 100%;">
@@ -302,7 +311,7 @@
             </div>
         </div>
 
-        {{-- 2. Hàng 2: Kỳ họp ban hành (Toàn bộ chiều rộng 100% để dropdown bám dính chuẩn xác với khung chọn) --}}
+        {{-- 2. Hàng 2: Kỳ họp ban hành --}}
         <div class="stu-form-group" style="margin-bottom: 12px; width: 100%; max-width: 100%; box-sizing: border-box;">
             <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700; display: flex; align-items: center; justify-content: space-between;">
                 <span>Kỳ họp ban hành <span style="color: var(--color-danger);">*</span></span>
@@ -314,7 +323,7 @@
                     id="modalMaPhienHopSelect" 
                     class="stu-form-control" 
                     required 
-                    style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 40px; font-size: 13.5px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 36px; background-color: #F8FAFC;"
+                    style="width: 100%; max-width: 100%; box-sizing: border-box; height: 40px; font-size: 13.5px; border-radius: 8px; border: 1.5px solid #CBD5E1; background-color: #F8FAFC;"
                 >
                     <option value="">-- Chọn phiên họp --</option>
                     @php
@@ -338,6 +347,7 @@
                                 @endphp
                                 <option 
                                     value="{{ $m->MaPhienHop }}"
+                                    {{ old('MaPhienHop') == $m->MaPhienHop ? 'selected' : '' }}
                                     data-id="{{ $m->MaPhienHop }}"
                                     data-title="{{ $m->TenPhienHop }}"
                                     data-date="{{ $dateFormatted }}"
@@ -374,8 +384,8 @@
             </div>
         </div>
 
-        {{-- 2. Trích yếu --}}
-        <div class="stu-form-group" style="margin-bottom: 14px;">
+        {{-- 3. Trích yếu --}}
+        <div class="stu-form-group" style="margin-bottom: 12px;">
             <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
                 Trích yếu <span style="color: var(--color-danger);">*</span>
             </label>
@@ -390,14 +400,14 @@
             >{{ old('TrichYeu') }}</textarea>
         </div>
 
-        {{-- 3. Nội dung nghị quyết --}}
-        <div class="stu-form-group" style="margin-bottom: 14px;">
+        {{-- 4. Nội dung nghị quyết --}}
+        <div class="stu-form-group" style="margin-bottom: 12px;">
             <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
                 Nội dung nghị quyết <span style="color: var(--color-danger);">*</span>
             </label>
             <textarea 
                 name="NoiDung" 
-                rows="4" 
+                rows="3" 
                 class="stu-form-control" 
                 placeholder="Điều 1: Hội đồng trường quyết nghị thông qua đề án... Điều 2: Giao Hiệu trưởng ban hành quyết định thành lập và bổ nhiệm nhân sự..." 
                 required
@@ -405,36 +415,46 @@
             >{{ old('NoiDung') }}</textarea>
         </div>
 
-        {{-- 4. Tập tin văn bản đính kèm --}}
-        <div class="stu-form-group" style="margin-bottom: 14px;">
+        {{-- 5. Liên kết Hồ sơ trình & Biểu quyết --}}
+        @include('pages.nghiquyet._link_evidence_fields', [
+            'containerId' => 'createLinkEvidenceBox',
+            'dossiers' => $dossiers,
+            'votings' => $votings,
+            'selectedDossierIds' => old('dossier_ids', []),
+            'selectedVotingIds' => old('voting_ids', []),
+            'currentMeetingId' => old('MaPhienHop', 0),
+        ])
+
+        {{-- 6. Tập tin văn bản đính kèm --}}
+        <div class="stu-form-group" style="margin-bottom: 12px;">
             <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
-                Tập tin văn bản ký số / scan (.pdf, .docx)
+                Tập tin văn bản ký số / scan (.pdf, .docx - có thể chọn nhiều tệp)
             </label>
             <input 
                 type="file" 
-                name="file" 
+                name="files[]" 
+                multiple
                 class="stu-form-control" 
                 accept=".pdf,.doc,.docx"
                 style="height: 38px; font-size: 12px; padding: 6px 12px;"
             >
         </div>
 
-        {{-- 5. Quy tắc nghiệp vụ tự động --}}
-        <div style="padding: 12px 14px; background: #f0f9ff; border: 1px dashed #bae6fd; border-radius: 8px; font-size: 12px; color: #0369a1; line-height: 1.5; margin-bottom: 16px;">
-            <strong>Quy tắc nghiệp vụ tự động (Yêu cầu chức năng 15 & BR-10):</strong> Hệ thống tự động ghi nhận số hiệu và ngày ban hành chính thức của Nghị quyết gắn liền với phiên họp Hội đồng trường, tạo căn cứ pháp lý để kích hoạt quy trình phân rã nhiệm vụ thi hành.
-        </div>
-
-        <!-- Footer buttons -->
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--color-border);">
-            <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>
-                <span>Hủy bỏ</span>
-            </button>
-            <button type="submit" class="stu-btn stu-btn-primary" style="font-weight: 600;">
-                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                <span>Xác nhận ghi nhận và Ban hành</span>
-            </button>
+        {{-- 7. Quy tắc nghiệp vụ tự động --}}
+        <div style="padding: 10px 14px; background: #f0f9ff; border: 1px dashed #bae6fd; border-radius: 8px; font-size: 12px; color: #0369a1; line-height: 1.5; margin-bottom: 4px;">
+            <strong>Quy tắc nghiệp vụ tự động (Yêu cầu chức năng 15 &amp; BR-10):</strong> Hệ thống tự động ghi nhận số hiệu và ngày ban hành chính thức của Nghị quyết gắn liền với phiên họp Hội đồng trường, tạo căn cứ pháp lý để kích hoạt quy trình phân rã nhiệm vụ thi hành.
         </div>
     </form>
+
+    <x-slot:footer>
+        <button type="button" class="stu-btn stu-btn-secondary" data-modal-close>
+            <span>Hủy bỏ</span>
+        </button>
+        <button type="submit" form="modalCreateResolutionForm" class="stu-btn stu-btn-primary" style="font-weight: 600;">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span>Xác nhận ghi nhận và Ban hành</span>
+        </button>
+    </x-slot:footer>
 </x-hop-thoai>
 
 <script>

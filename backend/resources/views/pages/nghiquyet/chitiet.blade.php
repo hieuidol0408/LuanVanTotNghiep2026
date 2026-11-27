@@ -28,7 +28,16 @@
             </h1>
 
             <div style="font-size: 13px; color: var(--color-text-muted); margin-top: 6px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                <span><strong>Phiên họp:</strong> {{ $resolution->phienHop?->TenPhienHop ?? 'Phiên họp #' . $resolution->MaPhienHop }}</span>
+                <span>
+                    <strong>Phiên họp:</strong>
+                    @if($resolution->phienHop)
+                        <a href="{{ route('meetings.show', $resolution->MaPhienHop) }}" style="color: var(--color-primary); font-weight: 600; text-decoration: none;">
+                            #{{ $resolution->MaPhienHop }} - {{ $resolution->phienHop->TenPhienHop }}
+                        </a>
+                    @else
+                        Phiên họp #{{ $resolution->MaPhienHop }}
+                    @endif
+                </span>
                 <span><strong>Ngày ban hành:</strong> {{ $resolution->NgayBanHanh ? \Carbon\Carbon::parse($resolution->NgayBanHanh)->format('d/m/Y') : 'Chưa ấn định' }}</span>
                 <span><strong>Tiến độ thực hiện:</strong> {{ $overallProgress }}% ({{ $completedTasks }}/{{ $totalTasks }} nhiệm vụ hoàn thành)</span>
             </div>
@@ -103,44 +112,82 @@
             </div>
 
             {{-- 2. Tài liệu văn bản đính kèm --}}
-            <div class="stu-card" style="padding: 24px;">
-                <h3 style="font-size: 16px; font-weight: 700; color: var(--color-primary); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                    <span>Văn bản Nghị quyết bản scan có chữ ký & đóng dấu ({{ $resolution->taiLieu->count() }})</span>
-                </h3>
+            <div class="stu-card" style="padding: 22px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px;">
+                    <h3 style="font-size: 16px; font-weight: 700; color: var(--color-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                        <span>Văn bản Nghị quyết bản scan có chữ ký &amp; đóng dấu ({{ $resolution->taiLieu->count() }})</span>
+                    </h3>
+                </div>
+
+                @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                    <form method="POST" action="{{ route('resolutions.documents.store', $resolution->MaNghiQuyet) }}" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 10px; margin-bottom: 16px;">
+                        @csrf
+                        <div style="flex: 1 1 240px; min-width: 0;">
+                            <input
+                                type="file"
+                                name="files[]"
+                                multiple
+                                accept=".pdf,.doc,.docx"
+                                required
+                                class="stu-form-control"
+                                style="height: 36px; font-size: 12px; padding: 5px 10px; background: #fff;"
+                            >
+                        </div>
+                        <button type="submit" class="stu-btn stu-btn-primary" style="height: 36px; padding: 0 14px; font-size: 12.5px; white-space: nowrap;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                            <span>Đính kèm văn bản</span>
+                        </button>
+                    </form>
+                @endif
 
                 @if($resolution->taiLieu->count() > 0)
                     <div class="stu-table-wrapper">
-                        <table class="stu-table">
+                        <table class="stu-table" style="table-layout: auto;">
                             <thead>
                                 <tr>
-                                    <th>Tên tài liệu</th>
-                                    <th>Định dạng</th>
-                                    <th>Dung lượng</th>
-                                    <th>Ngày tải lên</th>
-                                    <th style="text-align: right;">Tải về</th>
+                                    <th style="padding: 10px 10px;">Tên tài liệu</th>
+                                    <th style="padding: 10px 8px; white-space: nowrap;">Định dạng</th>
+                                    <th style="padding: 10px 8px; white-space: nowrap;">Ngày tải lên</th>
+                                    <th style="padding: 10px 10px; text-align: right; white-space: nowrap;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($resolution->taiLieu as $doc)
                                     <tr>
-                                        <td style="font-weight: 600; color: var(--color-text-primary);">
-                                            {{ $doc->TenTaiLieu }}
+                                        <td style="padding: 10px 10px; font-weight: 600; color: var(--color-text-primary); word-break: break-word;">
+                                            <div>{{ $doc->TenTaiLieu }}</div>
+                                            <div style="font-size: 11px; font-weight: 400; color: var(--color-text-muted); margin-top: 2px;">
+                                                {{ $doc->DungLuong ? number_format($doc->DungLuong / 1024, 1) . ' KB' : '—' }}
+                                            </div>
                                         </td>
-                                        <td style="font-size: 12px; text-transform: uppercase;">
+                                        <td style="padding: 10px 8px; font-size: 12px; text-transform: uppercase; white-space: nowrap;">
                                             <span class="stu-badge stu-badge-light">{{ $doc->DinhDang ?? 'PDF' }}</span>
                                         </td>
-                                        <td style="font-size: 12px; color: var(--color-text-muted);">
-                                            {{ $doc->DungLuong ? number_format($doc->DungLuong / 1024, 1) . ' KB' : '—' }}
-                                        </td>
-                                        <td style="font-size: 12px; color: var(--color-text-muted);">
+                                        <td style="padding: 10px 8px; font-size: 12px; color: var(--color-text-muted); white-space: nowrap;">
                                             {{ $doc->NgayTaiLen ? \Carbon\Carbon::parse($doc->NgayTaiLen)->format('d/m/Y') : '—' }}
                                         </td>
-                                        <td style="text-align: right;">
-                                            <a href="{{ $doc->DuongDan }}" target="_blank" download class="stu-btn stu-btn-outline stu-btn-sm" style="padding: 4px 10px;">
-                                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                <span>Tải file</span>
-                                            </a>
+                                        <td style="padding: 10px 10px; text-align: right; white-space: nowrap;">
+                                            <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap;">
+                                                <a href="{{ route('documents.preview', $doc->MaTaiLieu) }}" target="_blank" class="stu-btn stu-btn-ghost stu-btn-sm" style="padding: 4px 8px; font-size: 12px;" title="Xem trước tài liệu">
+                                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                    <span>Xem</span>
+                                                </a>
+                                                <a href="{{ route('documents.download', $doc->MaTaiLieu) }}" class="stu-btn stu-btn-outline stu-btn-sm" style="padding: 4px 8px; font-size: 12px;" title="Tải về máy">
+                                                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                    <span>Tải file</span>
+                                                </a>
+                                                @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                                                    <form method="POST" action="{{ route('resolutions.documents.destroy', [$resolution->MaNghiQuyet, $doc->MaTaiLieu]) }}" style="display: inline-block; margin: 0;" onsubmit="return confirm('Bạn có chắc muốn gỡ tài liệu {{ $doc->TenTaiLieu }} khỏi nghị quyết này?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="stu-btn stu-btn-ghost stu-btn-sm" style="padding: 4px 8px; font-size: 12px; color: var(--color-danger);" title="Gỡ tài liệu đính kèm">
+                                                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                            <span>Gỡ</span>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -241,40 +288,57 @@
             </div>
 
             {{-- Căn cứ Hồ sơ tờ trình xem xét --}}
-            <div class="stu-card" style="padding: 22px;">
-                <h4 style="font-size: 14px; font-weight: 800; color: var(--color-primary); margin: 0 0 12px 0;">
-                    Căn cứ Hồ sơ tờ trình ({{ $resolution->hoSoTrinh->count() }})
-                </h4>
+            <div class="stu-card" style="padding: 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px;">
+                    <h4 style="font-size: 14px; font-weight: 800; color: var(--color-primary); margin: 0;">
+                        Căn cứ Hồ sơ tờ trình ({{ $resolution->hoSoTrinh->count() }})
+                    </h4>
+                    @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                        <button type="button" class="stu-btn stu-btn-ghost stu-btn-sm" style="padding: 3px 9px; font-size: 11.5px;" data-modal-open="linkEvidenceModal">
+                            + Liên kết
+                        </button>
+                    @endif
+                </div>
                 @forelse($resolution->hoSoTrinh as $hs)
                     <div style="padding: 8px 0; border-bottom: 1px solid var(--color-border); font-size: 13px;">
                         <a href="{{ route('submissions.show', $hs->MaHoSo) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none;">
-                            #HS-{{ str_pad($hs->MaHoSo, 3, '0', STR_PAD_LEFT) }}: {{ $hs->TieuDe }}
+                            {{ $hs->ma_ho_so_hien_thi }}: {{ $hs->TieuDe }}
                         </a>
                         <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
-                            Đơn vị trình: {{ $hs->donVi?->TenDonVi }}
+                            Đơn vị trình: {{ $hs->donVi?->TenDonVi ?? 'Chưa cập nhật' }}
                         </div>
                     </div>
                 @empty
-                    <div style="font-size: 12px; color: var(--color-text-muted);">Không liên kết trực tiếp hồ sơ tờ trình.</div>
+                    <div style="font-size: 12px; color: var(--color-text-muted);">Chưa liên kết hồ sơ tờ trình nào.</div>
                 @endforelse
             </div>
 
             {{-- Căn cứ Kết quả Biểu quyết --}}
-            <div class="stu-card" style="padding: 22px;">
-                <h4 style="font-size: 14px; font-weight: 800; color: var(--color-primary); margin: 0 0 12px 0;">
-                    Căn cứ Kết quả Biểu quyết ({{ $resolution->noiDungBieuQuyet->count() }})
-                </h4>
+            <div class="stu-card" style="padding: 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px;">
+                    <h4 style="font-size: 14px; font-weight: 800; color: var(--color-primary); margin: 0;">
+                        Căn cứ Kết quả Biểu quyết ({{ $resolution->noiDungBieuQuyet->count() }})
+                    </h4>
+                    @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                        <button type="button" class="stu-btn stu-btn-ghost stu-btn-sm" style="padding: 3px 9px; font-size: 11.5px;" data-modal-open="linkEvidenceModal">
+                            + Liên kết
+                        </button>
+                    @endif
+                </div>
                 @forelse($resolution->noiDungBieuQuyet as $bq)
                     <div style="padding: 8px 0; border-bottom: 1px solid var(--color-border); font-size: 13px;">
                         <a href="{{ route('votes.show', $bq->MaNoiDung) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none;">
                             #BQ-{{ str_pad($bq->MaNoiDung, 3, '0', STR_PAD_LEFT) }}: {{ $bq->NoiDung }}
                         </a>
-                        <div style="margin-top: 4px;">
-                            <span class="stu-badge stu-badge-success">Đã thông qua</span>
+                        <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <x-nhan-trang-thai :status="$bq->TrangThai" />
+                            @if($bq->chuongTrinhHop?->phienHop)
+                                <span style="font-size: 11px; color: var(--color-text-muted);">Phiên #{{ $bq->chuongTrinhHop->MaPhienHop }}</span>
+                            @endif
                         </div>
                     </div>
                 @empty
-                    <div style="font-size: 12px; color: var(--color-text-muted);">Không liên kết biểu quyết kín riêng.</div>
+                    <div style="font-size: 12px; color: var(--color-text-muted);">Chưa liên kết nội dung biểu quyết nào.</div>
                 @endforelse
             </div>
         </div>
@@ -282,14 +346,20 @@
 </div>
 
 @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+    @php
+        $linkedDossierIds = old('dossier_ids', $resolution->hoSoTrinh->pluck('MaHoSo')->all());
+        $linkedVotingIds = old('voting_ids', $resolution->noiDungBieuQuyet->pluck('MaNoiDung')->all());
+    @endphp
+
     {{-- Modal Chỉnh sửa / Ghi nhận Nghị quyết --}}
-    <x-hop-thoai id="editResolutionModal" title="Ghi Nhận Số Ngày Ban Hành Nghị Quyết: {{ $resolution->SoNghiQuyet }}" size="lg">
-        <form method="POST" action="{{ route('resolutions.update', $resolution->MaNghiQuyet) }}">
+    <x-hop-thoai id="editResolutionModal" title="Chỉnh Sửa Dự Thảo Nghị Quyết: {{ $resolution->SoNghiQuyet }}" size="lg">
+        <form method="POST" action="{{ route('resolutions.update', $resolution->MaNghiQuyet) }}" enctype="multipart/form-data" id="editResolutionForm">
             @csrf
             @method('PUT')
+            <input type="hidden" name="sync_links" value="1">
 
             {{-- 1. Hàng 1: Số hiệu & Ngày ban hành --}}
-            <div class="stu-grid" style="grid-template-columns: 1.2fr 1fr; gap: 16px; width: 100%; max-width: 100%; box-sizing: border-box;" class="stu-mb-4">
+            <div class="stu-grid" style="grid-template-columns: 1.2fr 1fr; gap: 16px; width: 100%; max-width: 100%; box-sizing: border-box;">
                 <div class="stu-form-group" style="min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box; margin-bottom: 0;">
                     <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Số hiệu Nghị quyết <span style="color: var(--color-danger);">*</span></label>
                     <input type="text" name="SoNghiQuyet" value="{{ old('SoNghiQuyet', $resolution->SoNghiQuyet) }}" class="stu-form-control" required>
@@ -301,11 +371,11 @@
                 </div>
             </div>
 
-            {{-- 2. Hàng 2: Phiên họp ban hành (Full width bám dính) --}}
-            <div class="stu-form-group stu-mb-4" style="margin-top: 14px; width: 100%; max-width: 100%; box-sizing: border-box;">
+            {{-- 2. Hàng 2: Phiên họp ban hành --}}
+            <div class="stu-form-group stu-mb-4" style="margin-top: 12px; width: 100%; max-width: 100%; box-sizing: border-box;">
                 <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Phiên họp Hội đồng trường ban hành <span style="color: var(--color-danger);">*</span></label>
                 <div style="position: relative; width: 100%; max-width: 100%; box-sizing: border-box;">
-                    <select name="MaPhienHop" class="stu-form-control" required style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; height: 40px; font-size: 13.5px; border-radius: 8px; border: 1.5px solid #CBD5E1; padding-right: 36px; background-color: #F8FAFC;">
+                    <select name="MaPhienHop" class="stu-form-control" required style="width: 100%; max-width: 100%; box-sizing: border-box; height: 40px; font-size: 13.5px; border-radius: 8px; border: 1.5px solid #CBD5E1; background-color: #F8FAFC;">
                         @php
                             $groupedMeetings = collect($meetings ?? [])->groupBy(function($m) {
                                 $date = $m->NgayHop ?: $m->ThoiGianBatDau;
@@ -347,19 +417,57 @@
 
             <div class="stu-form-group stu-mb-4" style="margin-top: 12px;">
                 <label class="stu-form-label" style="font-size: 13px; font-weight: 700;">Nội dung nghị quyết <span style="color: var(--color-danger);">*</span></label>
-                <textarea name="NoiDung" rows="6" class="stu-form-control" required>{{ old('NoiDung', $resolution->NoiDung) }}</textarea>
+                <textarea name="NoiDung" rows="4" class="stu-form-control" required>{{ old('NoiDung', $resolution->NoiDung) }}</textarea>
             </div>
 
-            {{-- Hộp Quy tắc Nghiệp vụ tự động (Yêu cầu chức năng 15 & BR-10) --}}
-            <div style="padding: 12px 14px; background: #f0f9ff; border: 1px dashed #bae6fd; border-radius: 8px; font-size: 12px; color: #0369a1; line-height: 1.5; margin-bottom: 16px;">
-                <strong>Quy tắc nghiệp vụ tự động (Yêu cầu chức năng 15 & BR-10):</strong> Hệ thống tự động ghi nhận số hiệu và ngày ban hành chính thức của Nghị quyết gắn liền với phiên họp Hội đồng trường, tạo căn cứ pháp lý để kích hoạt quy trình phân rã nhiệm vụ thi hành.
-            </div>
+            {{-- Liên kết Hồ sơ trình & Nội dung biểu quyết --}}
+            @include('pages.nghiquyet._link_evidence_fields', [
+                'containerId' => 'editLinkEvidenceBox',
+                'dossiers' => $dossiers,
+                'votings' => $votings,
+                'selectedDossierIds' => $linkedDossierIds,
+                'selectedVotingIds' => $linkedVotingIds,
+                'currentMeetingId' => old('MaPhienHop', $resolution->MaPhienHop),
+            ])
 
-            <div class="stu-flex stu-items-center stu-justify-between" style="border-top: 1px solid var(--color-border); padding-top: 16px;">
-                <button type="button" class="stu-btn stu-btn-ghost" data-modal-close>Hủy bỏ</button>
-                <button type="submit" class="stu-btn stu-btn-primary" style="padding: 10px 24px;">Lưu cập nhật</button>
+            {{-- Đính kèm thêm văn bản / bản scan --}}
+            <div class="stu-form-group" style="margin-bottom: 0;">
+                <label class="stu-form-label" style="font-size: 12.5px; font-weight: 700;">
+                    Đính kèm thêm văn bản (.pdf, .doc, .docx)
+                </label>
+                <input type="file" name="files[]" multiple class="stu-form-control" accept=".pdf,.doc,.docx" style="height: 38px; font-size: 12px; padding: 6px 12px;">
             </div>
         </form>
+
+        <x-slot:footer>
+            <button type="button" class="stu-btn stu-btn-ghost" data-modal-close>Hủy bỏ</button>
+            <button type="submit" form="editResolutionForm" class="stu-btn stu-btn-primary" style="padding: 9px 22px; font-weight: 600;">
+                Lưu cập nhật
+            </button>
+        </x-slot:footer>
+    </x-hop-thoai>
+
+    {{-- Modal Liên kết nhanh Hồ sơ trình & Biểu quyết (dùng cho mọi trạng thái) --}}
+    <x-hop-thoai id="linkEvidenceModal" title="Liên kết Căn cứ Hồ sơ & Biểu quyết: {{ $resolution->SoNghiQuyet }}" size="lg">
+        <form method="POST" action="{{ route('resolutions.links.update', $resolution->MaNghiQuyet) }}" id="linkEvidenceForm">
+            @csrf
+            @method('PUT')
+            @include('pages.nghiquyet._link_evidence_fields', [
+                'containerId' => 'quickLinkEvidenceBox',
+                'dossiers' => $dossiers,
+                'votings' => $votings,
+                'selectedDossierIds' => $resolution->hoSoTrinh->pluck('MaHoSo')->all(),
+                'selectedVotingIds' => $resolution->noiDungBieuQuyet->pluck('MaNoiDung')->all(),
+                'currentMeetingId' => $resolution->MaPhienHop,
+            ])
+        </form>
+
+        <x-slot:footer>
+            <button type="button" class="stu-btn stu-btn-ghost" data-modal-close>Đóng</button>
+            <button type="submit" form="linkEvidenceForm" class="stu-btn stu-btn-primary" style="padding: 9px 22px; font-weight: 600;">
+                Lưu liên kết
+            </button>
+        </x-slot:footer>
     </x-hop-thoai>
 @endif
 

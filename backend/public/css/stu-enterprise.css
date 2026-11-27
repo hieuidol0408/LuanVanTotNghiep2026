@@ -1364,6 +1364,13 @@ select.form-select::-ms-expand,
   display: none;
 }
 
+select.stu-select::picker-icon,
+select.stu-form-control::picker-icon,
+select.form-select::picker-icon,
+.stu-per-page-select::picker-icon {
+  display: none !important;
+}
+
 select.stu-select option,
 select.stu-form-control option {
   max-width: 100%;
