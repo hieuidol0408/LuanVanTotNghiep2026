@@ -13,6 +13,7 @@ export default function FilterBar({
   children,
   onReset,
   hasActiveFilters = false,
+  alwaysShowReset = false,
   className = ""
 }) {
   return (
@@ -55,7 +56,7 @@ export default function FilterBar({
         )}
       </div>
 
-      {hasActiveFilters && onReset && (
+      {(alwaysShowReset || hasActiveFilters) && onReset && (
         <button
           type="button"
           className="btn btn-secondary btn-sm"

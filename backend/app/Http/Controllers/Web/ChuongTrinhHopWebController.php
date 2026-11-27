@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ChuongTrinhHop;
 use App\Models\HoSoTrinh;
 use App\Models\PhienHop;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,18 +49,34 @@ class ChuongTrinhHopWebController extends Controller
             $query->where('MaPhienHop', $selectedMeetingId);
         }
 
-        // 4. Tìm kiếm từ khóa (Tiêu đề hồ sơ, mã hồ sơ, ghi chú)
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
+        // 4. Tìm kiếm từ khóa (Tiêu đề hồ sơ, mã chương trình, mã hồ sơ, mã phiên họp, ghi chú)
+        if ($search = trim((string) $request->input('search'))) {
+            $agendaId = SearchCodeHelper::extractNumericId($search, ['ct', 'cth']);
+            $meetingId = SearchCodeHelper::extractNumericId($search, ['ph']);
+            $matchedDossierIds = SearchCodeHelper::findMatchingDossierIds($search);
+
+            $query->where(function ($q) use ($search, $agendaId, $meetingId, $matchedDossierIds) {
                 $q->where('GhiChu', 'like', "%{$search}%")
-                    ->orWhereHas('hoSoTrinh', function ($hq) use ($search) {
+                    ->orWhereHas('hoSoTrinh', function ($hq) use ($search, $matchedDossierIds) {
                         $hq->where('TieuDe', 'like', "%{$search}%")
                             ->orWhere('NoiDungTomTat', 'like', "%{$search}%")
                             ->orWhere('MaHoSo', 'like', "%{$search}%");
+
+                        if (!empty($matchedDossierIds)) {
+                            $hq->orWhereIn('MaHoSo', $matchedDossierIds);
+                        }
                     })
-                    ->orWhereHas('phienHop', function ($mq) use ($search) {
+                    ->orWhereHas('phienHop', function ($mq) use ($search, $meetingId) {
                         $mq->where('TenPhienHop', 'like', "%{$search}%");
+
+                        if ($meetingId !== null) {
+                            $mq->orWhere('MaPhienHop', $meetingId);
+                        }
                     });
+
+                if ($agendaId !== null) {
+                    $q->orWhere('MaChuongTrinh', $agendaId);
+                }
             });
         }
 

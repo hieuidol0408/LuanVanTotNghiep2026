@@ -138,7 +138,7 @@ export default function CouncilMemberListPage() {
           <input
             type="text"
             className="form-control"
-            placeholder="Tìm theo họ tên, chức danh hoặc email..."
+            placeholder="Tìm theo mã (#TV-...), họ tên, chức danh hoặc email..."
             style={{
               paddingLeft: "42px",
               paddingRight: search ? "36px" : "14px"
@@ -202,20 +202,18 @@ export default function CouncilMemberListPage() {
             </select>
           </div>
 
-          {(search || selectedTerm !== "ALL") && (
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => {
-                setSearch("");
-                setSelectedTerm("ALL");
-              }}
-              title="Đặt lại bộ lọc"
-            >
-              <RotateCcw size={15} />
-              <span>Đặt lại</span>
-            </button>
-          )}
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => {
+              setSearch("");
+              setSelectedTerm("ALL");
+            }}
+            title="Đặt lại bộ lọc"
+          >
+            <RotateCcw size={15} />
+            <span>Đặt lại</span>
+          </button>
         </div>
       </div>
 

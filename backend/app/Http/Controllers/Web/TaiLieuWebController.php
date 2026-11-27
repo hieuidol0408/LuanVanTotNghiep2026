@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\TaiLieu;
 use App\Services\DocumentPreviewService;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,9 +30,17 @@ class TaiLieuWebController extends Controller
 
         $query = TaiLieu::with(['nguoiDung', 'phienHop', 'nghiQuyet', 'hoSoTrinh']);
 
-        // Tìm kiếm
-        if ($search = $request->input('search')) {
-            $query->where('TenTaiLieu', 'like', "%{$search}%");
+        // Tìm kiếm theo mã (#TL-..., #1, 1) hoặc tên tài liệu
+        if ($search = trim((string) $request->input('search'))) {
+            $docId = SearchCodeHelper::extractNumericId($search, ['tl']);
+
+            $query->where(function ($q) use ($search, $docId) {
+                $q->where('TenTaiLieu', 'like', "%{$search}%");
+
+                if ($docId !== null) {
+                    $q->orWhere('MaTaiLieu', $docId);
+                }
+            });
         }
 
         // Lọc theo loại tài liệu

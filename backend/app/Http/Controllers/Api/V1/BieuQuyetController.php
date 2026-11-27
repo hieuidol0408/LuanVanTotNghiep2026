@@ -10,6 +10,7 @@ use App\Models\PhienHop;
 use App\Models\ThamDu;
 use App\Models\ThanhVienHdt;
 use App\Models\UyQuyenBieuQuyet;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,7 @@ class BieuQuyetController extends Controller
      * Danh sách các nội dung biểu quyết của phiên họp
      * GET /api/v1/meetings/{meetingId}/votings
      */
-    public function index(int|string $meetingId): JsonResponse
+    public function index(Request $request, int|string $meetingId): JsonResponse
     {
         $meeting = PhienHop::find($meetingId);
         if (! $meeting) {
@@ -34,8 +35,22 @@ class BieuQuyetController extends Controller
 
         $agendaIds = ChuongTrinhHop::where('MaPhienHop', $meetingId)->pluck('MaChuongTrinh');
 
-        $votings = NoiDungBieuQuyet::with(['chuongTrinhHop', 'ketQuaBieuQuyet'])
-            ->whereIn('MaChuongTrinh', $agendaIds)
+        $votingsQuery = NoiDungBieuQuyet::with(['chuongTrinhHop', 'ketQuaBieuQuyet'])
+            ->whereIn('MaChuongTrinh', $agendaIds);
+
+        if ($search = trim((string) $request->query('search'))) {
+            $votingId = SearchCodeHelper::extractNumericId($search, ['bq']);
+
+            $votingsQuery->where(function ($q) use ($search, $votingId) {
+                $q->where('NoiDung', 'like', "%{$search}%");
+
+                if ($votingId !== null) {
+                    $q->orWhere('MaNoiDung', $votingId);
+                }
+            });
+        }
+
+        $votings = $votingsQuery
             ->orderBy('MaNoiDung', 'asc')
             ->get();
 

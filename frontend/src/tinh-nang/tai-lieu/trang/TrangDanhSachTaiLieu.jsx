@@ -243,7 +243,7 @@ export default function DocumentListPage() {
           <input
             type="text"
             className="form-control"
-            placeholder="Tìm theo tên tệp tài liệu..."
+            placeholder="Tìm theo mã (#TL-...), tên tệp tài liệu..."
             style={{ paddingLeft: "38px" }}
             value={search}
             onChange={(e) => {
@@ -287,6 +287,21 @@ export default function DocumentListPage() {
               </option>
             ))}
           </select>
+
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => {
+              setSearch("");
+              setTypeFilter("ALL");
+              setMeetingFilter("ALL");
+              setPage(1);
+            }}
+            title="Đặt lại bộ lọc về mặc định"
+          >
+            <RefreshCw size={14} />
+            <span>Đặt lại</span>
+          </button>
         </div>
       </div>
 

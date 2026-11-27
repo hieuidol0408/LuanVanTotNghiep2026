@@ -7,6 +7,7 @@ use App\Models\DonVi;
 use App\Models\ThanhVienHdt;
 use App\Models\NguoiDung;
 use App\Models\VaiTro;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,10 +29,16 @@ class NguoiDungWebController extends Controller
 
         $query = NguoiDung::with(['vaiTro', 'donVi', 'thanhVienHdt']);
 
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
+        if ($search = trim((string) $request->input('search'))) {
+            $userId = SearchCodeHelper::extractNumericId($search, ['nd']);
+
+            $query->where(function ($q) use ($search, $userId) {
                 $q->where('HoTen', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
+
+                if ($userId !== null) {
+                    $q->orWhere('MaNguoiDung', $userId);
+                }
             });
         }
 

@@ -7,6 +7,7 @@ use App\Models\DonVi;
 use App\Models\NghiQuyet;
 use App\Models\NhiemVu;
 use App\Models\PhanCongNhiemVu;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,12 +33,27 @@ class NhiemVuWebController extends Controller
             });
         }
 
-        // Tìm kiếm
+        // Tìm kiếm theo mã nhiệm vụ (#NV-001, #1, 1), tên, nội dung hoặc số nghị quyết
         if ($request->filled('search')) {
-            $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
+            $search = trim((string) $request->search);
+            $taskId = SearchCodeHelper::extractNumericId($search, ['nv']);
+            $resolutionId = SearchCodeHelper::extractNumericId($search, ['nq']);
+
+            $query->where(function ($q) use ($search, $taskId, $resolutionId) {
                 $q->where('TenNhiemVu', 'like', "%{$search}%")
-                  ->orWhere('NoiDung', 'like', "%{$search}%");
+                    ->orWhere('NoiDung', 'like', "%{$search}%")
+                    ->orWhereHas('nghiQuyet', function ($nqQ) use ($search, $resolutionId) {
+                        $nqQ->where('SoNghiQuyet', 'like', "%{$search}%")
+                            ->orWhere('TrichYeu', 'like', "%{$search}%");
+
+                        if ($resolutionId !== null) {
+                            $nqQ->orWhere('MaNghiQuyet', $resolutionId);
+                        }
+                    });
+
+                if ($taskId !== null) {
+                    $q->orWhere('MaNhiemVu', $taskId);
+                }
             });
         }
 

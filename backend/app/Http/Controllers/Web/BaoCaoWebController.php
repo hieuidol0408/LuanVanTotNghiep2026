@@ -8,6 +8,7 @@ use App\Models\DonVi;
 use App\Models\NhiemVu;
 use App\Models\PhanCongNhiemVu;
 use App\Models\TaiLieu;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +37,40 @@ class BaoCaoWebController extends Controller
         if ($isExecutingUnit && $user->MaDonVi) {
             $query->whereHas('phanCongNhiemVu', function ($q) use ($user) {
                 $q->where('MaDonVi', $user->MaDonVi);
+            });
+        }
+
+        // Tìm kiếm theo mã báo cáo (#BC-..., #1, 1), nhiệm vụ, đơn vị, người báo cáo hoặc nội dung
+        if ($search = trim((string) $request->input('search'))) {
+            $reportId = SearchCodeHelper::extractNumericId($search, ['bc']);
+            $taskId = SearchCodeHelper::extractNumericId($search, ['nv']);
+
+            $query->where(function ($q) use ($search, $reportId, $taskId) {
+                $q->where('NoiDung', 'like', "%{$search}%")
+                    ->orWhere('NoiDungTienDo', 'like', "%{$search}%")
+                    ->orWhere('NoiDungKhoKhan', 'like', "%{$search}%")
+                    ->orWhere('GhiChu', 'like', "%{$search}%")
+                    ->orWhereHas('nguoiDung', function ($uq) use ($search) {
+                        $uq->where('HoTen', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('phanCongNhiemVu', function ($aq) use ($search, $taskId) {
+                        $aq->whereHas('donVi', function ($dq) use ($search) {
+                            $dq->where('TenDonVi', 'like', "%{$search}%");
+                        })->orWhereHas('nhiemVu', function ($tq) use ($search, $taskId) {
+                            $tq->where('TenNhiemVu', 'like', "%{$search}%")
+                                ->orWhereHas('nghiQuyet', function ($nq) use ($search) {
+                                    $nq->where('SoNghiQuyet', 'like', "%{$search}%");
+                                });
+
+                            if ($taskId !== null) {
+                                $tq->orWhere('MaNhiemVu', $taskId);
+                            }
+                        });
+                    });
+
+                if ($reportId !== null) {
+                    $q->orWhere('MaBaoCao', $reportId);
+                }
             });
         }
 

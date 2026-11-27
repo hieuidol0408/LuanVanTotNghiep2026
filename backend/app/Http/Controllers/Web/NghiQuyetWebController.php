@@ -8,6 +8,7 @@ use App\Models\NghiQuyet;
 use App\Models\NoiDungBieuQuyet;
 use App\Models\PhienHop;
 use App\Models\TaiLieu;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,12 +29,18 @@ class NghiQuyetWebController extends Controller
             'taiLieu',
         ]);
 
-        // 1. Tìm kiếm theo từ khóa (tiêu đề, trích yếu, nội dung toàn văn, số hiệu)
+        // 1. Tìm kiếm theo từ khóa & mã nghị quyết (#NQ-..., #1, 1, số hiệu, trích yếu, nội dung)
         if ($search = trim((string) $request->input('search'))) {
-            $query->where(function ($q) use ($search) {
+            $resolutionId = SearchCodeHelper::extractNumericId($search, ['nq']);
+
+            $query->where(function ($q) use ($search, $resolutionId) {
                 $q->where('SoNghiQuyet', 'like', "%{$search}%")
                     ->orWhere('TrichYeu', 'like', "%{$search}%")
                     ->orWhere('NoiDung', 'like', "%{$search}%");
+
+                if ($resolutionId !== null) {
+                    $q->orWhere('MaNghiQuyet', $resolutionId);
+                }
 
                 // Hỗ trợ tìm kiếm thông minh theo từng từ khóa nếu chuỗi có nhiều từ
                 $words = array_filter(explode(' ', $search));

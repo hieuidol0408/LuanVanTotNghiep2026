@@ -7,6 +7,7 @@ use App\Models\HoSoTrinh;
 use App\Models\NghiQuyet;
 use App\Models\PhienHop;
 use App\Models\TaiLieu;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -26,9 +27,17 @@ class TaiLieuController extends Controller
         $user = $request->user();
         $query = TaiLieu::with(['nguoiDung', 'phienHop', 'nghiQuyet', 'hoSoTrinh']);
 
-        // Tìm kiếm theo tên tài liệu
-        if ($search = $request->query('search')) {
-            $query->where('TenTaiLieu', 'like', "%{$search}%");
+        // Tìm kiếm theo mã (#TL-..., #1, 1) hoặc tên tài liệu
+        if ($search = trim((string) $request->query('search'))) {
+            $docId = SearchCodeHelper::extractNumericId($search, ['tl']);
+
+            $query->where(function ($q) use ($search, $docId) {
+                $q->where('TenTaiLieu', 'like', "%{$search}%");
+
+                if ($docId !== null) {
+                    $q->orWhere('MaTaiLieu', $docId);
+                }
+            });
         }
 
         // Lọc theo loại / cấp độ bảo mật

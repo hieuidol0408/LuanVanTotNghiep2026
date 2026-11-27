@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DonVi;
 use App\Models\NguoiDung;
 use App\Models\VaiTro;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -54,11 +55,17 @@ class NguoiDungController extends Controller
 
         $query = NguoiDung::with(['vaiTro', 'donVi']);
 
-        // 1. Tìm kiếm từ khóa (Họ tên, email)
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
+        // 1. Tìm kiếm từ khóa & mã người dùng (#ND-..., #1, 1, Họ tên, email)
+        if ($search = trim((string) $request->input('search'))) {
+            $userId = SearchCodeHelper::extractNumericId($search, ['nd']);
+
+            $query->where(function ($q) use ($search, $userId) {
                 $q->where('HoTen', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
+
+                if ($userId !== null) {
+                    $q->orWhere('MaNguoiDung', $userId);
+                }
             });
         }
 
@@ -96,7 +103,7 @@ class NguoiDungController extends Controller
         $perPage = min((int) $request->input('perPage', 15), 100);
         $paginated = $query->orderBy('MaNguoiDung', 'asc')->paginate($perPage);
 
-        $items = collect($paginated->items())->map(function (User $user) {
+        $items = collect($paginated->items())->map(function (NguoiDung $user) {
             return $this->formatUser($user);
         });
 
@@ -390,7 +397,7 @@ class NguoiDungController extends Controller
     /**
      * Chuẩn hóa cấu trúc User trả về API
      */
-    private function formatUser(User $user): array
+    private function formatUser(NguoiDung $user): array
     {
         $roleName = $user->vaiTro?->MoTa ?: ($user->vaiTro?->TenVaiTro ?: 'Thành viên');
         $roleCode = $user->vaiTro?->TenVaiTro ?: 'MEMBER';

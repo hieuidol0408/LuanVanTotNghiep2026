@@ -8,6 +8,7 @@ use App\Models\DonVi;
 use App\Models\NghiQuyet;
 use App\Models\NhiemVu;
 use App\Models\PhanCongNhiemVu;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,15 +27,26 @@ class NhiemVuController extends Controller
             'phanCongNhiemVu.baoCao',
         ]);
 
-        // Tìm kiếm theo tên hoặc nội dung nhiệm vụ hoặc số nghị quyết
-        if ($search = $request->query('search')) {
-            $query->where(function ($q) use ($search) {
+        // Tìm kiếm theo mã (#NV-...), tên, nội dung nhiệm vụ hoặc số nghị quyết
+        if ($search = trim((string) $request->query('search'))) {
+            $taskId = SearchCodeHelper::extractNumericId($search, ['nv']);
+            $resolutionId = SearchCodeHelper::extractNumericId($search, ['nq']);
+
+            $query->where(function ($q) use ($search, $taskId, $resolutionId) {
                 $q->where('TenNhiemVu', 'like', "%{$search}%")
                     ->orWhere('NoiDung', 'like', "%{$search}%")
-                    ->orWhereHas('nghiQuyet', function ($nqQ) use ($search) {
+                    ->orWhereHas('nghiQuyet', function ($nqQ) use ($search, $resolutionId) {
                         $nqQ->where('SoNghiQuyet', 'like', "%{$search}%")
                             ->orWhere('TrichYeu', 'like', "%{$search}%");
+
+                        if ($resolutionId !== null) {
+                            $nqQ->orWhere('MaNghiQuyet', $resolutionId);
+                        }
                     });
+
+                if ($taskId !== null) {
+                    $q->orWhere('MaNhiemVu', $taskId);
+                }
             });
         }
 

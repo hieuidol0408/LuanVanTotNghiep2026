@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\NghiQuyet;
 use App\Models\PhienHop;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,12 +20,18 @@ class NghiQuyetController extends Controller
     {
         $query = NghiQuyet::with(['phienHop', 'hoSoTrinh', 'noiDungBieuQuyet', 'nhiemVu']);
 
-        // Tìm kiếm theo số nghị quyết hoặc trích yếu
-        if ($search = $request->query('search')) {
-            $query->where(function ($q) use ($search) {
+        // Tìm kiếm theo mã, số nghị quyết hoặc trích yếu
+        if ($search = trim((string) $request->query('search'))) {
+            $resolutionId = SearchCodeHelper::extractNumericId($search, ['nq']);
+
+            $query->where(function ($q) use ($search, $resolutionId) {
                 $q->where('SoNghiQuyet', 'like', "%{$search}%")
                     ->orWhere('TrichYeu', 'like', "%{$search}%")
                     ->orWhere('NoiDung', 'like', "%{$search}%");
+
+                if ($resolutionId !== null) {
+                    $q->orWhere('MaNghiQuyet', $resolutionId);
+                }
             });
         }
 

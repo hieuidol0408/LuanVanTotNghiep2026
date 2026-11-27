@@ -386,7 +386,7 @@ export default function UserListPage() {
             type="text"
             className="input"
             style={{ paddingLeft: "32px", width: "100%" }}
-            placeholder="Tìm theo họ tên, email..."
+            placeholder="Tìm theo mã (#ND-...), họ tên, email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -436,6 +436,22 @@ export default function UserListPage() {
             <option value="LOCKED">Đã khóa</option>
           </select>
         </div>
+
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => {
+            setSearch("");
+            setSelectedRole("ALL");
+            setSelectedDept("ALL");
+            setSelectedStatus("ALL");
+            setPage(1);
+          }}
+          title="Đặt lại bộ lọc về mặc định"
+        >
+          <RefreshCw size={14} />
+          <span>Đặt lại</span>
+        </button>
       </div>
 
       {/* 3. Bảng danh sách người dùng */}

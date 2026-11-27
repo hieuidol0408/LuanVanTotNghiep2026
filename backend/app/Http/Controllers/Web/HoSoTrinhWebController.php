@@ -7,6 +7,7 @@ use App\Models\DonVi;
 use App\Models\HoSoTrinh;
 use App\Models\PhienHop;
 use App\Models\TaiLieu;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,12 +32,18 @@ class HoSoTrinhWebController extends Controller
             $query->where('MaDonVi', $userDeptId);
         }
 
-        // 1. Tìm kiếm từ khóa
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
+        // 1. Tìm kiếm từ khóa & mã hồ sơ (#HS-..., #1, 1)
+        if ($search = trim((string) $request->input('search'))) {
+            $matchedDossierIds = SearchCodeHelper::findMatchingDossierIds($search);
+
+            $query->where(function ($q) use ($search, $matchedDossierIds) {
                 $q->where('TieuDe', 'like', "%{$search}%")
                     ->orWhere('NoiDungTomTat', 'like', "%{$search}%")
                     ->orWhere('LinhVuc', 'like', "%{$search}%");
+
+                if (!empty($matchedDossierIds)) {
+                    $q->orWhereIn('MaHoSo', $matchedDossierIds);
+                }
             });
         }
 

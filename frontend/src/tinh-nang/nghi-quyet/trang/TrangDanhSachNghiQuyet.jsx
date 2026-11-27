@@ -366,7 +366,7 @@ export default function ResolutionListPage() {
           <input
             type="text"
             className="form-control"
-            placeholder="Tìm theo số nghị quyết, trích yếu hoặc nội dung..."
+            placeholder="Tìm theo mã (#NQ-...), số nghị quyết, trích yếu hoặc nội dung..."
             style={{ paddingLeft: "38px" }}
             value={search}
             onChange={(e) => {
@@ -413,6 +413,21 @@ export default function ResolutionListPage() {
               </option>
             ))}
           </select>
+
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => {
+              setSearch("");
+              setStatusFilter("ALL");
+              setMeetingFilter("ALL");
+              setPage(1);
+            }}
+            title="Đặt lại bộ lọc về mặc định"
+          >
+            <RefreshCw size={14} />
+            <span>Đặt lại</span>
+          </button>
         </div>
       </div>
 

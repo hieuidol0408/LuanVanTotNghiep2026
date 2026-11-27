@@ -10,6 +10,7 @@ use App\Models\PhienHop;
 use App\Models\ThamDu;
 use App\Models\ThanhVienHdt;
 use App\Models\UyQuyenBieuQuyet;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,9 +29,17 @@ class BieuQuyetWebController extends Controller
             'ketQuaBieuQuyet',
         ]);
 
-        // 1. Tìm kiếm theo nội dung
-        if ($search = $request->input('search')) {
-            $query->where('NoiDung', 'like', "%{$search}%");
+        // 1. Tìm kiếm theo nội dung hoặc mã biểu quyết (#BQ-001, #1, 1)
+        if ($search = trim((string) $request->input('search'))) {
+            $votingId = SearchCodeHelper::extractNumericId($search, ['bq']);
+
+            $query->where(function ($q) use ($search, $votingId) {
+                $q->where('NoiDung', 'like', "%{$search}%");
+
+                if ($votingId !== null) {
+                    $q->orWhere('MaNoiDung', $votingId);
+                }
+            });
         }
 
         // 2. Lọc theo phiên họp

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\HoSoTrinh;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -23,12 +24,18 @@ class HoSoTrinhController extends Controller
             $query->where('MaDonVi', $user->MaDonVi);
         }
 
-        // 1. Tìm kiếm từ khóa
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
+        // 1. Tìm kiếm từ khóa & mã hồ sơ (#HS-..., #1, 1)
+        if ($search = trim((string) $request->input('search'))) {
+            $matchedDossierIds = SearchCodeHelper::findMatchingDossierIds($search);
+
+            $query->where(function ($q) use ($search, $matchedDossierIds) {
                 $q->where('TieuDe', 'like', "%{$search}%")
                     ->orWhere('NoiDungTomTat', 'like', "%{$search}%")
                     ->orWhere('LinhVuc', 'like', "%{$search}%");
+
+                if (!empty($matchedDossierIds)) {
+                    $q->orWhereIn('MaHoSo', $matchedDossierIds);
+                }
             });
         }
 

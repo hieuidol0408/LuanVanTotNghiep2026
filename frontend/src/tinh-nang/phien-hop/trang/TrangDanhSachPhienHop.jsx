@@ -293,6 +293,7 @@ export default function MeetingListPage() {
             />
           }
           hasActiveFilters={searchTerm !== "" || statusFilter !== "ALL" || typeFilter !== "ALL" || formatFilter !== "ALL"}
+          alwaysShowReset={true}
           onReset={handleResetFilters}
         >
           <select

@@ -28,6 +28,35 @@
         </div>
     </div>
 
+    {{-- Tìm kiếm thành viên --}}
+    <div class="stu-card stu-mb-6" style="padding: 20px 24px; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); background: #ffffff;">
+        <form method="GET" action="{{ route('members.index') }}" class="stu-grid" style="grid-template-columns: 1fr auto auto; gap: 14px; align-items: flex-end;">
+            <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+            <div class="stu-form-group" style="margin-bottom: 0;">
+                <label class="stu-form-label">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <span>Tìm kiếm thành viên</span>
+                </label>
+                <div style="position: relative;">
+                    <svg width="15" height="15" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" name="search" value="{{ request('search') }}" class="stu-form-control" style="padding-left: 36px;" placeholder="Mã thành viên (#TV-...), họ tên, chức vụ hoặc email...">
+                </div>
+            </div>
+            <div>
+                <button type="submit" class="stu-btn stu-btn-primary" style="height: 38px; padding: 0 18px; font-weight: 600; box-shadow: 0 1px 2px 0 rgba(0, 58, 140, 0.2);">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Tìm</span>
+                </button>
+            </div>
+            <div>
+                <a href="{{ route('members.index') }}" class="stu-btn stu-btn-ghost" style="height: 38px; padding: 0 14px;" title="Đặt lại bộ lọc về mặc định">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Đặt lại</span>
+                </a>
+            </div>
+        </form>
+    </div>
+
     {{-- Bảng danh sách thành viên --}}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\ThanhVienHdt;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -18,10 +19,20 @@ class ThanhVienHdtWebController extends Controller
     {
         $query = ThanhVienHdt::with(['nguoiDung.donVi', 'nguoiDung.vaiTro']);
 
-        if ($search = $request->input('search')) {
-            $query->whereHas('nguoiDung', function ($q) use ($search) {
-                $q->where('HoTen', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+        if ($search = trim((string) $request->input('search'))) {
+            $memberId = SearchCodeHelper::extractNumericId($search, ['tv']);
+
+            $query->where(function ($q) use ($search, $memberId) {
+                $q->where('ChucDanhHoiDongTruong', 'like', "%{$search}%")
+                    ->orWhere('ChucDanh', 'like', "%{$search}%")
+                    ->orWhereHas('nguoiDung', function ($uQ) use ($search) {
+                        $uQ->where('HoTen', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+
+                if ($memberId !== null) {
+                    $q->orWhere('MaThanhVien', $memberId);
+                }
             });
         }
 

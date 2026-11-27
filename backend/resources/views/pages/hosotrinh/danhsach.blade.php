@@ -43,7 +43,7 @@
                         type="text" 
                         name="search" 
                         value="{{ request('search') }}" 
-                        placeholder="Tiêu đề, nội dung tóm tắt..." 
+                        placeholder="Mã hồ sơ (#HS-...), tiêu đề, nội dung..." 
                         class="stu-form-control"
                         style="padding-left: 36px;"
                     >

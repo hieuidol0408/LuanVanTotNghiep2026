@@ -402,7 +402,7 @@ export default function TaskListPage() {
           <input
             type="text"
             className="form-control"
-            placeholder="Tìm theo tên nhiệm vụ, đơn vị hoặc số nghị quyết..."
+            placeholder="Tìm theo mã (#NV-...), tên nhiệm vụ, đơn vị hoặc số nghị quyết..."
             style={{ paddingLeft: "38px" }}
             value={search}
             onChange={(e) => {
@@ -465,6 +465,22 @@ export default function TaskListPage() {
               </option>
             ))}
           </select>
+
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => {
+              setSearch("");
+              setStatusFilter("ALL");
+              setDeptFilter("ALL");
+              setResFilter("ALL");
+              setPage(1);
+            }}
+            title="Đặt lại bộ lọc về mặc định"
+          >
+            <RefreshCw size={14} />
+            <span>Đặt lại</span>
+          </button>
         </div>
       </div>
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DonVi;
 use App\Models\ThanhVienHdt;
 use App\Models\NguoiDung;
+use App\Support\SearchCodeHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -25,13 +26,20 @@ class ThanhVienHdtController extends Controller
             }
         }
 
-        if ($search = $request->query('search')) {
-            $query->where(function ($q) use ($search) {
+        if ($search = trim((string) $request->query('search'))) {
+            $memberId = SearchCodeHelper::extractNumericId($search, ['tv']);
+
+            $query->where(function ($q) use ($search, $memberId) {
                 $q->where('ChucDanhHoiDongTruong', 'like', "%{$search}%")
+                    ->orWhere('ChucDanh', 'like', "%{$search}%")
                     ->orWhereHas('nguoiDung', function ($uQ) use ($search) {
                         $uQ->where('HoTen', 'like', "%{$search}%")
                             ->orWhere('email', 'like', "%{$search}%");
                     });
+
+                if ($memberId !== null) {
+                    $q->orWhere('MaThanhVien', $memberId);
+                }
             });
         }
 
