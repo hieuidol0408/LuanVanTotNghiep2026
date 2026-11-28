@@ -8,6 +8,7 @@ use App\Models\NghiQuyet;
 use App\Models\NhiemVu;
 use App\Models\PhanCongNhiemVu;
 use App\Support\DuplicateNameChecker;
+use App\Support\RolePermissions;
 use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,8 +21,11 @@ class NhiemVuWebController extends Controller
     /**
      * Danh sách nhiệm vụ phân rã từ Nghị quyết
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'tasks')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Nhiệm vụ phân công.');
+        }
         $user = Auth::user();
         $isExecutingUnit = $user && $user->role === 'EXECUTING_UNIT';
 
@@ -228,6 +232,9 @@ class NhiemVuWebController extends Controller
      */
     public function show(int $id): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'tasks')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Nhiệm vụ phân công.');
+        }
         $task = NhiemVu::with([
             'nghiQuyet',
             'phanCongNhiemVu.donVi',

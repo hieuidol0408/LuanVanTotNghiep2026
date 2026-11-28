@@ -113,7 +113,15 @@ class BangDieuHanhWebController extends Controller
             ->take(5)
             ->get();
 
-        // 6. GÓI DỮ LIỆU CHUYỂN QUA VIEW
+        // 6. DANH SÁCH HỒ SƠ TRÌNH GẦN ĐÂY (Dành cho Đơn vị trình & Hội đồng)
+        $recentDossiersQuery = HoSoTrinh::with(['donVi'])
+            ->orderBy('MaHoSo', 'desc');
+        if ($role === 'UNIT_REP' && $deptId) {
+            $recentDossiersQuery->where('MaDonVi', $deptId);
+        }
+        $recentDossiers = $recentDossiersQuery->take(5)->get();
+
+        // 7. GÓI DỮ LIỆU CHUYỂN QUA VIEW
         $kpi = [
             'total_meetings' => $totalMeetings,
             'upcoming_meetings' => $upcomingMeetingsCount,
@@ -134,6 +142,7 @@ class BangDieuHanhWebController extends Controller
             'kpi',
             'upcomingMeetings',
             'recentResolutions',
+            'recentDossiers',
             'trackedTasks',
             'pendingReports'
         ));

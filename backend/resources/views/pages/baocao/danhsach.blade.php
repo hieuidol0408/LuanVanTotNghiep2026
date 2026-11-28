@@ -16,12 +16,14 @@
                 Theo dõi, đánh giá và thẩm định các báo cáo tiến độ từ các đơn vị thực hiện theo BR-10
             </p>
         </div>
-        <div>
-            <button type="button" class="stu-btn stu-btn-primary" style="height: 38px;" data-modal-open="createReportModal">
-                <i class="bi bi-journal-plus"></i>
-                <span>Nộp báo cáo tiến độ</span>
-            </button>
-        </div>
+        @if(Auth::user() && in_array(Auth::user()->role, ['EXECUTING_UNIT', 'CHAIR', 'SECRETARY', 'ADMIN']))
+            <div>
+                <button type="button" class="stu-btn stu-btn-primary" style="height: 38px;" data-modal-open="createReportModal">
+                    <i class="bi bi-journal-plus"></i>
+                    <span>Nộp báo cáo tiến độ</span>
+                </button>
+            </div>
+        @endif
     </div>
 
     {{-- Bộ lọc & Tìm kiếm --}}
@@ -188,6 +190,7 @@
     </div>
 </div>
 
+@if(Auth::user() && in_array(Auth::user()->role, ['EXECUTING_UNIT', 'CHAIR', 'SECRETARY', 'ADMIN']))
 <!-- MODAL FORM LƠ LỬNG: NỘP BÁO CÁO TIẾN ĐỘ -->
 <x-hop-thoai id="createReportModal" title="Nộp Báo Cáo Tiến Độ Nhiệm Vụ (BR-10)" size="lg">
     <form method="POST" action="{{ route('task-reports.store') }}" enctype="multipart/form-data" id="modalCreateReportForm">
@@ -291,4 +294,5 @@
         @endif
     });
 </script>
+@endif
 @endsection

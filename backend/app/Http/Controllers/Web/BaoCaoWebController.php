@@ -8,6 +8,7 @@ use App\Models\DonVi;
 use App\Models\NhiemVu;
 use App\Models\PhanCongNhiemVu;
 use App\Models\TaiLieu;
+use App\Support\RolePermissions;
 use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,8 +22,11 @@ class BaoCaoWebController extends Controller
     /**
      * Danh sách báo cáo tiến độ nhiệm vụ
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'task-reports')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Báo cáo tiến độ.');
+        }
         $user = Auth::user();
         $isExecutingUnit = $user && $user->role === 'EXECUTING_UNIT';
 
@@ -113,6 +117,9 @@ class BaoCaoWebController extends Controller
      */
     public function create(Request $request): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'task-reports')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Báo cáo tiến độ.');
+        }
         $user = Auth::user();
         $isExecutingUnit = $user && $user->role === 'EXECUTING_UNIT';
 
@@ -245,6 +252,9 @@ class BaoCaoWebController extends Controller
      */
     public function show(int $id): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'task-reports')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Báo cáo tiến độ.');
+        }
         $report = BaoCao::with([
             'phanCongNhiemVu.nhiemVu.nghiQuyet',
             'phanCongNhiemVu.donVi',

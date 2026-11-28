@@ -69,6 +69,9 @@
                         <th>Đơn vị công tác</th>
                         <th>Quyền biểu quyết</th>
                         <th>Email liên hệ</th>
+                        @if(auth()->user() && in_array(auth()->user()->role, ['ADMIN', 'CHAIR', 'SECRETARY']))
+                            <th class="text-end" style="width: 90px;">Thao tác</th>
+                        @endif
                     </tr>
                 </x-slot:thead>
 
@@ -110,8 +113,8 @@
                                 <i class="bi bi-envelope me-1"></i>{{ $m->nguoiDung?->email ?? '--' }}
                             </div>
                         </td>
-                        <td class="text-end">
-                            @if(auth()->user() && in_array(auth()->user()->role, ['ADMIN', 'CHAIR', 'SECRETARY']))
+                        @if(auth()->user() && in_array(auth()->user()->role, ['ADMIN', 'CHAIR', 'SECRETARY']))
+                            <td class="text-end">
                                 <form method="POST" action="{{ route('members.destroy', $m->MaThanhVien) }}" style="display:inline-block; margin:0;" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn thành viên này khỏi danh sách không? (Dữ liệu vẫn được bảo toàn trong hệ thống)');">
                                     @csrf
                                     @method('DELETE')
@@ -119,14 +122,12 @@
                                         <i class="bi bi-eye-slash"></i> Ẩn
                                     </button>
                                 </form>
-                            @else
-                                <span class="text-muted small">--</span>
-                            @endif
-                        </td>
+                            </td>
+                        @endif
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="{{ (auth()->user() && in_array(auth()->user()->role, ['ADMIN', 'CHAIR', 'SECRETARY'])) ? 7 : 6 }}" class="text-center py-5 text-muted">
                             Chưa có dữ liệu thành viên.
                         </td>
                     </tr>

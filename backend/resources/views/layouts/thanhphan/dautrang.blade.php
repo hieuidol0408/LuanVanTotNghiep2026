@@ -28,44 +28,58 @@
             </span>
         </button>
 
+        @php
+            $headerRole = \App\Support\RolePermissions::currentRole();
+            $headerRoleLabel = \App\Support\RolePermissions::label($headerRole);
+            $canHeaderMeetings = \App\Support\RolePermissions::canAccessModule($headerRole, 'meetings');
+            $canHeaderReports = \App\Support\RolePermissions::canAccessModule($headerRole, 'task-reports');
+            $headerNotifCount = ($canHeaderMeetings ? 1 : 0) + ($canHeaderReports ? 1 : 0);
+        @endphp
+
         <!-- Thông báo hệ thống -->
-        <div class="stu-dropdown">
-            <button type="button" class="stu-icon-btn" data-stu-dropdown-toggle title="Thông báo hệ thống">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-                <span style="position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: var(--color-danger); border-radius: 50%;"></span>
-            </button>
-            <div class="stu-dropdown-menu" style="width: 300px;">
-                <div style="padding: 10px 14px; font-weight: 600; border-bottom: 1px solid var(--color-border); font-size: var(--font-size-sm);">
-                    Thông báo mới (2)
+        @if($headerNotifCount > 0)
+            <div class="stu-dropdown">
+                <button type="button" class="stu-icon-btn" data-stu-dropdown-toggle title="Thông báo hệ thống">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span style="position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: var(--color-danger); border-radius: 50%;"></span>
+                </button>
+                <div class="stu-dropdown-menu" style="width: 300px;">
+                    <div style="padding: 10px 14px; font-weight: 600; border-bottom: 1px solid var(--color-border); font-size: var(--font-size-sm);">
+                        Thông báo mới ({{ $headerNotifCount }})
+                    </div>
+                    @if($canHeaderMeetings)
+                        <a href="{{ url('/meetings') }}" class="stu-dropdown-item" style="padding: 10px 14px; align-items: flex-start;">
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary); margin-top: 5px; flex-shrink: 0;"></div>
+                            <div style="font-size: 13px;">
+                                <div style="font-weight: 500;">Phiên họp thường kỳ Lần thứ 5</div>
+                                <div style="font-size: 11px; color: var(--color-text-muted);">Sắp diễn ra ngày 20/11/2026</div>
+                            </div>
+                        </a>
+                    @endif
+                    @if($canHeaderReports)
+                        <a href="{{ url('/tasks') }}" class="stu-dropdown-item" style="padding: 10px 14px; align-items: flex-start;">
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-warning); margin-top: 5px; flex-shrink: 0;"></div>
+                            <div style="font-size: 13px;">
+                                <div style="font-weight: 500;">Báo cáo tiến độ cần theo dõi</div>
+                                <div style="font-size: 11px; color: var(--color-text-muted);">Khoa CNTT vừa nộp báo cáo</div>
+                            </div>
+                        </a>
+                    @endif
                 </div>
-                <a href="{{ url('/meetings') }}" class="stu-dropdown-item" style="padding: 10px 14px; align-items: flex-start;">
-                    <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary); margin-top: 5px; flex-shrink: 0;"></div>
-                    <div style="font-size: 13px;">
-                        <div style="font-weight: 500;">Phiên họp thường kỳ Lần thứ 5</div>
-                        <div style="font-size: 11px; color: var(--color-text-muted);">Sắp diễn ra ngày 20/11/2026</div>
-                    </div>
-                </a>
-                <a href="{{ url('/tasks') }}" class="stu-dropdown-item" style="padding: 10px 14px; align-items: flex-start;">
-                    <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-warning); margin-top: 5px; flex-shrink: 0;"></div>
-                    <div style="font-size: 13px;">
-                        <div style="font-weight: 500;">Báo cáo tiến độ cần duyệt</div>
-                        <div style="font-size: 11px; color: var(--color-text-muted);">Khoa CNTT vừa nộp báo cáo</div>
-                    </div>
-                </a>
             </div>
-        </div>
+        @endif
 
         <!-- Thông tin người dùng & Menu tài khoản -->
         <div class="stu-dropdown">
             <div class="stu-user-badge" data-stu-dropdown-toggle>
                 <div class="stu-user-avatar">
-                    {{ strtoupper(substr(session('user_name', 'HĐT'), 0, 1)) }}
+                    {{ strtoupper(substr(auth()->user()?->HoTen ?? session('user_name', 'HĐT'), 0, 1)) }}
                 </div>
                 <div class="stu-user-info">
-                    <span class="stu-user-name">{{ session('user_name', 'Thành viên HĐT') }}</span>
-                    <span class="stu-user-role">{{ session('user_role', 'CHAIR') }}</span>
+                    <span class="stu-user-name">{{ auth()->user()?->HoTen ?? session('user_name', 'Thành viên HĐT') }}</span>
+                    <span class="stu-user-role">{{ $headerRoleLabel }} ({{ $headerRole }})</span>
                 </div>
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--color-text-muted);">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>

@@ -11,6 +11,7 @@ use App\Models\ThamDu;
 use App\Models\ThanhVienHdt;
 use App\Models\UyQuyenBieuQuyet;
 use App\Support\DuplicateNameChecker;
+use App\Support\RolePermissions;
 use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,8 +24,11 @@ class BieuQuyetWebController extends Controller
     /**
      * Danh sách các nội dung biểu quyết (Lọc theo phiên họp, trạng thái, tìm kiếm)
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'votes')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Biểu quyết & Bỏ phiếu.');
+        }
         $query = NoiDungBieuQuyet::with([
             'chuongTrinhHop.phienHop',
             'ketQuaBieuQuyet',
@@ -150,6 +154,9 @@ class BieuQuyetWebController extends Controller
      */
     public function show(Request $request, int|string $id): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'votes')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Biểu quyết & Bỏ phiếu.');
+        }
         $vote = NoiDungBieuQuyet::with([
             'chuongTrinhHop.phienHop.thamDu.thanhVienHdt.nguoiDung',
             'ketQuaBieuQuyet',

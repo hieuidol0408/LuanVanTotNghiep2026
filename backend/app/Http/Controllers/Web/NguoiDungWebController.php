@@ -24,7 +24,7 @@ class NguoiDungWebController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         $currentUser = Auth::user();
-        if ($currentUser && !in_array($currentUser->role, ['ADMIN', 'CHAIR', 'SECRETARY'])) {
+        if ($currentUser && !in_array($currentUser->role, ['ADMIN', 'CHAIR'])) {
             return redirect()->route('dashboard')->with('error', 'Bạn không có quyền truy cập danh sách quản trị người dùng.');
         }
 

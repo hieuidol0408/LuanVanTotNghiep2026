@@ -9,6 +9,15 @@
 @endsection
 
 @section('content')
+@php
+    $canMeetings = \App\Support\RolePermissions::canAccessModule($role, 'meetings');
+    $canSubmissions = \App\Support\RolePermissions::canAccessModule($role, 'submissions');
+    $canVotes = \App\Support\RolePermissions::canAccessModule($role, 'votes');
+    $canTasks = \App\Support\RolePermissions::canAccessModule($role, 'tasks');
+    $canTaskReports = \App\Support\RolePermissions::canAccessModule($role, 'task-reports');
+    $roleLabel = \App\Support\RolePermissions::label($role);
+@endphp
+
 <!-- BANNER CHÀO MỪNG & VAI TRÒ HIỆN TẠI -->
 <div class="stu-card" style="padding: var(--space-5) var(--space-6); margin-bottom: var(--space-6); background: linear-gradient(135deg, var(--stu-blue-700) 0%, var(--stu-blue-900) 100%); color: var(--stu-white); border: none;">
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4);">
@@ -20,15 +29,15 @@
                 <h1 style="font-size: var(--font-size-xl); font-weight: 700; color: var(--stu-white); margin-bottom: 4px; letter-spacing: -0.01em;">
                     Xin chào, {{ $user->full_name ?? session('user_name', 'Thành viên Hội đồng') }}
                 </h1>
-                <p style="font-size: var(--font-size-sm); color: var(--stu-blue-100); margin: 0; display: flex; align-items: center; gap: var(--space-2);">
-                    <span>Vai trò hệ thống: <strong>{{ $role }}</strong></span>
+                <p style="font-size: var(--font-size-sm); color: var(--stu-blue-100); margin: 0; display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
+                    <span>Vai trò hệ thống: <strong>{{ $roleLabel }} ({{ $role }})</strong></span>
                     <span>•</span>
                     <span>Nhiệm kỳ <strong>Khóa IV (2020 - 2025)</strong></span>
                 </p>
             </div>
         </div>
 
-        <div style="display: flex; gap: var(--space-2);">
+        <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
             @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
                 <x-nut-bam variant="outline" href="{{ url('/meetings') }}" style="background: rgba(255,255,255,0.12); color: var(--stu-white); border-color: rgba(255,255,255,0.35);">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -39,6 +48,18 @@
                 <x-nut-bam variant="outline" href="{{ url('/submissions') }}" style="background: rgba(255,255,255,0.12); color: var(--stu-white); border-color: rgba(255,255,255,0.35);">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>Nộp hồ sơ trình</span>
+                </x-nut-bam>
+            @endif
+            @if($role === 'MEMBER')
+                <x-nut-bam variant="outline" href="{{ route('votes.index') }}" style="background: rgba(255,255,255,0.12); color: var(--stu-white); border-color: rgba(255,255,255,0.35);">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Tham gia biểu quyết</span>
+                </x-nut-bam>
+            @endif
+            @if($role === 'EXECUTING_UNIT')
+                <x-nut-bam variant="outline" href="{{ route('task-reports.index') }}" style="background: rgba(255,255,255,0.12); color: var(--stu-white); border-color: rgba(255,255,255,0.35);">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span>Nộp báo cáo tiến độ</span>
                 </x-nut-bam>
             @endif
         </div>
@@ -56,17 +77,19 @@
         </span>
     </div>
 
-    <div class="stu-grid stu-grid-cols-4">
-        <!-- 1. Tổng phiên họp -->
-        <x-the-thong-ke 
-            title="Tổng số phiên họp" 
-            :value="$kpi['total_meetings']" 
-            :subtitle="$kpi['upcoming_meetings'] . ' phiên sắp diễn ra'" 
-            type="primary" 
-            link="{{ url('/meetings') }}"
-        >
-            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        </x-the-thong-ke>
+    <div class="stu-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+        @if($canMeetings)
+            <!-- 1. Tổng phiên họp -->
+            <x-the-thong-ke 
+                title="Tổng số phiên họp" 
+                :value="$kpi['total_meetings']" 
+                :subtitle="$kpi['upcoming_meetings'] . ' phiên sắp diễn ra'" 
+                type="primary" 
+                link="{{ url('/meetings') }}"
+            >
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </x-the-thong-ke>
+        @endif
 
         <!-- 2. Nghị quyết ban hành -->
         <x-the-thong-ke 
@@ -79,16 +102,18 @@
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
         </x-the-thong-ke>
 
-        <!-- 3. Nhiệm vụ đang thực hiện -->
-        <x-the-thong-ke 
-            title="Nhiệm vụ đang thực hiện" 
-            :value="$kpi['tasks_in_progress']" 
-            :subtitle="'Đã hoàn thành: ' . $kpi['tasks_completed']" 
-            type="warning" 
-            link="{{ url('/tasks') }}"
-        >
-            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </x-the-thong-ke>
+        @if($canTasks)
+            <!-- 3. Nhiệm vụ đang thực hiện -->
+            <x-the-thong-ke 
+                title="Nhiệm vụ đang thực hiện" 
+                :value="$kpi['tasks_in_progress']" 
+                :subtitle="'Đã hoàn thành: ' . $kpi['tasks_completed']" 
+                type="warning" 
+                link="{{ url('/tasks') }}"
+            >
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </x-the-thong-ke>
+        @endif
 
         <!-- 4. Hồ sơ trình / Báo cáo chờ duyệt (Tùy vai trò) -->
         @if($role === 'EXECUTING_UNIT')
@@ -101,11 +126,11 @@
             >
                 <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </x-the-thong-ke>
-        @else
+        @elseif($canSubmissions)
             <x-the-thong-ke 
-                title="Hồ sơ trình chờ xử lý" 
+                :title="$role === 'UNIT_REP' ? 'Hồ sơ đơn vị chờ xử lý' : 'Hồ sơ trình chờ xử lý'" 
                 :value="$kpi['pending_dossiers']" 
-                :subtitle="$kpi['pending_reports'] . ' báo cáo cần duyệt'" 
+                :subtitle="$canTaskReports ? ($kpi['pending_reports'] . ' báo cáo cần duyệt') : 'Theo dõi thẩm định hồ sơ'" 
                 type="danger" 
                 link="{{ url('/submissions') }}"
             >
@@ -117,10 +142,11 @@
 
 <!-- 2. BỐ CỤC CHÍNH 2 CỘT -->
 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-6); align-items: start;">
-    <!-- CỘT TRÁI: PHIÊN HỌP & THEO DÕI NHIỆM VỤ -->
+    <!-- CỘT TRÁI: PHIÊN HỌP / HỒ SƠ & THEO DÕI NHIỆM VỤ -->
     <div style="display: flex; flex-direction: column; gap: var(--space-6);">
-        <!-- 2.1 Phiên họp sắp tới -->
-        <div class="stu-card">
+        @if($canMeetings)
+            <!-- 2.1 Phiên họp sắp tới -->
+            <div class="stu-card">
             <div class="stu-card-header">
                 <h3 class="stu-card-title">Lịch phiên họp Hội đồng trường</h3>
                 <div class="stu-card-actions">
@@ -190,7 +216,59 @@
                 @endif
             </div>
         </div>
+        @endif
 
+        @if($role === 'UNIT_REP' && isset($recentDossiers))
+            <!-- Hồ sơ trình gần đây của Đơn vị trình -->
+            <div class="stu-card">
+                <div class="stu-card-header">
+                    <h3 class="stu-card-title">Hồ sơ trình của đơn vị</h3>
+                    <div class="stu-card-actions">
+                        <a href="{{ url('/submissions') }}" style="font-size: var(--font-size-xs); font-weight: 600; color: var(--color-primary); display: flex; align-items: center; gap: 4px;">
+                            Xem tất cả
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div style="overflow: hidden;">
+                    @if($recentDossiers->isEmpty())
+                        <div class="stu-empty-state">
+                            <div class="stu-empty-title">Chưa có hồ sơ trình nào</div>
+                            <div class="stu-empty-desc">Đơn vị của bạn chưa gửi hồ sơ trình nào lên Hội đồng trường.</div>
+                        </div>
+                    @else
+                        <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--font-size-sm); table-layout: fixed;">
+                            <thead>
+                                <tr>
+                                    <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--color-border); width: 52%;">Tiêu đề hồ sơ</th>
+                                    <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--color-border);">Ngày trình</th>
+                                    <th style="background: var(--color-bg-subtle); color: var(--color-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--color-border); text-align: center;">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($recentDossiers as $hs)
+                                    <tr>
+                                        <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: middle;">
+                                            <a href="{{ route('submissions.show', $hs->MaHoSo) }}" style="color: var(--color-primary); font-weight: 600; font-size: 13px; text-decoration: none;">
+                                                {{ $hs->ma_ho_so_hien_thi }}: {{ $hs->TieuDe }}
+                                            </a>
+                                        </td>
+                                        <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); font-size: 12px; color: var(--color-text-muted);">
+                                            {{ $hs->NgayTrinh ? \Carbon\Carbon::parse($hs->NgayTrinh)->format('d/m/Y') : '—' }}
+                                        </td>
+                                        <td style="padding: 10px 12px; border-bottom: 1px solid var(--color-border-subtle); text-align: center;">
+                                            <x-nhan-trang-thai :status="$hs->TrangThai" />
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+            </div>
+        @endif
+
+        @if($canTasks)
         <!-- 2.2 Theo dõi thực hiện nhiệm vụ -->
         <div class="stu-card">
             <div class="stu-card-header">
@@ -277,10 +355,12 @@
                 @endif
             </div>
         </div>
+        @endif
     </div>
 
     <!-- CỘT PHẢI: TIẾN ĐỘ TỔNG THỂ & NGHỊ QUYẾT MỚI & BÁO CÁO CHỜ DUYỆT -->
     <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+        @if($canTasks)
         <!-- 2.3 Biểu đồ phân bổ tiến độ nhiệm vụ -->
         <div class="stu-card" style="padding: var(--space-6);">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4);">
@@ -333,6 +413,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- 2.4 Nghị quyết mới ban hành -->
         <x-bang-du-lieu 

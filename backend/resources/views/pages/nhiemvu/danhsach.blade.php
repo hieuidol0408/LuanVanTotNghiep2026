@@ -21,7 +21,7 @@
                 <i class="bi bi-journal-check"></i>
                 <span>Báo cáo tiến độ</span>
             </a>
-            @if(Auth::user() && Auth::user()->role !== 'EXECUTING_UNIT')
+            @if(Auth::user() && in_array(Auth::user()->role, ['CHAIR', 'SECRETARY', 'ADMIN']))
                 <button type="button" class="stu-btn stu-btn-primary" style="height: 38px;" data-modal-open="createTaskModal">
                     <i class="bi bi-plus-circle"></i>
                     <span>Giao nhiệm vụ mới</span>

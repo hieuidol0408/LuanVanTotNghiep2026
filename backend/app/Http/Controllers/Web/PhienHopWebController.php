@@ -16,6 +16,7 @@ use App\Models\ThamDu;
 use App\Models\ThanhVienHdt;
 use App\Models\UyQuyenBieuQuyet;
 use App\Support\DuplicateNameChecker;
+use App\Support\RolePermissions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,8 +29,11 @@ class PhienHopWebController extends Controller
     /**
      * Danh sách phiên họp (Bộ lọc, Tìm kiếm, Phân trang)
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'meetings')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Quản lý phiên họp.');
+        }
         $query = PhienHop::query()
             ->with(['nguoiDung'])
             ->withCount(['chuongTrinhHop', 'thamDu', 'taiLieu']);
@@ -95,8 +99,11 @@ class PhienHopWebController extends Controller
     /**
      * Tra cứu lịch sử phiên họp (Báo cáo luận văn 3.3.3)
      */
-    public function history(Request $request): View
+    public function history(Request $request): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'meetings.history')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập Lịch sử phiên họp.');
+        }
         $query = PhienHop::query()
             ->with(['nguoiDung', 'nghiQuyet', 'taiLieu'])
             ->withCount(['chuongTrinhHop', 'thamDu', 'taiLieu', 'nghiQuyet']);
@@ -472,8 +479,11 @@ class PhienHopWebController extends Controller
     /**
      * Màn hình chi tiết phiên họp với 7 TAB nghiệp vụ chuyên sâu
      */
-    public function show(int|string $id): View
+    public function show(int|string $id): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'meetings')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Quản lý phiên họp.');
+        }
         $meeting = PhienHop::with([
             'nguoiDung.vaiTro',
             'thamDu.thanhVienHdt.nguoiDung.donVi',

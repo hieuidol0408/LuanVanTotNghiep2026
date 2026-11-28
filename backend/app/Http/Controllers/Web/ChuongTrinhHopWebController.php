@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ChuongTrinhHop;
 use App\Models\HoSoTrinh;
 use App\Models\PhienHop;
+use App\Support\RolePermissions;
 use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,8 +22,11 @@ class ChuongTrinhHopWebController extends Controller
     /**
      * Danh sách chương trình nghị sự tổng hợp qua các phiên họp
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'agendas')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Chương trình họp.');
+        }
         $user = Auth::user();
         $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\ThanhVienHdt;
+use App\Support\RolePermissions;
 use App\Support\SearchCodeHelper;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -15,8 +16,11 @@ class ThanhVienHdtWebController extends Controller
     /**
      * Danh sách Thành viên Hội đồng trường STU (Khóa IV)
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'members')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập danh sách Thành viên Hội đồng trường.');
+        }
         $query = ThanhVienHdt::with(['nguoiDung.donVi', 'nguoiDung.vaiTro']);
 
         if ($search = trim((string) $request->input('search'))) {

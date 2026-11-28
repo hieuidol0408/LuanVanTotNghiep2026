@@ -8,6 +8,7 @@ use App\Models\HoSoTrinh;
 use App\Models\PhienHop;
 use App\Models\TaiLieu;
 use App\Support\DuplicateNameChecker;
+use App\Support\RolePermissions;
 use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,8 +21,11 @@ class HoSoTrinhWebController extends Controller
     /**
      * Danh sách hồ sơ trình (Phân quyền đơn vị, Lọc, Tìm kiếm, Phân trang)
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'submissions')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Hồ sơ trình.');
+        }
         $user = Auth::user();
         $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
         $userDeptId = $user?->department_id ?? session('department_id');
@@ -85,6 +89,9 @@ class HoSoTrinhWebController extends Controller
      */
     public function create(): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'submissions')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Hồ sơ trình.');
+        }
         $user = Auth::user();
         $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
 
@@ -200,6 +207,9 @@ class HoSoTrinhWebController extends Controller
      */
     public function show(int|string $id): View|RedirectResponse
     {
+        if (Auth::check() && ! RolePermissions::canAccessModule(RolePermissions::currentRole(), 'submissions')) {
+            return redirect()->route('dashboard')->with('error', 'Vai trò của bạn không có quyền truy cập phân hệ Hồ sơ trình.');
+        }
         $dossier = HoSoTrinh::with([
             'donVi',
             'nguoiDung',

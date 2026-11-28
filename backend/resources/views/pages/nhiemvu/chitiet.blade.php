@@ -60,10 +60,12 @@
 
         {{-- Thanh nút thao tác --}}
         <div class="stu-flex stu-items-center stu-gap-2" style="flex-wrap: wrap;">
-            <button type="button" class="stu-btn stu-btn-primary" style="height: 38px;" data-modal-open="createTaskReportModal">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                <span>Nộp báo cáo tiến độ</span>
-            </button>
+            @if(Auth::user() && in_array(Auth::user()->role, ['EXECUTING_UNIT', 'CHAIR', 'SECRETARY', 'ADMIN']))
+                <button type="button" class="stu-btn stu-btn-primary" style="height: 38px;" data-modal-open="createTaskReportModal">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    <span>Nộp báo cáo tiến độ</span>
+                </button>
+            @endif
 
             @if(Auth::user() && in_array(Auth::user()->role, ['SECRETARY', 'CHAIR', 'ADMIN']))
                 <button type="button" class="stu-btn stu-btn-secondary" style="height: 38px;" data-modal-open="editTaskModal">
@@ -387,6 +389,7 @@
     </x-hop-thoai>
 @endif
 
+@if(Auth::user() && in_array(Auth::user()->role, ['EXECUTING_UNIT', 'CHAIR', 'SECRETARY', 'ADMIN']))
 {{-- MODAL NỔI: NỘP BÁO CÁO TIẾN ĐỘ NHIỆM VỤ (BR-10) --}}
 <x-hop-thoai id="createTaskReportModal" title="Nộp Báo Cáo Tiến Độ Nhiệm Vụ (BR-10)" size="lg">
     <form method="POST" action="{{ route('task-reports.store') }}" enctype="multipart/form-data">
@@ -476,6 +479,7 @@
         </div>
     </form>
 </x-hop-thoai>
+@endif
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
