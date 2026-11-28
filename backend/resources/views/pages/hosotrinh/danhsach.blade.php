@@ -140,6 +140,7 @@
                             <span>{{ $item->taiLieu->count() }} tệp tài liệu đính kèm</span>
                         </div>
                     @endif
+                    @include('pages.nghiquyet._linked_resolutions_pills', ['resolutions' => $item->nghiQuyet])
                 </td>
                 <td style="font-size: 13px; max-width: 180px; line-height: 1.4;">
                     <span style="font-weight: 500;">{{ $item->donVi?->TenDonVi ?? 'Chưa xác định' }}</span>

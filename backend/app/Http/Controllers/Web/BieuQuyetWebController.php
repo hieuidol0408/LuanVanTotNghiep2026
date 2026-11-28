@@ -10,6 +10,7 @@ use App\Models\PhienHop;
 use App\Models\ThamDu;
 use App\Models\ThanhVienHdt;
 use App\Models\UyQuyenBieuQuyet;
+use App\Support\DuplicateNameChecker;
 use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class BieuQuyetWebController extends Controller
         $query = NoiDungBieuQuyet::with([
             'chuongTrinhHop.phienHop',
             'ketQuaBieuQuyet',
+            'nghiQuyet',
         ]);
 
         // 1. Tìm kiếm theo nội dung hoặc mã biểu quyết (#BQ-001, #1, 1)
@@ -123,8 +125,16 @@ class BieuQuyetWebController extends Controller
             'NoiDung.max' => 'Nội dung biểu quyết không được vượt quá 255 ký tự.',
         ]);
 
+        $trimmedContent = trim($validated['NoiDung']);
+        if (DuplicateNameChecker::exists(NoiDungBieuQuyet::query(), 'NoiDung', $trimmedContent)) {
+            return DuplicateNameChecker::failWeb(
+                'NoiDung',
+                "Nội dung biểu quyết \"{$trimmedContent}\" đã tồn tại trong hệ thống. Vui lòng nhập tên / nội dung khác."
+            );
+        }
+
         $vote = NoiDungBieuQuyet::create([
-            'NoiDung' => trim($validated['NoiDung']),
+            'NoiDung' => $trimmedContent,
             'ThoiGianMo' => null,
             'ThoiGianDong' => now()->addMinutes(30),
             'TrangThai' => 'Chưa mở',
@@ -143,6 +153,7 @@ class BieuQuyetWebController extends Controller
         $vote = NoiDungBieuQuyet::with([
             'chuongTrinhHop.phienHop.thamDu.thanhVienHdt.nguoiDung',
             'ketQuaBieuQuyet',
+            'nghiQuyet.phienHop',
         ])->findOrFail($id);
 
         $user = Auth::user();

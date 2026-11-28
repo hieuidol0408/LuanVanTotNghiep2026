@@ -347,10 +347,27 @@ class PhienHopController extends Controller
         // Nếu có gắn hồ sơ trình thì lấy MaHoSo, nếu không có thì tạo hoặc liên kết mặc định
         $dossierId = $validated['dossier_id'] ?? null;
         if (! $dossierId) {
+            $trimmedAgendaTitle = trim($validated['title']);
+            $normalizedTitle = \App\Support\DuplicateNameChecker::normalize($trimmedAgendaTitle);
+            $duplicateAgendaTitle = ChuongTrinhHop::with('hoSoTrinh')
+                ->where('MaPhienHop', $id)
+                ->get()
+                ->contains(function (ChuongTrinhHop $item) use ($normalizedTitle) {
+                    return \App\Support\DuplicateNameChecker::normalize($item->GhiChu) === $normalizedTitle
+                        || \App\Support\DuplicateNameChecker::normalize($item->hoSoTrinh?->TieuDe) === $normalizedTitle;
+                });
+
+            if ($duplicateAgendaTitle) {
+                \App\Support\DuplicateNameChecker::failApi(
+                    'title',
+                    "Mục chương trình \"{$trimmedAgendaTitle}\" đã tồn tại trong phiên họp này."
+                );
+            }
+
             // Tạo hồ sơ trình mặc định cho mục chương trình này
             $defaultDossier = HoSoTrinh::create([
-                'TieuDe' => $validated['title'],
-                'NoiDungTomTat' => $validated['title'],
+                'TieuDe' => $trimmedAgendaTitle,
+                'NoiDungTomTat' => $trimmedAgendaTitle,
                 'NgayTrinh' => now()->toDateString(),
                 'LinhVuc' => 'Chương trình họp',
                 'TrangThai' => 'SCHEDULED',
@@ -358,6 +375,16 @@ class PhienHopController extends Controller
                 'MaNguoiDung' => auth()->id() ?? 1,
             ]);
             $dossierId = $defaultDossier->MaHoSo;
+        } else {
+            $existsInMeeting = ChuongTrinhHop::where('MaPhienHop', $id)
+                ->where('MaHoSo', $dossierId)
+                ->exists();
+            if ($existsInMeeting) {
+                \App\Support\DuplicateNameChecker::failApi(
+                    'dossier_id',
+                    'Hồ sơ trình này đã có trong chương trình họp của phiên này (BR-08).'
+                );
+            }
         }
 
         // [BR-08] Liên kết Hồ sơ trình vào Phiên họp thông qua Chương trình họp (ThuTu xét duyệt > 0)

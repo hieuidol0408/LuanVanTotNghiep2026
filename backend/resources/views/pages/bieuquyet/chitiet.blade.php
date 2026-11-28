@@ -388,6 +388,15 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Nghị quyết Hội đồng trường liên kết với biểu quyết này --}}
+            @include('pages.nghiquyet._linked_resolutions_card', [
+                'resolutions' => $vote->nghiQuyet,
+                'unlinkType' => 'voting',
+                'targetId' => $vote->MaNoiDung,
+                'role' => $role,
+                'emptyMessage' => 'Nội dung biểu quyết này chưa được liên kết với Nghị quyết Hội đồng trường nào.',
+            ])
         </div>
 
         {{-- ==================== CỘT PHẢI: BUỒNG BỎ PHIẾU & THÔNG TIN PHIÊN HỌP ==================== --}}
@@ -560,7 +569,13 @@
                     <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
                         <span style="color: var(--color-text-muted);">Phiên họp:</span>
                         <span style="font-weight: 600; color: var(--color-text-primary); text-align: right; max-width: 60%;">
-                            {{ $meeting?->TenPhienHop ?? 'Phiên họp Hội đồng trường' }}
+                            @if($meeting)
+                                <a href="{{ route('meetings.show', $meeting->MaPhienHop) }}" style="color: var(--color-primary); text-decoration: none;">
+                                    #{{ $meeting->MaPhienHop }} - {{ $meeting->TenPhienHop }}
+                                </a>
+                            @else
+                                Phiên họp Hội đồng trường
+                            @endif
                         </span>
                     </div>
                     <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">

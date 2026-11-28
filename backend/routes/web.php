@@ -102,6 +102,9 @@ Route::prefix('resolutions')->name('resolutions.')->group(function () {
     Route::post('/{id}/documents', [NghiQuyetWebController::class, 'attachDocument'])->name('documents.store');
     Route::delete('/{id}/documents/{docId}', [NghiQuyetWebController::class, 'detachDocument'])->name('documents.destroy');
     Route::put('/{id}/links', [NghiQuyetWebController::class, 'updateLinks'])->name('links.update');
+    Route::delete('/{id}/links/{type}/{targetId}', [NghiQuyetWebController::class, 'detachLink'])
+        ->whereIn('type', ['dossier', 'voting'])
+        ->name('links.destroy');
 });
 
 // --- PHÂN HỆ PHÂN CÔNG NHIỆM VỤ (TASKS) ---

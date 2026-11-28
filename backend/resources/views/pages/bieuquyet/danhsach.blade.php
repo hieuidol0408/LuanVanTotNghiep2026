@@ -142,6 +142,7 @@
                             Thuộc mục chương trình họp: <strong>Mục số {{ $v->chuongTrinhHop->ThuTu }}</strong>
                         </div>
                     @endif
+                    @include('pages.nghiquyet._linked_resolutions_pills', ['resolutions' => $v->nghiQuyet])
                 </td>
                 <td style="max-width: 200px; font-size: 13px; line-height: 1.4;">
                     <div style="font-weight: 500;">
@@ -273,6 +274,7 @@
                                         @endphp
                                         <option 
                                             value="{{ $item->MaChuongTrinh }}"
+                                            {{ old('MaChuongTrinh') == $item->MaChuongTrinh ? 'selected' : '' }}
                                             data-meeting="{{ $mTitle }}"
                                             data-order="{{ $item->ThuTu }}"
                                             data-code="{{ $dossierCode }}"
@@ -321,7 +323,7 @@
                         class="stu-form-control" 
                         placeholder="Ví dụ: Biểu quyết thông qua Đề án kiện toàn cơ cấu tổ chức và nhân sự các đơn vị trực thuộc"
                         style="width: 100%; max-width: 100%; box-sizing: border-box; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; line-height: 1.4; resize: vertical;"
-                    ></textarea>
+                    >{{ old('NoiDung') }}</textarea>
                     <small style="font-size: 11px; color: var(--color-text-muted); margin-top: 4px; display: block;">
                         Nội dung này sẽ được hiển thị trên phiếu biểu quyết điện tử của tất cả thành viên Hội đồng trường.
                     </small>

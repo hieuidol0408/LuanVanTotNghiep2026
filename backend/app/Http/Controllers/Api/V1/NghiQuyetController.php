@@ -59,8 +59,7 @@ class NghiQuyetController extends Controller
         $perPage = (int) $request->query('perPage', 10);
         $page = (int) $request->query('page', 1);
 
-        $paginator = $query->orderBy('NgayBanHanh', 'desc')
-            ->orderBy('MaNghiQuyet', 'desc')
+        $paginator = $query->orderBy('MaNghiQuyet', 'asc')
             ->paginate($perPage, ['*'], 'page', $page);
 
         $items = collect($paginator->items())->map(fn (NghiQuyet $nq) => $this->formatResolutionSummary($nq));
@@ -96,7 +95,13 @@ class NghiQuyetController extends Controller
         }
 
         $validated = $request->validate([
-            'resolution_number' => ['required', 'string', 'max:191', 'unique:nghi_quyet,SoNghiQuyet'],
+            'resolution_number' => [
+                'required',
+                'string',
+                'max:191',
+                \Illuminate\Validation\Rule::unique('nghi_quyet', 'SoNghiQuyet')
+                    ->where(fn ($q) => $q->whereNull('deleted_at')->where('TrangThai', '!=', 'Đã ẩn')),
+            ],
             'title' => ['required', 'string', 'min:10', 'max:255'],
             'content' => ['required', 'string'],
             'meeting_id' => ['required', 'integer', 'exists:phien_hop,MaPhienHop'],
@@ -114,14 +119,22 @@ class NghiQuyetController extends Controller
             'meeting_id.required' => 'Vui lòng chọn phiên họp Hội đồng trường thông qua.',
         ]);
 
+        $trimmedTitle = trim($validated['title']);
+        if (\App\Support\DuplicateNameChecker::exists(NghiQuyet::query(), 'TrichYeu', $trimmedTitle)) {
+            \App\Support\DuplicateNameChecker::failApi(
+                'title',
+                "Tên / Trích yếu Nghị quyết \"{$trimmedTitle}\" đã tồn tại trong hệ thống."
+            );
+        }
+
         $status = $validated['status'] ?? 'DRAFT';
         $issuedDate = $validated['issued_date'] ?? now()->toDateString();
 
-        $resolution = DB::transaction(function () use ($validated, $status, $issuedDate) {
+        $resolution = DB::transaction(function () use ($validated, $trimmedTitle, $status, $issuedDate) {
             $nq = NghiQuyet::create([
                 'SoNghiQuyet' => $validated['resolution_number'],
                 'NgayBanHanh' => $issuedDate,
-                'TrichYeu' => $validated['title'],
+                'TrichYeu' => $trimmedTitle,
                 'NoiDung' => $validated['content'],
                 'TrangThai' => $status,
                 'MaPhienHop' => $validated['meeting_id'],

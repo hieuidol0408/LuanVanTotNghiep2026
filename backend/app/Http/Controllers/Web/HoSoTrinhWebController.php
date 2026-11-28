@@ -7,6 +7,7 @@ use App\Models\DonVi;
 use App\Models\HoSoTrinh;
 use App\Models\PhienHop;
 use App\Models\TaiLieu;
+use App\Support\DuplicateNameChecker;
 use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class HoSoTrinhWebController extends Controller
         $role = $user?->role ?? (session('user_role') ?? 'CHAIR');
         $userDeptId = $user?->department_id ?? session('department_id');
 
-        $query = HoSoTrinh::with(['donVi', 'nguoiDung', 'taiLieu']);
+        $query = HoSoTrinh::with(['donVi', 'nguoiDung', 'taiLieu', 'nghiQuyet']);
 
         // [RBAC] Đại diện đơn vị (UNIT_REP) chỉ được quản lý hồ sơ thuộc đơn vị mình
         if ($role === 'UNIT_REP' && $userDeptId) {
@@ -145,9 +146,17 @@ class HoSoTrinhWebController extends Controller
             $validated['MaDonVi'] = $user->MaDonVi;
         }
 
-        $dossier = DB::transaction(function () use ($validated, $request, $user) {
+        $trimmedTitle = trim($validated['TieuDe']);
+        if (DuplicateNameChecker::exists(HoSoTrinh::query(), 'TieuDe', $trimmedTitle)) {
+            return DuplicateNameChecker::failWeb(
+                'TieuDe',
+                "Tiêu đề hồ sơ trình \"{$trimmedTitle}\" đã tồn tại trong hệ thống. Vui lòng nhập tên khác."
+            );
+        }
+
+        $dossier = DB::transaction(function () use ($validated, $trimmedTitle, $request, $user) {
             $record = HoSoTrinh::create([
-                'TieuDe' => trim($validated['TieuDe']),
+                'TieuDe' => $trimmedTitle,
                 'NoiDungTomTat' => trim($validated['NoiDungTomTat']),
                 'NgayTrinh' => now()->toDateString(),
                 'LinhVuc' => $validated['LinhVuc'],
@@ -196,6 +205,7 @@ class HoSoTrinhWebController extends Controller
             'nguoiDung',
             'taiLieu',
             'chuongTrinhHop.phienHop',
+            'nghiQuyet.phienHop',
         ])->findOrFail($id);
 
         $user = Auth::user();

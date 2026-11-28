@@ -95,10 +95,18 @@ class HoSoTrinhController extends Controller
             'field.required' => 'Vui lòng chọn lĩnh vực hồ sơ.',
         ]);
 
+        $trimmedTitle = trim($validated['title']);
+        if (\App\Support\DuplicateNameChecker::exists(HoSoTrinh::query(), 'TieuDe', $trimmedTitle)) {
+            \App\Support\DuplicateNameChecker::failApi(
+                'title',
+                "Tiêu đề hồ sơ trình \"{$trimmedTitle}\" đã tồn tại trong hệ thống."
+            );
+        }
+
         $maDonVi = $user?->MaDonVi ?? $validated['department_id'] ?? 1;
 
         $dossier = HoSoTrinh::create([
-            'TieuDe' => $validated['title'],
+            'TieuDe' => $trimmedTitle,
             'NoiDungTomTat' => $validated['summary'],
             'NgayTrinh' => now()->toDateString(),
             'LinhVuc' => $validated['field'],

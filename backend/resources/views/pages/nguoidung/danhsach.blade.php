@@ -324,7 +324,7 @@
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('create') === '1' || urlParams.get('add') === '1') {
+                if (urlParams.get('create') === '1' || urlParams.get('add') === '1' @if($errors->any()) || !urlParams.get('edit_user') @endif) {
                     if (window.STUModal) {
                         window.STUModal.open('addUserModal');
                     }

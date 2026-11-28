@@ -94,6 +94,43 @@ class ResolutionTreeCompletenessTest extends TestCase
             ->assertSee(route('documents.download', $firstDoc->MaTaiLieu), false)
             ->assertSee($dossier->ma_ho_so_hien_thi);
 
+        // 2b. Kiểm tra liên kết 2 chiều hiển thị ngược lại trong Hồ sơ trình & Biểu quyết
+        $this->get(route('submissions.index', ['search' => $dossier->MaHoSo]))
+            ->assertOk()
+            ->assertSee($soNq);
+
+        $this->get(route('submissions.show', $dossier->MaHoSo))
+            ->assertOk()
+            ->assertSee('Nghị quyết Hội đồng trường liên kết')
+            ->assertSee($soNq)
+            ->assertSee(route('resolutions.links.destroy', [$resolution->MaNghiQuyet, 'dossier', $dossier->MaHoSo]), false);
+
+        $this->get(route('votes.index', ['search' => '#BQ-' . $voting->MaNoiDung]))
+            ->assertOk()
+            ->assertSee($soNq);
+
+        $this->get(route('votes.show', $voting->MaNoiDung))
+            ->assertOk()
+            ->assertSee('Nghị quyết Hội đồng trường liên kết')
+            ->assertSee($soNq)
+            ->assertSee(route('resolutions.links.destroy', [$resolution->MaNghiQuyet, 'voting', $voting->MaNoiDung]), false);
+
+        // 2c. Gỡ liên kết trực tiếp từ thẻ Hồ sơ trình & Biểu quyết
+        $this->delete(route('resolutions.links.destroy', [$resolution->MaNghiQuyet, 'dossier', $dossier->MaHoSo]))
+            ->assertRedirect();
+        $this->delete(route('resolutions.links.destroy', [$resolution->MaNghiQuyet, 'voting', $voting->MaNoiDung]))
+            ->assertRedirect();
+
+        $resolution->refresh()->load(['hoSoTrinh', 'noiDungBieuQuyet']);
+        $this->assertCount(0, $resolution->hoSoTrinh);
+        $this->assertCount(0, $resolution->noiDungBieuQuyet);
+
+        // Liên kết lại để tiếp tục kiểm thử bước 4
+        $this->put(route('resolutions.links.update', $resolution->MaNghiQuyet), [
+            'dossier_ids' => [$dossier->MaHoSo],
+            'voting_ids' => [$voting->MaNoiDung],
+        ])->assertRedirect();
+
         // 3. Đính kèm thêm văn bản ngay trên chi tiết (kể cả sau khi ký)
         $resolution->update(['TrangThai' => 'Đã ký ban hành']);
         $this->post(route('resolutions.documents.store', $resolution->MaNghiQuyet), [
@@ -119,5 +156,21 @@ class ResolutionTreeCompletenessTest extends TestCase
 
         $resolution->refresh()->load('taiLieu');
         $this->assertCount(1, $resolution->taiLieu);
+    }
+
+    public function test_resolutions_list_is_sorted_ascending_by_code_id(): void
+    {
+        $secretary = User::where('email', 'thuky_hdt@stu.edu.vn')->firstOrFail();
+        $this->actingAs($secretary);
+
+        $response = $this->get(route('resolutions.index'));
+        $response->assertOk();
+
+        $paginator = $response->viewData('resolutions');
+        $ids = collect($paginator->items())->pluck('MaNghiQuyet')->all();
+        $sorted = $ids;
+        sort($sorted);
+
+        $this->assertSame($sorted, $ids);
     }
 }

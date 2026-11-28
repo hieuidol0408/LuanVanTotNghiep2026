@@ -143,11 +143,19 @@ class NhiemVuController extends Controller
             'due_date.after_or_equal' => 'Hạn hoàn thành phải sau hoặc bằng ngày bắt đầu.',
         ]);
 
-        $task = DB::transaction(function () use ($validated) {
+        $trimmedTitle = trim($validated['title']);
+        if (\App\Support\DuplicateNameChecker::exists(NhiemVu::query(), 'TenNhiemVu', $trimmedTitle)) {
+            \App\Support\DuplicateNameChecker::failApi(
+                'title',
+                "Tên nhiệm vụ \"{$trimmedTitle}\" đã tồn tại trong hệ thống."
+            );
+        }
+
+        $task = DB::transaction(function () use ($validated, $trimmedTitle) {
             $startDate = $validated['start_date'] ?? now()->toDateString();
 
             $nv = NhiemVu::create([
-                'TenNhiemVu' => $validated['title'],
+                'TenNhiemVu' => $trimmedTitle,
                 'NoiDung' => $validated['content'],
                 'NgayGiao' => $startDate,
                 'NgayHoanThanh' => $validated['due_date'],

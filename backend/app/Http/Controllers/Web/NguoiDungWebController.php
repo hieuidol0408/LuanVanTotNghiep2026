@@ -7,6 +7,7 @@ use App\Models\DonVi;
 use App\Models\ThanhVienHdt;
 use App\Models\NguoiDung;
 use App\Models\VaiTro;
+use App\Support\DuplicateNameChecker;
 use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -92,8 +93,16 @@ class NguoiDungWebController extends Controller
             'MaDonVi.exists' => 'Đơn vị công tác không hợp lệ.',
         ]);
 
+        $trimmedFullName = trim($validated['HoTen']);
+        if (DuplicateNameChecker::exists(NguoiDung::query(), 'HoTen', $trimmedFullName)) {
+            return DuplicateNameChecker::failWeb(
+                'HoTen',
+                "Tên người dùng \"{$trimmedFullName}\" đã tồn tại trong hệ thống. Vui lòng kiểm tra lại."
+            );
+        }
+
         $user = NguoiDung::create([
-            'HoTen' => $validated['HoTen'],
+            'HoTen' => $trimmedFullName,
             'email' => $validated['email'],
             'MatKhau' => Hash::make($validated['password']),
             'MaVaiTro' => $validated['MaVaiTro'],

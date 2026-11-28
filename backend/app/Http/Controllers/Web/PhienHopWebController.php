@@ -15,6 +15,7 @@ use App\Models\TaiLieu;
 use App\Models\ThamDu;
 use App\Models\ThanhVienHdt;
 use App\Models\UyQuyenBieuQuyet;
+use App\Support\DuplicateNameChecker;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -281,6 +282,15 @@ class PhienHopWebController extends Controller
             'doc_file.mimes' => 'Định dạng tập tin tài liệu không hợp lệ! Hệ thống chỉ hỗ trợ các tệp: PDF (.pdf), Word (.doc, .docx), Excel (.xls, .xlsx) hoặc PowerPoint (.ppt, .pptx).',
             'doc_file.max' => 'Dung lượng tập tin tài liệu không được vượt quá 20MB.',
         ]);
+
+        $trimmedMeetingName = trim($validated['TenPhienHop']);
+        if (DuplicateNameChecker::exists(PhienHop::query(), 'TenPhienHop', $trimmedMeetingName)) {
+            return DuplicateNameChecker::failWeb(
+                'TenPhienHop',
+                "Tên phiên họp \"{$trimmedMeetingName}\" đã tồn tại trong hệ thống. Vui lòng đặt tên khác."
+            );
+        }
+        $validated['TenPhienHop'] = $trimmedMeetingName;
 
         $rawStartTime = trim($validated['GioBatDau']);
         $rawEndTime = trim($validated['GioKetThuc']);
@@ -782,11 +792,33 @@ class PhienHopWebController extends Controller
         if (!empty($validated['MaKhachMoi'])) {
             $guest = KhachMoi::findOrFail($validated['MaKhachMoi']);
         } else {
+            $trimmedGuestName = trim((string) $validated['HoTen']);
+            $normalizedGuestName = DuplicateNameChecker::normalize($trimmedGuestName);
+            $matchedGuest = KhachMoi::all()->first(
+                fn ($g) => DuplicateNameChecker::normalize($g->HoTen) === $normalizedGuestName
+            );
+
+            if ($matchedGuest) {
+                $alreadyInMeeting = KhachMoiPhienHop::where('MaPhienHop', $id)
+                    ->where('MaKhachMoi', $matchedGuest->MaKhachMoi)
+                    ->exists();
+
+                if ($alreadyInMeeting) {
+                    return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'guests'])
+                        ->with('warning', 'Khách mời này đã được mời tham gia phiên họp (Tuân thủ BR-03).');
+                }
+
+                $errMsg = "Tên khách mời \"{$trimmedGuestName}\" đã tồn tại trong danh bạ. Vui lòng chọn từ danh sách có sẵn hoặc kiểm tra lại.";
+                return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'guests', 'add_guest' => 1])
+                    ->withInput()
+                    ->with('error', $errMsg)
+                    ->withErrors(['HoTen' => $errMsg]);
+            }
+
             // Tạo khách mời nếu chưa có trong danh bạ
-            $guest = KhachMoi::firstOrCreate([
-                'HoTen' => trim($validated['HoTen']),
+            $guest = KhachMoi::create([
+                'HoTen' => $trimmedGuestName,
                 'DonViCongTac' => !empty($validated['DonViCongTac']) ? trim($validated['DonViCongTac']) : null,
-            ], [
                 'ChucVu' => !empty($validated['ChucVu']) ? trim($validated['ChucVu']) : null,
                 'Email' => !empty($validated['Email']) ? trim($validated['Email']) : null,
             ]);
@@ -953,6 +985,16 @@ class PhienHopWebController extends Controller
         }
 
         $validated = $validator->validated();
+        $trimmedDocTitle = trim($validated['TenTaiLieu']);
+
+        $meetingDocQuery = TaiLieu::whereHas('phienHop', fn ($q) => $q->where('phien_hop.MaPhienHop', $id));
+        if (DuplicateNameChecker::exists($meetingDocQuery, 'TenTaiLieu', $trimmedDocTitle)) {
+            $errMsg = "Tài liệu có tên \"{$trimmedDocTitle}\" đã tồn tại trong phiên họp này. Vui lòng đặt tên khác.";
+            return redirect()->route('meetings.show', ['id' => $id, 'tab' => 'docs', 'upload_doc' => 1])
+                ->withInput()
+                ->with('error', $errMsg)
+                ->withErrors(['TenTaiLieu' => $errMsg]);
+        }
 
         $uploadedFile = $request->file('file');
         $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $uploadedFile->getClientOriginalName());
@@ -961,7 +1003,7 @@ class PhienHopWebController extends Controller
         $user = Auth::user();
 
         $taiLieu = TaiLieu::create([
-            'TenTaiLieu' => $validated['TenTaiLieu'],
+            'TenTaiLieu' => $trimmedDocTitle,
             'LoaiTaiLieu' => $validated['LoaiTaiLieu'],
             'DuongDan' => '/storage/' . $path,
             'DinhDang' => $uploadedFile->getClientOriginalExtension(),

@@ -8,6 +8,7 @@ use App\Models\NghiQuyet;
 use App\Models\NoiDungBieuQuyet;
 use App\Models\PhienHop;
 use App\Models\TaiLieu;
+use App\Support\DuplicateNameChecker;
 use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -102,8 +103,7 @@ class NghiQuyetWebController extends Controller
             $perPage = 10;
         }
 
-        $resolutions = $query->orderBy('NgayBanHanh', 'desc')
-            ->orderBy('MaNghiQuyet', 'desc')
+        $resolutions = $query->orderBy('MaNghiQuyet', 'asc')
             ->paginate($perPage)
             ->withQueryString();
 
@@ -186,12 +186,20 @@ class NghiQuyetWebController extends Controller
             'NgayBanHanh.required' => 'Vui lòng chọn ngày ban hành.',
         ]);
 
-        $resolution = DB::transaction(function () use ($validated, $request) {
+        $trimmedTrichYeu = trim($validated['TrichYeu']);
+        if (DuplicateNameChecker::exists(NghiQuyet::query(), 'TrichYeu', $trimmedTrichYeu)) {
+            return DuplicateNameChecker::failWeb(
+                'TrichYeu',
+                "Tên / Trích yếu nghị quyết \"{$trimmedTrichYeu}\" đã tồn tại trong hệ thống. Vui lòng nhập nội dung khác."
+            );
+        }
+
+        $resolution = DB::transaction(function () use ($validated, $trimmedTrichYeu, $request) {
             $this->releaseArchivedResolutionNumber($validated['SoNghiQuyet']);
 
             $record = NghiQuyet::create([
                 'SoNghiQuyet' => $validated['SoNghiQuyet'],
-                'TrichYeu' => $validated['TrichYeu'],
+                'TrichYeu' => $trimmedTrichYeu,
                 'NoiDung' => $validated['NoiDung'],
                 'NgayBanHanh' => $validated['NgayBanHanh'],
                 'TrangThai' => 'Dự thảo',
@@ -343,6 +351,21 @@ class NghiQuyetWebController extends Controller
             'file.required_without' => 'Vui lòng chọn ít nhất một tệp văn bản (.pdf, .doc, .docx) để đính kèm.',
         ]);
 
+        $resolutionDocQuery = TaiLieu::whereHas('nghiQuyet', fn ($q) => $q->where('nghi_quyet.MaNghiQuyet', $resolution->MaNghiQuyet));
+        $incomingFiles = array_merge(
+            $request->hasFile('file') ? [$request->file('file')] : [],
+            $request->hasFile('files') ? (array) $request->file('files') : []
+        );
+        foreach ($incomingFiles as $incoming) {
+            if ($incoming instanceof UploadedFile) {
+                $docName = trim($incoming->getClientOriginalName());
+                if (DuplicateNameChecker::exists($resolutionDocQuery, 'TenTaiLieu', $docName)) {
+                    $msg = "Tài liệu có tên \"{$docName}\" đã tồn tại trong Nghị quyết {$resolution->SoNghiQuyet}.";
+                    return back()->with('error', $msg)->withErrors(['files' => $msg]);
+                }
+            }
+        }
+
         $docType = trim((string) $request->input('LoaiTaiLieu')) ?: 'Văn bản Nghị quyết chính thức';
         $attachedCount = DB::transaction(fn () => $this->storeAndAttachDocuments($resolution, $request, $docType));
 
@@ -409,6 +432,31 @@ class NghiQuyetWebController extends Controller
         });
 
         return back()->with('success', 'Đã cập nhật liên kết Hồ sơ trình & Biểu quyết cho Nghị quyết!');
+    }
+
+    /**
+     * Gỡ liên kết đơn lẻ giữa Nghị quyết với một Hồ sơ trình hoặc Nội dung biểu quyết
+     */
+    public function detachLink(int|string $id, string $type, int|string $targetId): RedirectResponse
+    {
+        $role = Auth::user()?->role ?? (session('user_role') ?? 'CHAIR');
+        if (! in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN'])) {
+            return back()->with('error', 'Bạn không có thẩm quyền gỡ liên kết Nghị quyết.');
+        }
+
+        $resolution = NghiQuyet::findOrFail($id);
+
+        if ($type === 'dossier') {
+            $resolution->hoSoTrinh()->detach((int) $targetId);
+            return back()->with('success', "Đã gỡ liên kết giữa Nghị quyết {$resolution->SoNghiQuyet} và Hồ sơ trình.");
+        }
+
+        if ($type === 'voting') {
+            $resolution->noiDungBieuQuyet()->detach((int) $targetId);
+            return back()->with('success', "Đã gỡ liên kết giữa Nghị quyết {$resolution->SoNghiQuyet} và Nội dung biểu quyết.");
+        }
+
+        abort(404);
     }
 
     /**

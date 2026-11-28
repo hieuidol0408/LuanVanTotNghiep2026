@@ -116,8 +116,16 @@ class TaiLieuController extends Controller
             'access_level.required' => 'Vui lòng chọn mức độ bảo mật (Nội bộ / Công khai / Quy chế).',
         ]);
 
+        $trimmedFileName = trim($validated['file_name']);
+        if (\App\Support\DuplicateNameChecker::exists(TaiLieu::query(), 'TenTaiLieu', $trimmedFileName)) {
+            \App\Support\DuplicateNameChecker::failApi(
+                'file_name',
+                "Tài liệu có tên \"{$trimmedFileName}\" đã tồn tại trong hệ thống."
+            );
+        }
+
         $doc = TaiLieu::create([
-            'TenTaiLieu' => $validated['file_name'],
+            'TenTaiLieu' => $trimmedFileName,
             'LoaiTaiLieu' => $validated['access_level'],
             'DuongDan' => 'documents/' . strtolower($validated['access_level']) . '/' . $validated['file_name'],
             'DinhDang' => $validated['file_type'] ?? 'application/pdf',

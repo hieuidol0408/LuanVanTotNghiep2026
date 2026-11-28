@@ -274,6 +274,15 @@
                 </div>
             @endif
         </div>
+
+        {{-- 4. Nghị quyết Hội đồng trường liên kết với hồ sơ này --}}
+        @include('pages.nghiquyet._linked_resolutions_card', [
+            'resolutions' => $dossier->nghiQuyet,
+            'unlinkType' => 'dossier',
+            'targetId' => $dossier->MaHoSo,
+            'role' => $role,
+            'emptyMessage' => 'Hồ sơ trình này chưa được liên kết với Nghị quyết Hội đồng trường nào.',
+        ])
     </div>
 </div>
 

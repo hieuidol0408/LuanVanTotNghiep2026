@@ -91,11 +91,19 @@ class BieuQuyetController extends Controller
             'title.required' => 'Vui lòng nhập nội dung biểu quyết.',
         ]);
 
+        $trimmedTitle = trim($validated['title']);
+        if (\App\Support\DuplicateNameChecker::exists(NoiDungBieuQuyet::query(), 'NoiDung', $trimmedTitle)) {
+            \App\Support\DuplicateNameChecker::failApi(
+                'title',
+                "Nội dung biểu quyết \"{$trimmedTitle}\" đã tồn tại trong hệ thống."
+            );
+        }
+
         $votingType = $validated['voting_type'] ?? 'SECRET';
         $passThreshold = $validated['pass_threshold'] ?? 50;
 
         $vote = NoiDungBieuQuyet::create([
-            'NoiDung' => $validated['title'],
+            'NoiDung' => $trimmedTitle,
             'ThoiGianMo' => null,
             'ThoiGianDong' => now()->addMinutes(30),
             'TrangThai' => 'PENDING',

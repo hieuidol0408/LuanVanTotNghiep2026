@@ -7,6 +7,7 @@ use App\Models\DonVi;
 use App\Models\NghiQuyet;
 use App\Models\NhiemVu;
 use App\Models\PhanCongNhiemVu;
+use App\Support\DuplicateNameChecker;
 use App\Support\SearchCodeHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -165,12 +166,20 @@ class NhiemVuWebController extends Controller
             'chu_tri_nguoi_phu_trach.required' => 'Vui lòng nhập tên người phụ trách đầu mối phía đơn vị chủ trì.',
         ]);
 
+        $trimmedTaskName = trim((string) $request->TenNhiemVu);
+        if (DuplicateNameChecker::exists(NhiemVu::query(), 'TenNhiemVu', $trimmedTaskName)) {
+            return DuplicateNameChecker::failWeb(
+                'TenNhiemVu',
+                "Tên nhiệm vụ \"{$trimmedTaskName}\" đã tồn tại trong hệ thống. Vui lòng đặt tên khác."
+            );
+        }
+
         DB::beginTransaction();
         try {
             // Tạo bản ghi nhiệm vụ
             $task = NhiemVu::create([
                 'MaNghiQuyet' => $request->MaNghiQuyet,
-                'TenNhiemVu' => $request->TenNhiemVu,
+                'TenNhiemVu' => $trimmedTaskName,
                 'NoiDung' => $request->NoiDung,
                 'NgayGiao' => $request->NgayGiao,
                 'NgayGiaoNhiemVu' => $request->NgayGiao,

@@ -300,13 +300,24 @@
                     @endif
                 </div>
                 @forelse($resolution->hoSoTrinh as $hs)
-                    <div style="padding: 8px 0; border-bottom: 1px solid var(--color-border); font-size: 13px;">
-                        <a href="{{ route('submissions.show', $hs->MaHoSo) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none;">
-                            {{ $hs->ma_ho_so_hien_thi }}: {{ $hs->TieuDe }}
-                        </a>
-                        <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
-                            Đơn vị trình: {{ $hs->donVi?->TenDonVi ?? 'Chưa cập nhật' }}
+                    <div style="padding: 8px 0; border-bottom: 1px solid var(--color-border); font-size: 13px; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
+                        <div style="min-width: 0; flex: 1;">
+                            <a href="{{ route('submissions.show', $hs->MaHoSo) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none;">
+                                {{ $hs->ma_ho_so_hien_thi }}: {{ $hs->TieuDe }}
+                            </a>
+                            <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
+                                Đơn vị trình: {{ $hs->donVi?->TenDonVi ?? 'Chưa cập nhật' }}
+                            </div>
                         </div>
+                        @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                            <form method="POST" action="{{ route('resolutions.links.destroy', [$resolution->MaNghiQuyet, 'dossier', $hs->MaHoSo]) }}" style="display: inline-block; margin: 0; flex-shrink: 0;" onsubmit="return confirm('Bạn có chắc muốn gỡ liên kết hồ sơ {{ $hs->ma_ho_so_hien_thi }} khỏi nghị quyết này?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="stu-btn stu-btn-ghost stu-btn-sm" style="padding: 2px 7px; font-size: 11px; color: var(--color-danger);" title="Gỡ liên kết hồ sơ này">
+                                    Gỡ
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 @empty
                     <div style="font-size: 12px; color: var(--color-text-muted);">Chưa liên kết hồ sơ tờ trình nào.</div>
@@ -326,16 +337,27 @@
                     @endif
                 </div>
                 @forelse($resolution->noiDungBieuQuyet as $bq)
-                    <div style="padding: 8px 0; border-bottom: 1px solid var(--color-border); font-size: 13px;">
-                        <a href="{{ route('votes.show', $bq->MaNoiDung) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none;">
-                            #BQ-{{ str_pad($bq->MaNoiDung, 3, '0', STR_PAD_LEFT) }}: {{ $bq->NoiDung }}
-                        </a>
-                        <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                            <x-nhan-trang-thai :status="$bq->TrangThai" />
-                            @if($bq->chuongTrinhHop?->phienHop)
-                                <span style="font-size: 11px; color: var(--color-text-muted);">Phiên #{{ $bq->chuongTrinhHop->MaPhienHop }}</span>
-                            @endif
+                    <div style="padding: 8px 0; border-bottom: 1px solid var(--color-border); font-size: 13px; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
+                        <div style="min-width: 0; flex: 1;">
+                            <a href="{{ route('votes.show', $bq->MaNoiDung) }}" style="font-weight: 600; color: var(--color-text-primary); text-decoration: none;">
+                                #BQ-{{ str_pad($bq->MaNoiDung, 3, '0', STR_PAD_LEFT) }}: {{ $bq->NoiDung }}
+                            </a>
+                            <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                <x-nhan-trang-thai :status="$bq->TrangThai" />
+                                @if($bq->chuongTrinhHop?->phienHop)
+                                    <span style="font-size: 11px; color: var(--color-text-muted);">Phiên #{{ $bq->chuongTrinhHop->MaPhienHop }}</span>
+                                @endif
+                            </div>
                         </div>
+                        @if(in_array($role, ['CHAIR', 'SECRETARY', 'ADMIN']))
+                            <form method="POST" action="{{ route('resolutions.links.destroy', [$resolution->MaNghiQuyet, 'voting', $bq->MaNoiDung]) }}" style="display: inline-block; margin: 0; flex-shrink: 0;" onsubmit="return confirm('Bạn có chắc muốn gỡ liên kết biểu quyết #BQ-{{ str_pad($bq->MaNoiDung, 3, '0', STR_PAD_LEFT) }} khỏi nghị quyết này?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="stu-btn stu-btn-ghost stu-btn-sm" style="padding: 2px 7px; font-size: 11px; color: var(--color-danger);" title="Gỡ liên kết biểu quyết này">
+                                    Gỡ
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 @empty
                     <div style="font-size: 12px; color: var(--color-text-muted);">Chưa liên kết nội dung biểu quyết nào.</div>
